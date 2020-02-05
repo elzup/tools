@@ -29,7 +29,7 @@ jobs:
       - run: yarn install
 
       - name: Start local server
-        run: yarn start & npx wait-on http://localhost:3000
+        run: yarn dev & npx wait-on http://localhost:3000
 
       - run: npx qawolf test
         env:
