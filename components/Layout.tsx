@@ -1,19 +1,25 @@
 import * as React from 'react'
 import Link from 'next/link'
 import Head from 'next/head'
+import { Container, List } from 'semantic-ui-react'
 
 type Props = {
   title?: string
 }
 
 type Routing = {
+  icon: string
   label: string
   path: string
 }
 
 const routings: Routing[] = [
-  { label: 'Top', path: '/' },
-  { label: 'GHA BadgeMaker', path: '/gh-action-badge-maker' },
+  { icon: 'home', label: 'Top', path: '/' },
+  {
+    icon: 'translate',
+    label: 'GHA BadgeMaker',
+    path: '/gh-action-badge-maker',
+  },
 ]
 
 const Layout: React.FC<Props> = ({
@@ -26,21 +32,28 @@ const Layout: React.FC<Props> = ({
       <meta charSet="utf-8" />
       <meta name="viewport" content="initial-scale=1.0, width=device-width" />
     </Head>
-    <header>
-      <nav>
-        {routings.map(routing => (
-          <div key={routing.path}>
-            <Link href={routing.path}>
-              <a>{routing.label}</a>
-            </Link>
-          </div>
-        ))}
-      </nav>
-    </header>
-    {children}
+    <header></header>
+    <Container>{children}</Container>
     <footer>
-      <hr />
-      <a href="https://anozon.me">anozon.me</a>
+      <Container>
+        <hr />
+        <nav>
+          <List>
+            {routings.map(routing => (
+              <List.Item
+                key={routing.path}
+                icon={routing.icon}
+                content={
+                  <Link href={routing.path}>
+                    <a>{routing.label}</a>
+                  </Link>
+                }
+              />
+            ))}
+          </List>
+        </nav>
+        <a href="https://anozon.me">anozon.me</a>
+      </Container>
     </footer>
     <style jsx>{`
       nav {
