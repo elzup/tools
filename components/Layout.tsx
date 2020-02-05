@@ -45,9 +45,9 @@ const Layout: React.FunctionComponent<Props> = ({
     <style jsx>{`
       nav {
         display: flex;
-      }
-      nav div:not(:first-child) {
-        margin-left: 1rem;
+        div:not(:first-child) {
+          margin-left: 1rem;
+        }
       }
     `}</style>
   </div>
