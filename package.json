@@ -21,6 +21,7 @@
     "eslint": "^6.8.0",
     "eslint-config-nzap": "^1.4.6",
     "node-sass": "^4.13.1",
+    "qawolf": "^0.8.3",
     "styled-jsx-plugin-sass": "^1.0.0",
     "typescript": "3.7.3"
   },

@@ -1,0 +1,32 @@
+[
+ {
+  "index": 0,
+  "html": {
+   "ancestors": [
+    "<div class=\"jsx-308390065\"></div>",
+    "<div id=\"__next\"></div>"
+   ],
+   "node": "<footer class=\"jsx-308390065\" innertext=\"anozon.me\"><hr class=\"jsx-308390065\"/><a href=\"https://anozon.me\" class=\"jsx-308390065\">anozon.me</a></footer>"
+  }
+ },
+ {
+  "index": 1,
+  "html": {
+   "ancestors": [
+    "<div class=\"jsx-308390065\"></div>",
+    "<nav class=\"jsx-308390065\"></nav>"
+   ],
+   "node": "<a class=\"jsx-308390065\" href=\"/about\" innertext=\"about\">about</a>"
+  }
+ },
+ {
+  "index": 2,
+  "html": {
+   "ancestors": [
+    "<div class=\"jsx-308390065\"></div>",
+    "<nav class=\"jsx-308390065\"></nav>"
+   ],
+   "node": "<a class=\"jsx-308390065\" href=\"/\" innertext=\"Top\">Top</a>"
+  }
+ }
+]
