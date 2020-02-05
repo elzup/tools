@@ -3,30 +3,20 @@
   "index": 0,
   "html": {
    "ancestors": [
-    "<div class=\"ui container\"></div>",
-    "<footer class=\"jsx-308390065\"></footer>"
+    "<div class=\"content\"></div>",
+    "<div role=\"listitem\" class=\"item\"></div>"
    ],
-   "node": "<a href=\"https://anozon.me\" class=\"jsx-308390065\" innertext=\"anozon.me\">anozon.me</a>"
+   "node": "<a class=\"jsx-308390065\" href=\"/gha-badge-maker\" innertext=\"GHA BadgeMaker\">GHA BadgeMaker</a>"
   }
  },
  {
   "index": 1,
   "html": {
    "ancestors": [
-    "<section class=\"Menu__Wrapper-q0wajl-0 hIEZuC\"></section>",
-    "<div class=\"TopScreen__Content-sc-5gez13-1 dpMVK\"></div>"
+    "<div class=\"content\"></div>",
+    "<div role=\"listitem\" class=\"item\"></div>"
    ],
-   "node": "<a class=\"MenuItem__A-sc-1zxi66-0 bWafDx\" href=\"#work\" innertext=\"Work\"><svg aria-hidden=\"true\" focusable=\"false\" data-prefix=\"fas\" data-icon=\"palette\" class=\"svg-inline--fa fa-palette fa-w-16 \" role=\"img\" viewBox=\"0 0 512 512\"><path fill=\"currentColor\" d=\"M204.3 5C104.9 24.4 24.8 104.3 5.2 203.4c-37 187 131.7 326.4 258.8 306.7 41.2-6.4 61.4-54.6 42.5-91.7-23.1-45.4 9.9-98.4 60.9-98.4h79.7c35.8 0 64.8-29.6 64.9-65.3C511.5 97.1 368.1-26.9 204.3 5zM96 320c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32zm32-128c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32zm128-64c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32zm128 64c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z\"/></svg><div class=\"MenuItem__Button-sc-1zxi66-1 lkQSHb\">Work</div></a>"
-  }
- },
- {
-  "index": 2,
-  "html": {
-   "ancestors": [
-    "<div class=\"components__GridFrame-sc-1oandm5-0 joUumi\"></div>",
-    "<div class=\"ProductGallery__Wrapper-sc-1ky37wa-0 bAIMaI\"></div>"
-   ],
-   "node": "<a href=\"https://elzup.com\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"ProductCard__Wrapper-sc-1qucffj-0 TvqrW\" innertext=\"elzup.com 大学時代の自分跡地\"><div class=\"ProductCard__Card-sc-1qucffj-1 jkpApP\"><div><img src=\"/static/elzup.png\" alt=\"elzup.com\"/></div><h4>elzup.com</h4><p>大学時代の自分跡地</p></div></a>"
+   "node": "<a class=\"jsx-308390065\" href=\"/\" innertext=\"Top\">Top</a>"
   }
  }
 ]

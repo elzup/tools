@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "next",
     "build": "next build",
+    "test": "qawolf test",
     "export": "yarn build && next export",
     "start": "next start",
     "type-check": "tsc"
