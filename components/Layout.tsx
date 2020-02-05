@@ -18,7 +18,7 @@ const routings: Routing[] = [
   {
     icon: 'translate',
     label: 'GHA BadgeMaker',
-    path: '/gh-action-badge-maker',
+    path: '/gha-badge-maker',
   },
 ]
 
