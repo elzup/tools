@@ -13,12 +13,12 @@ type Routing = {
 
 const routings: Routing[] = [
   { label: 'Top', path: '/' },
-  { label: 'about', path: '/about' },
+  { label: 'GHA BadgeMaker', path: '/gh-action-badge-maker' },
 ]
 
-const Layout: React.FunctionComponent<Props> = ({
+const Layout: React.FC<Props> = ({
   children,
-  title = 'This is the default title',
+  title = 'mini web tools by anozon',
 }) => (
   <div>
     <Head>

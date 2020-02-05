@@ -8,5 +8,6 @@
         }
       }
     ]
-  ]
+  ],
+  "plugins": [["inline-import", { "extensions": [".css"] }]]
 }
