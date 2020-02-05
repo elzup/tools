@@ -2,10 +2,10 @@ name: qawolf
 on:
   push:
     branches:
-      - "master"
+      - master
   pull_request:
     branches:
-      - master
+      - '*'
 jobs:
   test:
     runs-on: ubuntu-18.04
@@ -15,17 +15,21 @@ jobs:
 
       - uses: actions/setup-node@v1
 
+      - name: Get yarn cache
+        id: yarn-cache
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
       - uses: actions/cache@v1
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          path: ${{ steps.yarn-cache.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-node-
+            ${{ runner.os }}-yarn-
 
       - run: yarn install
 
       - name: Start local server
-        run: yarn start & npx wait-on http://localhost:3000
+        run: yarn dev & npx wait-on http://localhost:3000
 
       - run: npx qawolf test
         env:
@@ -33,7 +37,7 @@ jobs:
 
           #   # configure tests with environment variables
           #   # https://docs.qawolf.com/docs/configuration
-          QAW_SLEEP_MS: 0
+          QAW_SLEEP_MS: 3000
         #   # you can also use GitHub secrets for environment variables
         #   # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets
         #   LOGIN_PASSWORD: ${{ secrets.PASSWORD }}
