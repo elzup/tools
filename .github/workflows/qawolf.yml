@@ -37,7 +37,7 @@ jobs:
 
           #   # configure tests with environment variables
           #   # https://docs.qawolf.com/docs/configuration
-          QAW_SLEEP_MS: 0
+          QAW_SLEEP_MS: 3000
         #   # you can also use GitHub secrets for environment variables
         #   # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets
         #   LOGIN_PASSWORD: ${{ secrets.PASSWORD }}
