@@ -6,6 +6,16 @@ type Props = {
   title?: string
 }
 
+type Routing = {
+  label: string
+  path: string
+}
+
+const routings: Routing[] = [
+  { label: 'Top', path: '/' },
+  { label: 'about', path: '/about' },
+]
+
 const Layout: React.FunctionComponent<Props> = ({
   children,
   title = 'This is the default title',
@@ -18,24 +28,28 @@ const Layout: React.FunctionComponent<Props> = ({
     </Head>
     <header>
       <nav>
-        <Link href="/">
-          <a>Home</a>
-        </Link>{' '}
-        |{' '}
-        <Link href="/about">
-          <a>About</a>
-        </Link>{' '}
-        |{' '}
-        <Link href="/users">
-          <a>Users List</a>
-        </Link>
+        {routings.map(routing => (
+          <div key={routing.path}>
+            <Link href={routing.path}>
+              <a>{routing.label}</a>
+            </Link>
+          </div>
+        ))}
       </nav>
     </header>
     {children}
     <footer>
       <hr />
-      <span>I'm here to stay (Footer)</span>
+      <a href="https://anozon.me">anozon.me</a>
     </footer>
+    <style jsx>{`
+      nav {
+        display: flex;
+      }
+      nav div:not(:first-child) {
+        margin-left: 1rem;
+      }
+    `}</style>
   </div>
 )
 
