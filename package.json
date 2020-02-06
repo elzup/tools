@@ -12,26 +12,26 @@
   "dependencies": {
     "isomorphic-unfetch": "3.0.0",
     "next": "latest",
-    "react": "^16.12.0",
-    "react-dom": "^16.12.0",
-    "semantic-ui-css": "^2.4.1",
-    "semantic-ui-react": "^0.84.0"
+    "react": "16.12.0",
+    "react-dom": "16.12.0",
+    "semantic-ui-css": "2.4.1",
+    "semantic-ui-react": "0.84.0"
   },
   "devDependencies": {
-    "@types/node": "^13.7.0",
-    "@types/react": "^16.9.16",
-    "@types/react-dom": "^16.9.4",
-    "babel-plugin-import": "^1.13.0",
-    "babel-plugin-inline-import": "^3.0.0",
-    "eslint": "^6.8.0",
-    "eslint-config-nzap": "^1.4.6",
-    "file-loader": "^5.0.2",
-    "node-sass": "^4.13.1",
-    "qawolf": "^0.8.3",
-    "styled-jsx-plugin-sass": "^1.0.0",
+    "@types/node": "13.7.0",
+    "@types/react": "16.9.19",
+    "@types/react-dom": "16.9.5",
+    "babel-plugin-import": "1.13.0",
+    "babel-plugin-inline-import": "3.0.0",
+    "eslint": "6.8.0",
+    "eslint-config-nzap": "1.4.6",
+    "file-loader": "5.0.2",
+    "node-sass": "4.13.1",
+    "qawolf": "0.8.3",
+    "styled-jsx-plugin-sass": "1.0.0",
     "typescript": "3.7.5",
-    "url-loader": "^3.0.0",
-    "webpack": "^4.41.5"
+    "url-loader": "3.0.0",
+    "webpack": "4.41.5"
   },
   "resolutions": {
     "terser": "3.14.1"
