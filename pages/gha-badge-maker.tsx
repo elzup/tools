@@ -25,6 +25,8 @@ export function convertUrlToBadge(url: string, action?: string): ParseResult {
     badgeText: `![${actionName}](${badgeUrl})`,
   }
 }
+const exampleUrl =
+  'https://github.com/elzup/tools/actions?query=workflow%3Aqawolf'
 
 const title = 'GHA BadgeMaker'
 const GHABadgePage = () => {
@@ -45,13 +47,19 @@ const GHABadgePage = () => {
     <Layout title={title}>
       <Header as="h1">{title}</Header>
       <p>Generate GitHub Actions Badge by url.</p>
-      <Input
-        value={url}
-        style={{ width: '100%' }}
-        size="large"
-        placeholder="https://github.com/elzup/tools/actions?query=workflow%3Aqawolf"
-        onChange={({ target: { value } }) => setUrl(value)}
-      />
+      <Form.Field>
+        <label>
+          Badge Page URL <a href={exampleUrl}>example</a>
+        </label>
+        <Input
+          value={url}
+          style={{ width: '100%' }}
+          size="large"
+          placeholder={exampleUrl}
+          onChange={({ target: { value } }) => setUrl(value)}
+        />
+      </Form.Field>
+
       {result && (
         <Message>
           <Message.Header>
@@ -61,6 +69,7 @@ const GHABadgePage = () => {
             <Form>
               <TextArea value={result.badgeText} />
             </Form>
+            <img src={result.badgeUrl}></img>
           </p>
         </Message>
       )}
