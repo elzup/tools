@@ -5,7 +5,7 @@ on:
       - master
   pull_request:
     branches:
-      - '*'
+      - "*"
 jobs:
   test:
     runs-on: ubuntu-18.04
@@ -41,6 +41,8 @@ jobs:
         #   # you can also use GitHub secrets for environment variables
         #   # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets
         #   LOGIN_PASSWORD: ${{ secrets.PASSWORD }}
+      - name: jest test
+        run: yarn test
       - name: Upload Artifacts
         if: always()
         uses: actions/upload-artifact@master
