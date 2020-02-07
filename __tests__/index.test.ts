@@ -1,4 +1,4 @@
-import { convertUrlToBadge } from '../gha-badge-maker'
+import { convertUrlToBadge } from '../pages/gha-badge-maker'
 
 test('convertUrlToBadge', () => {
   const url = 'https://github.com/elzup/tools/actions?query=workflow%3Aqawolf'
