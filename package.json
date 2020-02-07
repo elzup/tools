@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "next",
     "build": "next build",
-    "test": "qawolf test",
+    "test": "jest",
+    "test:e2e": "qawolf test",
     "export": "yarn build && next export",
     "start": "next start",
     "type-check": "tsc"
@@ -18,14 +19,17 @@
     "semantic-ui-react": "0.84.0"
   },
   "devDependencies": {
+    "@types/jest": "^25.1.2",
     "@types/node": "13.7.0",
     "@types/react": "16.9.19",
     "@types/react-dom": "16.9.5",
+    "babel-jest": "^25.1.0",
     "babel-plugin-import": "1.13.0",
     "babel-plugin-inline-import": "3.0.0",
     "eslint": "6.8.0",
     "eslint-config-nzap": "1.4.6",
     "file-loader": "5.0.2",
+    "jest": "^25.1.0",
     "node-sass": "4.13.1",
     "qawolf": "0.8.3",
     "styled-jsx-plugin-sass": "1.0.0",
