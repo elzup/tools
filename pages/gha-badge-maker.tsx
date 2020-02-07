@@ -1,15 +1,23 @@
 import * as React from 'react'
-import { Input, Header } from 'semantic-ui-react'
+import { Input, Header, Message, Form, TextArea } from 'semantic-ui-react'
 import Layout from '../components/Layout'
 
-export function convertUrlToBadge(url: string, action?: string) {
+type ParseResult = {
+  actionName: string
+  badgeUrl: string
+  badgeText: string
+} | null
+
+export function convertUrlToBadge(url: string, action?: string): ParseResult {
+  if (url === '') return null
+
   const parts = url.split('/')
   const tail = parts.pop()
 
   const repoUrl = parts.join('/')
-  const actionName = action || tail?.split('%3A').pop()
+  const actionName = action || tail?.split('%3A').pop() || ''
 
-  const badgeUrl = `${repoUrl}/workflows/${action || actionName}/badge.svg`
+  const badgeUrl = `${repoUrl}/workflows/${actionName}/badge.svg`
 
   return {
     actionName,
@@ -21,6 +29,17 @@ export function convertUrlToBadge(url: string, action?: string) {
 const title = 'GHA BadgeMaker'
 const GHABadgePage = () => {
   const [url, setUrl] = React.useState<string>('')
+  const [result, setResult] = React.useState<ParseResult>(null)
+
+  React.useEffect(() => {
+    try {
+      const res = convertUrlToBadge(url)
+
+      setResult(res)
+    } catch {
+      setResult(null)
+    }
+  }, [url])
 
   return (
     <Layout title={title}>
@@ -28,10 +47,23 @@ const GHABadgePage = () => {
       <p>Generate GitHub Actions Badge by url.</p>
       <Input
         value={url}
-        placeholder="https://github.com~"
+        style={{ width: '100%' }}
+        size="large"
+        placeholder="https://github.com/elzup/tools/actions?query=workflow%3Aqawolf"
         onChange={({ target: { value } }) => setUrl(value)}
       />
-      https://github.com/elzup/elzup.com/workflows/qawolf/badge.svg
+      {result && (
+        <Message>
+          <Message.Header>
+            {`Badge Generated Action "${result.actionName}"`}
+          </Message.Header>
+          <p>
+            <Form>
+              <TextArea value={result.badgeText} />
+            </Form>
+          </p>
+        </Message>
+      )}
     </Layout>
   )
 }
