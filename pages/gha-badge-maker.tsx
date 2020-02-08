@@ -9,13 +9,14 @@ type ParseResult = {
 } | null
 
 export function convertUrlToBadge(url: string, action?: string): ParseResult {
-  if (url === '') return null
+  const m = new RegExp(
+    '(https://github.com/.*/.*)/actions\\?query=workflow%3A(.*)'
+  ).exec(url)
 
-  const parts = url.split('/')
-  const tail = parts.pop()
+  if (!m) return null
 
-  const repoUrl = parts.join('/')
-  const actionName = action || tail?.split('%3A').pop() || ''
+  const [_, repoUrl, actionPath] = m
+  const actionName = action || actionPath
 
   const badgeUrl = `${repoUrl}/workflows/${actionName}/badge.svg`
 
