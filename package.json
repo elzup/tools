@@ -12,11 +12,11 @@
   },
   "dependencies": {
     "isomorphic-unfetch": "3.0.0",
-    "next": "latest",
-    "react": "16.12.0",
-    "react-dom": "16.12.0",
+    "next": "9.2.2",
+    "react": "16.13.0",
+    "react-dom": "16.13.0",
     "semantic-ui-css": "2.4.1",
-    "semantic-ui-react": "0.84.0"
+    "semantic-ui-react": "0.88.2"
   },
   "devDependencies": {
     "@types/jest": "25.1.2",
