@@ -21,6 +21,11 @@ const routings: Routing[] = [
     label: 'GHA BadgeMaker',
     path: '/gha-badge-maker',
   },
+  {
+    icon: 'fire',
+    label: 'noopener Attack Demo',
+    path: '/noopener',
+  },
 ]
 
 const Layout: React.FC<Props & { currentPath: string }> = ({
