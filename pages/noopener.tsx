@@ -7,8 +7,6 @@ const NoOpener = () => {
   return (
     <Layout title={title}>
       <Header as="h1">{title}</Header>
-      <p>rel=noopenerをつけていないリンク</p>
-
       <p>
         <a href="/noopener-attacker" target="_blank">
           noopenerをつけていない危険なリンク
