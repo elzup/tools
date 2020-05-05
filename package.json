@@ -34,7 +34,7 @@
     "qawolf": "0.13.5",
     "styled-jsx-plugin-sass": "1.0.0",
     "typescript": "3.8.3",
-    "url-loader": "3.0.0",
+    "url-loader": "4.1.0",
     "webpack": "4.43.0"
   },
   "resolutions": {
