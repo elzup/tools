@@ -26,6 +26,11 @@ const routings: Routing[] = [
     label: 'noopener Attack Demo',
     path: '/noopener',
   },
+  {
+    icon: 'graph',
+    label: '正規分布ツール',
+    path: '/normal-distribution',
+  },
 ]
 
 const Layout: React.FC<Props & { currentPath: string }> = ({
@@ -48,7 +53,7 @@ const Layout: React.FC<Props & { currentPath: string }> = ({
         <hr />
         <nav>
           <List>
-            {routings.map(routing => (
+            {routings.map((routing) => (
               <MenuItem
                 routing={routing}
                 opened={routing.path === currentPath}
