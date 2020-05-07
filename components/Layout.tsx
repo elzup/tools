@@ -27,7 +27,7 @@ const routings: Routing[] = [
     path: '/noopener',
   },
   {
-    icon: 'graph',
+    icon: 'calculator',
     label: '正規分布ツール',
     path: '/normal-distribution',
   },
