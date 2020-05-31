@@ -6704,31 +6704,26 @@ pkg-up@^2.0.0:
   dependencies:
     find-up "^2.1.0"
 
-playwright-ci@^0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/playwright-ci/-/playwright-ci-0.9.0.tgz#bc36c15806fb91aea6e692f7afbdc5c5a418fd18"
-  integrity sha512-pSBBDhxtTYrqpQAAh7TQUNAGE4ueHYpVXKsiz0g/XNIMccN+FuW3o/75yTO7qzQw549hb0HFEK04tDa7eshJOQ==
+playwright-ci@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/playwright-ci/-/playwright-ci-1.0.0.tgz#f08298e02b5a3e8d07be0620ab99080c4140715b"
+  integrity sha512-fZda+K5wh4NQDdFO1L82ZOb5fs7j/7GPWUaYj1B+pPQFU2rQsqJUAosHCQ6t37baQBfjtyPnZ8OEhyZDhpp3UQ==
   dependencies:
     debug "^4.1.1"
     fs-extra "^9.0.0"
     handlebars "^4.7.6"
     inquirer "^7.1.0"
-    tslib "^1.11.1"
+    tslib "^1.11.2"
 
-playwright-html-selector@^0.13.0:
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/playwright-html-selector/-/playwright-html-selector-0.13.0.tgz#29d858b54484f9c5faccabb89f12614eded3abbb"
-  integrity sha512-/UIDxQYUPKOFiU77uJniE2wzouvYdkfjdVE73mZrP67932+H4cguskIHvkkFK3uBwZJfOkf0jzeqVqzRbc07gw==
-
-playwright-video@^0.13.0:
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/playwright-video/-/playwright-video-0.13.0.tgz#a58f2fd5fd29eed3c3649d18fef0da5a292b17b4"
-  integrity sha512-NYdWnCSE23P5IkFrVzWUwLjgxYw/vUEQOlwTk/yCNnmLW284tFIfzrHeJSatrGj0V70i/QNbI5l69JVWWav6qA==
+playwright-video@^1.0.0:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/playwright-video/-/playwright-video-1.0.2.tgz#ed5c5724e93f7348ea16c277a4d1397107008b4e"
+  integrity sha512-RiS8HxbC600yCm4WJJjnbCgFj+CRs5cuAXu1CSmeH4v3zo2xTdX0VDG0Nm0sczDX8a8iydKfmNmuKSmtecJKNQ==
   dependencies:
     debug "*"
     fluent-ffmpeg "^2.1.2"
     fs-extra "^9.0.0"
-    tslib "^1.11.1"
+    tslib "^2.0.0"
 
 pn@^1.1.0:
   version "1.1.0"
@@ -7256,10 +7251,10 @@ q@^1.1.2:
   resolved "https://registry.yarnpkg.com/q/-/q-1.5.1.tgz#7e32f75b41381291d04611f1bf14109ac00651d7"
   integrity sha1-fjL3W0E4EpHQRhHxvxQQmsAGUdc=
 
-qawolf@0.13.5:
-  version "0.13.5"
-  resolved "https://registry.yarnpkg.com/qawolf/-/qawolf-0.13.5.tgz#e1515042bcdd37b0db3c3221eefd8de050117519"
-  integrity sha512-HLqh+4+hECMQSwSGvnJeAcU+3UglJVPOp+XF2s5omcha+EMSClb8pNxaAgaeR4WIKwOETge9fStMu6cAGBHuCg==
+qawolf@1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/qawolf/-/qawolf-1.0.1.tgz#91905057a6f699a2ad62763270d783c76c62a01e"
+  integrity sha512-Epg9iBIkWX4fh9MBGG0CkcNrQm6l3PuXdlteSx6oNDCaZLgmjggAL47MXW35vG5R+oFrwk/0L6KdUj1uwUmnOg==
   dependencies:
     "@jperl/html-parse-stringify" "^1.0.4"
     "@qawolf/jest-reporter" "^0.1.0"
@@ -7274,9 +7269,8 @@ qawolf@0.13.5:
     inquirer "^7.1.0"
     kleur "^3.0.3"
     open "^7.0.3"
-    playwright-ci "^0.9.0"
-    playwright-html-selector "^0.13.0"
-    playwright-video "^0.13.0"
+    playwright-ci "^1.0.0"
+    playwright-video "^1.0.0"
     split "^1.0.1"
     tempy "^0.5.0"
     update-notifier "^4.1.0"
@@ -8813,6 +8807,16 @@ tslib@^1.11.1, tslib@^1.8.1, tslib@^1.9.0:
   version "1.11.2"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.11.2.tgz#9c79d83272c9a7aaf166f73915c9667ecdde3cc9"
   integrity sha512-tTSkux6IGPnUGUd1XAZHcpu85MOkIl5zX49pO+jfsie3eP0B6pyhOlLXm3cAC6T7s+euSDDUUV+Acop5WmtkVg==
+
+tslib@^1.11.2:
+  version "1.13.0"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.13.0.tgz#c881e13cc7015894ed914862d276436fa9a47043"
+  integrity sha512-i/6DQjL8Xf3be4K/E6Wgpekn5Qasl1usyw++dAA35Ue5orEn65VIxOA+YvNNl9HV3qv70T7CNwjODHZrLwvd1Q==
+
+tslib@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.0.0.tgz#18d13fc2dce04051e20f074cc8387fd8089ce4f3"
+  integrity sha512-lTqkx847PI7xEDYJntxZH89L2/aXInsyF2luSafe/+0fHOMjlBNXdH6th7f70qxLDhul7KZK0zC8V5ZIyHl0/g==
 
 tsutils@^3.17.1:
   version "3.17.1"
