@@ -38,7 +38,7 @@
     "webpack": "4.43.0"
   },
   "resolutions": {
-    "terser": "3.17.0"
+    "terser": "4.8.0"
   },
   "license": "ISC"
 }
