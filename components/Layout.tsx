@@ -26,11 +26,11 @@ const routings: Routing[] = [
     label: 'noopener Attack Demo',
     path: '/noopener',
   },
-  {
-    icon: 'calculator',
-    label: '正規分布ツール',
-    path: '/normal-distribution',
-  },
+  // {
+  //   icon: 'calculator',
+  //   label: '正規分布ツール',
+  //   path: '/normal-distribution',
+  // },
 ]
 
 const Layout: React.FC<Props & { currentPath: string }> = ({
