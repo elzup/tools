@@ -38,7 +38,7 @@ const Layout: React.FC<Props & { currentPath: string }> = ({
   title = 'mini web tools by anozon',
   currentPath,
 }) => (
-  <div className="root">
+  <div className="root" data-test={`page-${currentPath.replace(/\//g, '')}`}>
     <div>
       <Head>
         <title>{title}</title>
@@ -56,6 +56,7 @@ const Layout: React.FC<Props & { currentPath: string }> = ({
             {routings.map((routing) => (
               <MenuItem
                 routing={routing}
+                data-qa={routing.path}
                 opened={routing.path === currentPath}
                 key={routing.path}
               />
