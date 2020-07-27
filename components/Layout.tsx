@@ -26,6 +26,11 @@ const routings: Routing[] = [
     label: 'noopener Attack Demo',
     path: '/noopener',
   },
+  {
+    icon: 'calculator',
+    label: 'Pi Lab Monte Carlo',
+    path: '/pi-lab',
+  },
   // {
   //   icon: 'calculator',
   //   label: '正規分布ツール',
