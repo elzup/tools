@@ -31,6 +31,11 @@ const routings: Routing[] = [
     label: 'Pi Lab Monte Carlo',
     path: '/pi-lab',
   },
+  {
+    icon: 'calculator',
+    label: 'Collatz graph',
+    path: '/collatz-graph',
+  },
   // {
   //   icon: 'calculator',
   //   label: '正規分布ツール',
