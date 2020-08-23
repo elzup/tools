@@ -1,14 +1,16 @@
 import * as React from 'react'
-import Chart from 'react-google-charts'
 import Layout from '../components/Layout'
 
+const size = 100
 const title = 'モンテカルロ PI ラボ'
 const PiLab = () => {
   const [plots, setPlots] = React.useState<[number, number][]>([])
+  const [subplots, setSubplots] = React.useState<[number, number][]>([])
   const ref = React.useRef<HTMLCanvasElement>(null)
 
   React.useEffect(() => {
     const plots: [number, number][] = []
+    const subplots: [number, number][] = []
     const map: Record<number, number> = { 1: 1 }
 
     let nums: number[] = [1]
@@ -32,12 +34,16 @@ const PiLab = () => {
             plots.push([i, pos])
           } else {
             map[pos]++
+            if (size >= pos) {
+              subplots.push([i, pos])
+            }
           }
         })
       })
       nums = newNums
     }
     setPlots(plots)
+    setSubplots(subplots)
   }, [])
 
   // n / 2
@@ -51,12 +57,17 @@ const PiLab = () => {
     const ctx = ref?.current?.getContext('2d')
 
     if (!ctx) return
-    const size = 100
 
     ctx.fillStyle = 'rgb(0, 0, 0)'
     ctx.fillRect(0, 0, size, size)
-    ctx.fillStyle = 'rgb(100, 100, 255)'
     plots.forEach(([x, y]) => {
+      ctx.fillStyle = 'rgb(100, 100, 255)'
+      ctx.fillRect(x, size - y, size, 1)
+      ctx.fillStyle = 'rgb(255, 100, 255)'
+      ctx.fillRect(x, size - y, 1, 1)
+    })
+    subplots.forEach(([x, y]) => {
+      ctx.fillStyle = 'rgb(240, 100, 100)'
       ctx.fillRect(x, size - y, 1, 1)
     })
     ctx.scale(10, 10)
