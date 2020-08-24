@@ -23,36 +23,42 @@ const Rectangle = PixiComponent<RectProps, Graphics>('Rectangle', {
   },
 })
 
+export type DataSet = { m5: number[][]; h1: number[][] }
 export type Plot = { v: number; time: Date }
 type Props = {
-  plots: Plot[]
+  datasets: DataSet
 }
-export default function Graph({ plots }: Props) {
+export default function Graph({ datasets }: Props) {
   const ref = React.useRef<HTMLDivElement>(null)
   const size = useWindowSize(ref)
   const rects: number[][] = React.useMemo(() => {
     console.log('memo')
 
     if (!size) return [[]]
-    const [top, bot] = plots.reduce(
+    const toPlot = (row: number[]): Plot => ({
+      time: new Date(row[0] * 1000),
+      v: row[4],
+    })
+    const plotsm5 = datasets.m5.map(toPlot)
+    const [top, bot] = plotsm5.reduce(
       (p, c) => [Math.max(p[0], c.v), Math.min(p[1], c.v)],
       [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]
     )
     const yd = top - bot
 
-    return plots.map((p) => {
+    return plotsm5.map((p) => {
       const left = Date.now() - 39 * 60 * 60 * 1000
       const right = Date.now()
       const xd = right - left
 
       const xr = (+p.time - left) / xd
-      const yr = (p.v - bot) / yd
+      const yr = 1 - (p.v - bot) / yd
       const x = xr * size.width
       const y = yr * size.height
 
       return [x, y]
     })
-  }, [plots, size])
+  }, [datasets.m5[datasets.m5.length - 1][0], size])
 
   if (window === undefined || !size)
     return <div style={{ width: '100%', height: '60vh' }} ref={ref}></div>
@@ -61,7 +67,7 @@ export default function Graph({ plots }: Props) {
 
   return (
     <div style={{ width: '100%', height: '60vh' }} ref={ref}>
-      <Stage width={size.width - 100} height={size.height / 2}>
+      <Stage width={size.width} height={size.height}>
         {rects.map((rect, i) => (
           <Rectangle
             key={i}
