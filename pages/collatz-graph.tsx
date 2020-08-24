@@ -82,6 +82,4 @@ const PiLab = () => {
   )
 }
 
-const stopCount = Number.MAX_SAFE_INTEGER
-
 export default PiLab
