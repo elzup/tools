@@ -36,6 +36,11 @@ const routings: Routing[] = [
     label: 'Collatz graph',
     path: '/collatz-graph',
   },
+  {
+    icon: 'chart line',
+    label: 'Cryptowat chart three',
+    path: '/cryptowat-chart',
+  },
   // {
   //   icon: 'calculator',
   //   label: '正規分布ツール',
