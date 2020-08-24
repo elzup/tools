@@ -7,7 +7,7 @@ const Graph = dynamic(() => import('../components/Graph'), { ssr: false })
 
 const title = 'Cryptowat Chart'
 
-const useCryptowat = (periods: number, count: number) => {
+const useCryptowat = () => {
   const [plots, setPlots] = React.useState<Plot[]>([])
 
   React.useEffect(() => {
@@ -28,7 +28,7 @@ const useCryptowat = (periods: number, count: number) => {
 }
 
 const Chart = () => {
-  const plots = useCryptowat(5 * 60, 10)
+  const plots = useCryptowat()
 
   return (
     <Layout title={title}>
