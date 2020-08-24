@@ -22,7 +22,7 @@ const Rectangle = PixiComponent<RectProps, Graphics>('Rectangle', {
   },
 })
 
-export type Plot = { v: number; time: number }
+export type Plot = { v: number; time: Date }
 type Props = {
   plots: Plot[]
 }

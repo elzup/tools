@@ -1,35 +1,34 @@
-import * as React from 'react'
 import dynamic from 'next/dynamic'
-import Layout from '../components/Layout'
+import * as React from 'react'
 import { Plot } from '../components/Graph'
+import Layout from '../components/Layout'
 
 const Graph = dynamic(() => import('../components/Graph'), { ssr: false })
 
 const title = 'Cryptowat Chart'
 
-const loadCryptowat = (after: number, periods: number) => {
-  const params = { after: String(after), periods: String(periods) }
-  const qs = new URLSearchParams(params)
-  const url = `https://api.cryptowat.ch/markets/bitflyer/btcfxjpy/ohlc?${qs}`
-
-  return fetch(url).then((response) => response.json())
-}
-
-const useCryptowat = () => {
+const useCryptowat = (periods: number, count: number) => {
   const [plots, setPlots] = React.useState<Plot[]>([])
 
-  React.useEffect(() => {}, [])
+  React.useEffect(() => {
+    const socket = new WebSocket('ws://localhost:8000/all')
+
+    socket.onmessage = ({ data }: { data: string }) => {
+      const rows: number[][] = JSON.parse(data)
+      const plots: Plot[] = rows.map(
+        (row): Plot => ({ time: new Date(row[0] * 1000), v: row[4] })
+      )
+
+      setPlots(plots)
+    }
+    return () => socket.close()
+  }, [])
 
   return plots
 }
 
 const Chart = () => {
-  // n / 2
-  // n * 3 + 1 = k
-  // n = (k - 1) / 3
-  // 1
-  // (v - 1) / 3
-  // v * 2
+  const plots = useCryptowat(5 * 60, 10)
 
   return (
     <Layout title={title}>
