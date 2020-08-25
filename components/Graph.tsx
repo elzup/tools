@@ -1,28 +1,8 @@
-import { PixiComponent, Stage } from '@inlet/react-pixi'
-import { Graphics } from 'pixi.js'
-import * as React from 'react'
+import { Stage } from '@inlet/react-pixi'
 import _ from 'lodash'
-import { useWindowSize } from './useWdith'
-
-type RectProps = {
-  x: number
-  y: number
-  width: number
-  height: number
-  color?: number
-}
-// eslint-disable-next-line new-cap
-const Rectangle = PixiComponent<RectProps, Graphics>('Rectangle', {
-  create: () => new Graphics(),
-  applyProps: (instance, _, props) => {
-    const { x, y, width, height, color } = props
-
-    instance.clear()
-    instance.beginFill(color)
-    instance.drawRect(x, y, width, height)
-    instance.endFill()
-  },
-})
+import * as React from 'react'
+import { useWidth } from './useWdith'
+import { Rectangle } from './PixiComponents'
 
 export type DataSet = {
   m5: number[][]
@@ -41,13 +21,14 @@ const maxmin = (p: [number, number], c: Plot): [number, number] => [
   Math.max(p[0], c.h),
   Math.min(p[1], c.l),
 ]
+const MARGIN = 0.3
 
 type Props = {
   datasets: DataSet
 }
 export default function Graph({ datasets }: Props) {
   const ref = React.useRef<HTMLDivElement>(null)
-  const size = useWindowSize(ref)
+  const size = useWidth(ref)
   const {
     tops,
     btms,
@@ -63,12 +44,15 @@ export default function Graph({ datasets }: Props) {
 
     if (!size) return { tops: [], btms: [], m5s: [], h1s: [] }
     const plotsm5 = datasets.m5.map(toPlot)
-    const [top, bot] = plotsm5.reduce(maxmin, [
+    const [top0, btm0] = plotsm5.reduce(maxmin, [
       Number.MIN_SAFE_INTEGER,
       Number.MAX_SAFE_INTEGER,
     ])
-    const yd = top - bot
-    const toY = (v: number) => (1 - (v - bot) / yd) * size.height
+    const yd0 = top0 - btm0
+    const top = top0 + yd0 * MARGIN
+    const btm = btm0 - yd0 * MARGIN
+    const yd = top - btm
+    const toY = (v: number) => (1 - (v - btm) / yd) * size.height
 
     const m5s = plotsm5.map((p) => {
       const left = Date.now() - 39 * 60 * 60 * 1000
@@ -124,17 +108,17 @@ export default function Graph({ datasets }: Props) {
       <Stage width={size.width} height={size.height}>
         {h1s.map((rect, i) => (
           <Rectangle
-            key={i}
+            key={`h1-${i}`}
             x={rect.x}
             y={rect.y}
             width={rect.w || 4}
             height={rect.h || 4}
-            color={0x888888}
+            color={0x290053}
           />
         ))}
         {btms.map((rect, i) => (
           <Rectangle
-            key={i}
+            key={`bt-${i}`}
             x={rect.x}
             y={rect.y}
             width={rect.w || 4}
@@ -144,7 +128,7 @@ export default function Graph({ datasets }: Props) {
         ))}
         {tops.map((rect, i) => (
           <Rectangle
-            key={i}
+            key={`tp-${i}`}
             x={rect.x}
             y={rect.y}
             width={rect.w || 4}
@@ -154,7 +138,7 @@ export default function Graph({ datasets }: Props) {
         ))}
         {m5s.map((rect, i) => (
           <Rectangle
-            key={i}
+            key={`m5-${i}`}
             x={rect.x}
             y={rect.y}
             width={rect.w || 4}
