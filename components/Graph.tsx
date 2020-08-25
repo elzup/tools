@@ -24,7 +24,11 @@ const Rectangle = PixiComponent<RectProps, Graphics>('Rectangle', {
   },
 })
 
-export type DataSet = { m5: number[][]; h1: number[][] }
+export type DataSet = {
+  m5: number[][]
+  h1: number[][]
+  allo: { remaining: number }
+}
 export type Plot = { v: number; time: Date; h: number; l: number }
 const toPlot = (row: number[]): Plot => ({
   time: new Date(row[0] * 1000),
@@ -65,26 +69,24 @@ export default function Graph({ datasets }: Props) {
   }, [datasets.m5[datasets.m5.length - 1][0], size])
   const rects1h: {
     points: number[][]
-    lines: number[][]
+    tops: number[][]
+    btms: number[][]
   } = React.useMemo(() => {
     console.log('memo')
 
-    if (!size) return { points: [], lines: [] }
+    if (!size) return { points: [], tops: [], btms: [] }
     const plots = datasets.h1.map(toPlot)
     const [top, bot] = plots.reduce(
       (p, c) => [Math.max(p[0], c.v), Math.min(p[1], c.v)],
       [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]
     )
     const yd = top - bot
-    const toY = (v) => {
-      const yr = 1 - (v - bot) / yd
+    const toY = (v: number) => (1 - (v - bot) / yd) * size.height
 
-      return yr * size.height
-    }
-
-    const lines: number[][] = []
+    const tops: number[][] = []
+    const btms: number[][] = []
     const points = plots.map((p, i) => {
-      const left = Date.now() - plots.length * 60 * 60 * 1000
+      const left = Date.now() - 39 * 60 * 60 * 1000
       const right = Date.now()
       const xd = right - left
 
@@ -100,23 +102,23 @@ export default function Graph({ datasets }: Props) {
             Number.MAX_SAFE_INTEGER,
           ])
 
-        lines.push([x, toY(max)])
-        lines.push([x, toY(min)])
+        tops.push([x, toY(max)])
+        btms.push([x, toY(min)])
       }
 
       return [x, y]
     })
 
-    return { points, lines }
+    return { points, tops, btms }
   }, [datasets.h1[datasets.h1.length - 1][0], size])
 
   if (window === undefined || !size)
-    return <div style={{ width: '100%', height: '60vh' }} ref={ref}></div>
+    return <div style={{ width: '100%', height: '20vh' }} ref={ref}></div>
 
   console.log(rects5m)
 
   return (
-    <div style={{ width: '100%', height: '60vh' }} ref={ref}>
+    <div style={{ width: '100%', height: '20vh' }} ref={ref}>
       <Stage width={size.width} height={size.height}>
         {rects5m.map((rect, i) => (
           <Rectangle
@@ -125,7 +127,7 @@ export default function Graph({ datasets }: Props) {
             y={rect[1]}
             width={4}
             height={4}
-            color={0xff0000}
+            color={0xffffff}
           />
         ))}
       </Stage>
@@ -137,20 +139,33 @@ export default function Graph({ datasets }: Props) {
             y={rect[1]}
             width={4}
             height={4}
-            color={0xff0000}
+            color={0xffffff}
           />
         ))}
-        {rects1h.lines.map((rect, i) => (
+        {rects1h.btms.map((rect, i) => (
           <Rectangle
             key={i}
             x={rect[0]}
             y={rect[1]}
             width={4}
             height={4}
-            color={0xff00ff}
+            color={0xff0000}
+          />
+        ))}
+        {rects1h.tops.map((rect, i) => (
+          <Rectangle
+            key={i}
+            x={rect[0]}
+            y={rect[1]}
+            width={4}
+            height={4}
+            color={0x00ff00}
           />
         ))}
       </Stage>
+      <p>
+        {datasets.allo.remaining / 1000000} / {4000}
+      </p>
     </div>
   )
 }
