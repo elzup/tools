@@ -6,6 +6,7 @@ import { Container, List } from 'semantic-ui-react'
 
 type Props = {
   title?: string
+  fullWidth?: boolean
 }
 
 type Routing = {
@@ -51,6 +52,7 @@ const routings: Routing[] = [
 const Layout: React.FC<Props & { currentPath: string }> = ({
   children,
   title = 'mini web tools by anozon',
+  fullWidth,
   currentPath,
 }) => (
   <div className="root" data-test={`page-${currentPath.replace(/\//g, '')}`}>
@@ -61,7 +63,7 @@ const Layout: React.FC<Props & { currentPath: string }> = ({
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <header></header>
-      <Container>{children}</Container>
+      {fullWidth ? children : <Container>{children}</Container>}
     </div>
     <footer>
       <Container>
