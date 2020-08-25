@@ -1,4 +1,4 @@
-import { Stage } from '@inlet/react-pixi'
+import { Stage, Graphics } from '@inlet/react-pixi'
 import _ from 'lodash'
 import * as React from 'react'
 import { useWidth } from './useWdith'
@@ -10,6 +10,12 @@ export type DataSet = {
   allo: { remaining: number }
 }
 export type Plot = { v: number; time: Date; h: number; l: number }
+export type LineProp = {
+  x1: number
+  y1: number
+  x2: number
+  y2: number
+}
 type PlotRect = { x: number; y: number; w?: number; h?: number }
 const toPlot = (row: number[]): Plot => ({
   time: new Date(row[0] * 1000),
@@ -32,6 +38,7 @@ export default function Graph({ datasets }: Props) {
   const {
     tops,
     btms,
+    lines,
     m5s,
     h1s,
   }: {
@@ -39,10 +46,11 @@ export default function Graph({ datasets }: Props) {
     btms: PlotRect[]
     m5s: PlotRect[]
     h1s: PlotRect[]
+    lines: LineProp[]
   } = React.useMemo(() => {
     console.log('memo')
 
-    if (!size) return { tops: [], btms: [], m5s: [], h1s: [] }
+    if (!size) return { tops: [], btms: [], m5s: [], h1s: [], lines: [] }
     const plotsm5 = datasets.m5.map(toPlot)
     const [top0, btm0] = plotsm5.reduce(maxmin, [
       Number.MIN_SAFE_INTEGER,
@@ -54,6 +62,7 @@ export default function Graph({ datasets }: Props) {
     const yd = top - btm
     const toY = (v: number) => (1 - (v - btm) / yd) * size.height
 
+    const lines: LineProp[] = []
     const m5s = plotsm5.map((p) => {
       const left = Date.now() - 39 * 60 * 60 * 1000
       const right = Date.now()
@@ -65,6 +74,12 @@ export default function Graph({ datasets }: Props) {
 
       return { x, y }
     })
+
+    m5s.reduce((p1, p2) => {
+      if (!p1) return p2
+      lines.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y })
+      return p2
+    }, m5s[0])
 
     const plots = datasets.h1.map(toPlot)
 
@@ -86,8 +101,6 @@ export default function Graph({ datasets }: Props) {
           .map((v) => plots[v])
           .reduce(maxmin, [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER])
 
-        console.log(max, min)
-
         tops.push({ x, y: toY(max), w })
         btms.push({ x, y: toY(min), w })
       }
@@ -95,9 +108,7 @@ export default function Graph({ datasets }: Props) {
       return { x, y, w, h }
     })
 
-    console.log(btms)
-
-    return { tops, btms, m5s, h1s }
+    return { tops, btms, m5s, h1s, lines }
   }, [datasets.m5[datasets.m5.length - 1][0], size])
 
   if (window === undefined || !size)
@@ -136,14 +147,15 @@ export default function Graph({ datasets }: Props) {
             color={0x00ff00}
           />
         ))}
-        {m5s.map((rect, i) => (
-          <Rectangle
-            key={`m5-${i}`}
-            x={rect.x}
-            y={rect.y}
-            width={rect.w || 4}
-            height={rect.h || 4}
-            color={0xffffff}
+        {lines.map((line, i) => (
+          // <Line key={`ln-${i}`} {...line} color={0xffffff} weight={2} />
+          <Graphics
+            key={`ln-${i}`}
+            draw={(g) => {
+              g.lineStyle(2, 0xffffff)
+                .moveTo(line.x1, line.y1)
+                .lineTo(line.x2, line.y2)
+            }}
           />
         ))}
       </Stage>
