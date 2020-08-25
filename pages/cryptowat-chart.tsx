@@ -28,7 +28,7 @@ const Chart = () => {
   const datasets = useCryptowat()
 
   return (
-    <Layout title={title}>
+    <Layout title={title} fullWidth>
       <p>{title}</p>
       {datasets && <Graph datasets={datasets}></Graph>}
     </Layout>

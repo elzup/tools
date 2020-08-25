@@ -112,10 +112,10 @@ export default function Graph({ datasets }: Props) {
   }, [datasets.m5[datasets.m5.length - 1][0], size])
 
   if (window === undefined || !size)
-    return <div style={{ width: '100%', height: '20vh' }} ref={ref}></div>
+    return <div style={{ width: '100%', height: '80vh' }} ref={ref}></div>
 
   return (
-    <div style={{ width: '100%', height: '20vh' }} ref={ref}>
+    <div style={{ width: '100%', height: '80vh' }} ref={ref}>
       <Stage width={size.width} height={size.height}>
         {h1s.map((rect, i) => (
           <Rectangle
@@ -152,6 +152,7 @@ export default function Graph({ datasets }: Props) {
           <Graphics
             key={`ln-${i}`}
             draw={(g) => {
+              g.clear()
               g.lineStyle(2, 0xffffff)
                 .moveTo(line.x1, line.y1)
                 .lineTo(line.x2, line.y2)
