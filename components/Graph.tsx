@@ -30,12 +30,17 @@ export type DataSet = {
   allo: { remaining: number }
 }
 export type Plot = { v: number; time: Date; h: number; l: number }
+type PlotRect = { x: number; y: number; w?: number; h?: number }
 const toPlot = (row: number[]): Plot => ({
   time: new Date(row[0] * 1000),
-  h: row[1],
-  l: row[1],
+  h: row[2],
+  l: row[3],
   v: row[4],
 })
+const maxmin = (p: [number, number], c: Plot): [number, number] => [
+  Math.max(p[0], c.h),
+  Math.min(p[1], c.l),
+]
 
 type Props = {
   datasets: DataSet
@@ -43,49 +48,29 @@ type Props = {
 export default function Graph({ datasets }: Props) {
   const ref = React.useRef<HTMLDivElement>(null)
   const size = useWindowSize(ref)
-  const rects5m: number[][] = React.useMemo(() => {
-    console.log('memo')
-
-    if (!size) return [[]]
-    const plotsm5 = datasets.m5.map(toPlot)
-    const [top, bot] = plotsm5.reduce(
-      (p, c) => [Math.max(p[0], c.v), Math.min(p[1], c.v)],
-      [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]
-    )
-    const yd = top - bot
-
-    return plotsm5.map((p) => {
-      const left = Date.now() - 39 * 60 * 60 * 1000
-      const right = Date.now()
-      const xd = right - left
-
-      const xr = (+p.time - left) / xd
-      const yr = 1 - (p.v - bot) / yd
-      const x = xr * size.width
-      const y = yr * size.height
-
-      return [x, y]
-    })
-  }, [datasets.m5[datasets.m5.length - 1][0], size])
-  const rects1h: {
-    points: number[][]
-    tops: number[][]
-    btms: number[][]
+  const {
+    tops,
+    btms,
+    m5s,
+    h1s,
+  }: {
+    tops: PlotRect[]
+    btms: PlotRect[]
+    m5s: PlotRect[]
+    h1s: PlotRect[]
   } = React.useMemo(() => {
     console.log('memo')
 
-    if (!size) return { points: [], tops: [], btms: [] }
-    const plots = datasets.h1.map(toPlot)
-    const [top, bot] = plots.reduce(
-      (p, c) => [Math.max(p[0], c.v), Math.min(p[1], c.v)],
-      [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]
-    )
+    if (!size) return { tops: [], btms: [], m5s: [], h1s: [] }
+    const plotsm5 = datasets.m5.map(toPlot)
+    const [top, bot] = plotsm5.reduce(maxmin, [
+      Number.MIN_SAFE_INTEGER,
+      Number.MAX_SAFE_INTEGER,
+    ])
     const yd = top - bot
     const toY = (v: number) => (1 - (v - bot) / yd) * size.height
 
-    const tops: number[][] = []
-    const btms: number[][] = []
-    const points = plots.map((p, i) => {
+    const m5s = plotsm5.map((p) => {
       const left = Date.now() - 39 * 60 * 60 * 1000
       const right = Date.now()
       const xd = right - left
@@ -94,72 +79,87 @@ export default function Graph({ datasets }: Props) {
       const x = xr * size.width
       const y = toY(p.v)
 
-      if (i >= 39) {
-        const [min, max] = _.range(i, i - 39)
-          .map((v) => plots[v])
-          .reduce((p, c) => [Math.max(p[0], c.v), Math.min(p[1], c.v)], [
-            Number.MIN_SAFE_INTEGER,
-            Number.MAX_SAFE_INTEGER,
-          ])
-
-        tops.push([x, toY(max)])
-        btms.push([x, toY(min)])
-      }
-
-      return [x, y]
+      return { x, y }
     })
 
-    return { points, tops, btms }
-  }, [datasets.h1[datasets.h1.length - 1][0], size])
+    const plots = datasets.h1.map(toPlot)
+
+    const tops: PlotRect[] = []
+    const btms: PlotRect[] = []
+    const h1s: PlotRect[] = plots.map((p, i) => {
+      const left = Date.now() - 39 * 60 * 60 * 1000
+      const right = Date.now()
+      const xd = right - left
+
+      const w = size.width / 39
+      const h = ((p.h - p.l) / yd) * size.height
+      const xr = (+p.time - left) / xd
+      const x = xr * size.width - w
+      const y = toY(p.h)
+
+      if (i >= 39) {
+        const [max, min] = _.range(i, i - 39)
+          .map((v) => plots[v])
+          .reduce(maxmin, [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER])
+
+        console.log(max, min)
+
+        tops.push({ x, y: toY(max), w })
+        btms.push({ x, y: toY(min), w })
+      }
+
+      return { x, y, w, h }
+    })
+
+    console.log(btms)
+
+    return { tops, btms, m5s, h1s }
+  }, [datasets.m5[datasets.m5.length - 1][0], size])
 
   if (window === undefined || !size)
     return <div style={{ width: '100%', height: '20vh' }} ref={ref}></div>
 
-  console.log(rects5m)
-
   return (
     <div style={{ width: '100%', height: '20vh' }} ref={ref}>
       <Stage width={size.width} height={size.height}>
-        {rects5m.map((rect, i) => (
+        {h1s.map((rect, i) => (
           <Rectangle
             key={i}
-            x={rect[0]}
-            y={rect[1]}
-            width={4}
-            height={4}
-            color={0xffffff}
+            x={rect.x}
+            y={rect.y}
+            width={rect.w || 4}
+            height={rect.h || 4}
+            color={0x888888}
           />
         ))}
-      </Stage>
-      <Stage width={size.width} height={size.height}>
-        {rects1h.points.map((rect, i) => (
+        {btms.map((rect, i) => (
           <Rectangle
             key={i}
-            x={rect[0]}
-            y={rect[1]}
-            width={4}
-            height={4}
-            color={0xffffff}
-          />
-        ))}
-        {rects1h.btms.map((rect, i) => (
-          <Rectangle
-            key={i}
-            x={rect[0]}
-            y={rect[1]}
-            width={4}
-            height={4}
+            x={rect.x}
+            y={rect.y}
+            width={rect.w || 4}
+            height={rect.h || 4}
             color={0xff0000}
           />
         ))}
-        {rects1h.tops.map((rect, i) => (
+        {tops.map((rect, i) => (
           <Rectangle
             key={i}
-            x={rect[0]}
-            y={rect[1]}
-            width={4}
-            height={4}
+            x={rect.x}
+            y={rect.y}
+            width={rect.w || 4}
+            height={rect.h || 4}
             color={0x00ff00}
+          />
+        ))}
+        {m5s.map((rect, i) => (
+          <Rectangle
+            key={i}
+            x={rect.x}
+            y={rect.y}
+            width={rect.w || 4}
+            height={rect.h || 4}
+            color={0xffffff}
           />
         ))}
       </Stage>
