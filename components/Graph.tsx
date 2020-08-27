@@ -32,24 +32,31 @@ const MARGIN = 0.04
 type Props = {
   datasets: DataSet
 }
-export default function Graph({ datasets }: Props) {
-  const ref = React.useRef<HTMLDivElement>(null)
-  const size = useWidth(ref)
-  const {
-    tops,
-    btms,
-    lines,
-    h1s,
-  }: {
-    tops: PlotRect[]
-    btms: PlotRect[]
-    m5s: PlotRect[]
-    h1s: PlotRect[]
-    lines: LineProp[]
-  } = React.useMemo(() => {
-    console.log('memo')
 
-    if (!size) return { tops: [], btms: [], m5s: [], h1s: [], lines: [] }
+const rectShapes = { tops: [], btms: [], m5s: [], h1s: [] }
+const lineShapes = { lines: [], ruler: [], rulerB: [] }
+const initShapes = { ...rectShapes, ...lineShapes }
+
+type Shapes = {
+  tops: PlotRect[]
+  btms: PlotRect[]
+  m5s: PlotRect[]
+  h1s: PlotRect[]
+  lines: LineProp[]
+  ruler: LineProp[]
+  rulerB: LineProp[]
+}
+const useGraph = (
+  datasets: DataSet,
+  size: { width: number; height: number } | null
+) => {
+  const [shapes, setShapes] = React.useState<Shapes>(initShapes)
+
+  React.useEffect(() => {
+    if (!size) return
+    const tops: PlotRect[] = []
+    const btms: PlotRect[] = []
+    const lines: LineProp[] = []
     const plotsm5 = datasets.m5.map(toPlot)
     const plots = datasets.h1.map(toPlot)
     const [top0, btm0] = [...plotsm5, ...plots].reduce(maxmin, [
@@ -61,18 +68,34 @@ export default function Graph({ datasets }: Props) {
     const btm = btm0 - yd0 * MARGIN
     const yd = top - btm
     const toY = (v: number) => (1 - (v - btm) / yd) * size.height
+    const right = Date.now()
+    const left = right - 39 * 60 * 60 * 1000
+    const xd = right - left
+    const toX = (v: number) => ((v - left) / xd) * size.width
 
-    const lines: LineProp[] = []
+    const rulerY = _.range(btm, top, 10000)
+      .map(toY)
+      .map((y) => ({ x1: 0, x2: size.width, y1: y, y2: y }))
+    const rulerYB = _.range(btm, top, 50000)
+      .map(toY)
+      .map((y) => ({ x1: 0, x2: size.width, y1: y, y2: y }))
+    const xst = +plotsm5[0].time
+    const xet = +plotsm5[plotsm5.length - 1].time
+    const rulerXB = _.range(xst, xet, 5 * 60 * 60 * 1000)
+      .map(toX)
+      .map((x) => ({ x1: x, x2: x, y1: 0, y2: size.height }))
+    const rulerX = _.range(xst, xet, 60 * 60 * 1000)
+      .map(toX)
+      .map((x) => ({ x1: x, x2: x, y1: 0, y2: size.height }))
+
+    const ruler = [...rulerX, ...rulerY]
+    const rulerB = [...rulerXB, ...rulerYB]
+
     const m5s = plotsm5.map((p) => {
-      const left = Date.now() - 39 * 60 * 60 * 1000
-      const right = Date.now()
-      const xd = right - left
-
-      const xr = (+p.time - left) / xd
-      const x = xr * size.width
+      const x = toX(+p.time)
       const y = toY(p.v)
 
-      return { x, y }
+      return { x: toX(+p.time), y }
     })
 
     m5s.reduce((p1, p2) => {
@@ -81,13 +104,7 @@ export default function Graph({ datasets }: Props) {
       return p2
     }, m5s[0])
 
-    const tops: PlotRect[] = []
-    const btms: PlotRect[] = []
     const h1s: PlotRect[] = plots.map((p, i) => {
-      const left = Date.now() - 39 * 60 * 60 * 1000
-      const right = Date.now()
-      const xd = right - left
-
       const isLast = i === plots.length - 1
       const w = (size.width / 39) * (isLast ? 2 : 1) // last length x2
       const h = ((p.h - p.l) / yd) * size.height
@@ -107,8 +124,15 @@ export default function Graph({ datasets }: Props) {
       return { x, y, w, h }
     })
 
-    return { tops, btms, m5s, h1s, lines }
+    setShapes({ tops, btms, m5s, h1s, lines, ruler, rulerB })
   }, [datasets.m5[datasets.m5.length - 1][0], size])
+  return shapes
+}
+
+export default function Graph({ datasets }: Props) {
+  const ref = React.useRef<HTMLDivElement>(null)
+  const size = useWidth(ref)
+  const { tops, btms, h1s, lines, ...shapes } = useGraph(datasets, size)
 
   if (window === undefined || !size)
     return <div style={{ width: '100%', height: '80vh' }} ref={ref}></div>
@@ -116,6 +140,12 @@ export default function Graph({ datasets }: Props) {
   return (
     <div style={{ width: '100%', height: '80vh' }} ref={ref}>
       <Stage width={size.width} height={size.height}>
+        {shapes.ruler.map((line, i) => (
+          <Line key={`ruler-${i}`} {...line} color={0x333333} />
+        ))}
+        {shapes.rulerB.map((line, i) => (
+          <Line key={`rulerb-${i}`} {...line} color={0x666666} weight={2} />
+        ))}
         {h1s.map((rect, i) => (
           <Rectangle
             key={`h1-${i}`}
