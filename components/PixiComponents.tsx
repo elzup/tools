@@ -1,5 +1,5 @@
 /* eslint-disable new-cap */
-import { PixiComponent } from '@inlet/react-pixi'
+import { PixiComponent, Graphics as GraphicsC } from '@inlet/react-pixi'
 import { Graphics } from 'pixi.js'
 
 type RectProps = {
@@ -20,3 +20,24 @@ export const Rectangle = PixiComponent<RectProps, Graphics>('Rectangle', {
     instance.endFill()
   },
 })
+
+type LineProps = {
+  x1: number
+  y1: number
+  x2: number
+  y2: number
+  color?: number
+  weight?: number
+}
+export const Line = ({ x1, y1, x2, y2, color, weight }: LineProps) => (
+  <GraphicsC
+    draw={(g) => {
+      g.clear()
+      g.lineStyle(weight, color).moveTo(x1, y1).lineTo(x2, y2)
+    }}
+  />
+)
+Line.defaultProps = {
+  color: 0xffffff,
+  weight: 2,
+}

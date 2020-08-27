@@ -2,7 +2,7 @@ import { Stage, Graphics } from '@inlet/react-pixi'
 import _ from 'lodash'
 import * as React from 'react'
 import { useWidth } from './useWdith'
-import { Rectangle } from './PixiComponents'
+import { Rectangle, Line } from './PixiComponents'
 
 export type DataSet = {
   m5: number[][]
@@ -39,7 +39,6 @@ export default function Graph({ datasets }: Props) {
     tops,
     btms,
     lines,
-    m5s,
     h1s,
   }: {
     tops: PlotRect[]
@@ -89,10 +88,11 @@ export default function Graph({ datasets }: Props) {
       const right = Date.now()
       const xd = right - left
 
-      const w = size.width / 39
+      const isLast = i === plots.length - 1
+      const w = (size.width / 39) * (isLast ? 2 : 1) // last length x2
       const h = ((p.h - p.l) / yd) * size.height
       const xr = (+p.time - left) / xd
-      const x = xr * size.width - w
+      const x = xr * size.width - w * (isLast ? 1 / 2 : 1)
       const y = toY(p.h)
 
       if (i >= 39) {
@@ -147,16 +147,7 @@ export default function Graph({ datasets }: Props) {
           />
         ))}
         {lines.map((line, i) => (
-          // <Line key={`ln-${i}`} {...line} color={0xffffff} weight={2} />
-          <Graphics
-            key={`ln-${i}`}
-            draw={(g) => {
-              g.clear()
-              g.lineStyle(2, 0xffffff)
-                .moveTo(line.x1, line.y1)
-                .lineTo(line.x2, line.y2)
-            }}
-          />
+          <Line key={`ln-${i}`} {...line} />
         ))}
       </Stage>
       <p>
