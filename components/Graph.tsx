@@ -38,13 +38,13 @@ const lineShapes = { lines: [], ruler: [], rulerB: [] }
 const initShapes = { ...rectShapes, ...lineShapes }
 
 type Shapes = {
-  tops: PlotRect[]
-  btms: PlotRect[]
   m5s: PlotRect[]
   h1s: PlotRect[]
   lines: LineProp[]
   ruler: LineProp[]
   rulerB: LineProp[]
+  tops: LineProp[]
+  btms: LineProp[]
 }
 const useGraph = (
   datasets: DataSet,
@@ -54,8 +54,8 @@ const useGraph = (
 
   React.useEffect(() => {
     if (!size) return
-    const tops: PlotRect[] = []
-    const btms: PlotRect[] = []
+    const tops: LineProp[] = []
+    const btms: LineProp[] = []
     const lines: LineProp[] = []
     const plotsm5 = datasets.m5.map(toPlot)
     const plots = datasets.h1.map(toPlot)
@@ -116,9 +116,10 @@ const useGraph = (
         const [max, min] = _.range(i, i - 39)
           .map((v) => plots[v])
           .reduce(maxmin, [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER])
+          .map(toY)
 
-        tops.push({ x, y: toY(max), w })
-        btms.push({ x, y: toY(min), w })
+        tops.push({ x1: x, x2: x + w, y1: max, y2: max })
+        btms.push({ x1: x, x2: x + w, y1: min, y2: min })
       }
 
       return { x, y, w, h }
@@ -140,11 +141,11 @@ export default function Graph({ datasets }: Props) {
   return (
     <div style={{ width: '100%', height: '80vh' }} ref={ref}>
       <Stage width={size.width} height={size.height}>
-        {shapes.ruler.map((line, i) => (
-          <Line key={`ruler-${i}`} {...line} color={0x333333} />
+        {shapes.ruler.map((l, i) => (
+          <Line key={`ruler-${i}`} {...l} color={0x330055} />
         ))}
-        {shapes.rulerB.map((line, i) => (
-          <Line key={`rulerb-${i}`} {...line} color={0x666666} weight={2} />
+        {shapes.rulerB.map((l, i) => (
+          <Line key={`rulerb-${i}`} {...l} color={0x440066} weight={2} />
         ))}
         {h1s.map((rect, i) => (
           <Rectangle
@@ -156,28 +157,14 @@ export default function Graph({ datasets }: Props) {
             color={0x290053}
           />
         ))}
-        {btms.map((rect, i) => (
-          <Rectangle
-            key={`bt-${i}`}
-            x={rect.x}
-            y={rect.y}
-            width={rect.w || 4}
-            height={rect.h || 4}
-            color={0xff0000}
-          />
+        {btms.map((l, i) => (
+          <Line key={`bt-${i}`} {...l} color={0xff0000} />
         ))}
-        {tops.map((rect, i) => (
-          <Rectangle
-            key={`tp-${i}`}
-            x={rect.x}
-            y={rect.y}
-            width={rect.w || 4}
-            height={rect.h || 4}
-            color={0x00ff00}
-          />
+        {tops.map((l, i) => (
+          <Line key={`tp-${i}`} {...l} color={0x00ff00} />
         ))}
-        {lines.map((line, i) => (
-          <Line key={`ln-${i}`} {...line} />
+        {lines.map((l, i) => (
+          <Line key={`ln-${i}`} {...l} weight={1.5} />
         ))}
       </Stage>
       <p>
