@@ -1,8 +1,8 @@
-import { Stage, Graphics } from '@inlet/react-pixi'
+import { Stage } from '@inlet/react-pixi'
 import _ from 'lodash'
 import * as React from 'react'
+import { Line, Rectangle } from './PixiComponents'
 import { useWidth } from './useWdith'
-import { Rectangle, Line } from './PixiComponents'
 
 export type DataSet = {
   m5: number[][]
@@ -95,7 +95,7 @@ const useGraph = (
       const x = toX(+p.time)
       const y = toY(p.v)
 
-      return { x: toX(+p.time), y }
+      return { x, y }
     })
 
     m5s.reduce((p1, p2) => {
@@ -135,12 +135,22 @@ export default function Graph({ datasets }: Props) {
   const size = useWidth(ref)
   const { tops, btms, h1s, lines, ...shapes } = useGraph(datasets, size)
 
-  if (window === undefined || !size)
-    return <div style={{ width: '100%', height: '80vh' }} ref={ref}></div>
+  console.log(size)
+
+  if (!size)
+    return (
+      <div style={{ width: '100vw', height: '80vh' }} ref={ref}>
+        loading
+      </div>
+    )
 
   return (
-    <div style={{ width: '100%', height: '80vh' }} ref={ref}>
-      <Stage width={size.width} height={size.height}>
+    <div style={{ width: '100vw', height: '80vh' }} ref={ref}>
+      <Stage
+        width={size.width}
+        height={size.height}
+        options={{ resolution: 1 }}
+      >
         {shapes.ruler.map((l, i) => (
           <Line key={`ruler-${i}`} {...l} color={0x330055} />
         ))}
