@@ -27,7 +27,7 @@ const maxmin = (p: [number, number], c: Plot): [number, number] => [
   Math.max(p[0], c.h),
   Math.min(p[1], c.l),
 ]
-const MARGIN = 0.3
+const MARGIN = 0.04
 
 type Props = {
   datasets: DataSet
@@ -52,7 +52,8 @@ export default function Graph({ datasets }: Props) {
 
     if (!size) return { tops: [], btms: [], m5s: [], h1s: [], lines: [] }
     const plotsm5 = datasets.m5.map(toPlot)
-    const [top0, btm0] = plotsm5.reduce(maxmin, [
+    const plots = datasets.h1.map(toPlot)
+    const [top0, btm0] = [...plotsm5, ...plots].reduce(maxmin, [
       Number.MIN_SAFE_INTEGER,
       Number.MAX_SAFE_INTEGER,
     ])
@@ -80,8 +81,6 @@ export default function Graph({ datasets }: Props) {
       lines.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y })
       return p2
     }, m5s[0])
-
-    const plots = datasets.h1.map(toPlot)
 
     const tops: PlotRect[] = []
     const btms: PlotRect[] = []
