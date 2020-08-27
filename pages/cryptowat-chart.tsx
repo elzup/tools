@@ -29,7 +29,6 @@ const Chart = () => {
 
   return (
     <Layout title={title} fullWidth>
-      <p>{title}</p>
       {datasets && <Graph datasets={datasets}></Graph>}
     </Layout>
   )

@@ -39,5 +39,5 @@ export const Line = ({ x1, y1, x2, y2, color, weight }: LineProps) => (
 )
 Line.defaultProps = {
   color: 0xffffff,
-  weight: 2,
+  weight: 1,
 }
