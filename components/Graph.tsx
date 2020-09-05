@@ -4,6 +4,8 @@ import * as React from 'react'
 import { Line, Rectangle } from './PixiComponents'
 import { useWidth } from './useWdith'
 
+const CLOSE_MARGIN = 0.3
+
 export type DataSet = {
   m5: number[][]
   h1: number[][]
@@ -127,8 +129,16 @@ const useGraph = (
           .reduce(maxmin, [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER])
           .map(toY)
 
+        //
+        const d = max - min
+        const md = d * CLOSE_MARGIN
+        const mmax = max - md
+        const mmin = min + md
+
         lines.push({ x1: x, x2: x + w, y1: max, y2: max, color: 0x00ff00 })
         lines.push({ x1: x, x2: x + w, y1: min, y2: min, color: 0xff0000 })
+        lines.push({ x1: x, x2: x + w, y1: mmax, y2: mmax, color: 0x76d275 })
+        lines.push({ x1: x, x2: x + w, y1: mmin, y2: mmin, color: 0xff6090 })
       }
 
       return { x, y, w, h }
