@@ -15,6 +15,8 @@ export type LineProp = {
   y1: number
   x2: number
   y2: number
+  color?: number
+  weight?: number
 }
 type PlotRect = { x: number; y: number; w?: number; h?: number }
 const toPlot = (row: number[]): Plot => ({
@@ -41,10 +43,6 @@ type Shapes = {
   m5s: PlotRect[]
   h1s: PlotRect[]
   lines: LineProp[]
-  ruler: LineProp[]
-  rulerB: LineProp[]
-  tops: LineProp[]
-  btms: LineProp[]
 }
 const useGraph = (
   datasets: DataSet,
@@ -54,9 +52,6 @@ const useGraph = (
 
   React.useEffect(() => {
     if (!size) return
-    const tops: LineProp[] = []
-    const btms: LineProp[] = []
-    const lines: LineProp[] = []
     const plotsm5 = datasets.m5.map(toPlot)
     const plots = datasets.h1.map(toPlot)
     const [top0, btm0] = [...plotsm5, ...plots].reduce(maxmin, [
@@ -75,21 +70,34 @@ const useGraph = (
 
     const rulerY = _.range(btm, top, 10000)
       .map(toY)
-      .map((y) => ({ x1: 0, x2: size.width, y1: y, y2: y }))
+      .map((y) => ({ x1: 0, x2: size.width, y1: y, y2: y, color: 0x330055 }))
     const rulerYB = _.range(btm, top, 50000)
       .map(toY)
-      .map((y) => ({ x1: 0, x2: size.width, y1: y, y2: y }))
+      .map((y) => ({
+        x1: 0,
+        x2: size.width,
+        y1: y,
+        y2: y,
+        weight: 2,
+        color: 0x440066,
+      }))
     const xst = +plotsm5[0].time
     const xet = +plotsm5[plotsm5.length - 1].time
     const rulerXB = _.range(xst, xet, 5 * 60 * 60 * 1000)
       .map(toX)
-      .map((x) => ({ x1: x, x2: x, y1: 0, y2: size.height }))
+      .map((x) => ({
+        x1: x,
+        x2: x,
+        y1: 0,
+        y2: size.height,
+        weight: 2,
+        color: 0x440066,
+      }))
     const rulerX = _.range(xst, xet, 60 * 60 * 1000)
       .map(toX)
-      .map((x) => ({ x1: x, x2: x, y1: 0, y2: size.height }))
+      .map((x) => ({ x1: x, x2: x, y1: 0, y2: size.height, color: 0x330055 }))
 
-    const ruler = [...rulerX, ...rulerY]
-    const rulerB = [...rulerXB, ...rulerYB]
+    const lines: LineProp[] = [...rulerXB, ...rulerYB, ...rulerX, ...rulerY]
 
     const m5s = plotsm5.map((p) => {
       const x = toX(+p.time)
@@ -100,7 +108,7 @@ const useGraph = (
 
     m5s.reduce((p1, p2) => {
       if (!p1) return p2
-      lines.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y })
+      lines.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, weight: 1.5 })
       return p2
     }, m5s[0])
 
@@ -118,14 +126,14 @@ const useGraph = (
           .reduce(maxmin, [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER])
           .map(toY)
 
-        tops.push({ x1: x, x2: x + w, y1: max, y2: max })
-        btms.push({ x1: x, x2: x + w, y1: min, y2: min })
+        lines.push({ x1: x, x2: x + w, y1: max, y2: max, color: 0x00ff00 })
+        lines.push({ x1: x, x2: x + w, y1: min, y2: min, color: 0xff0000 })
       }
 
       return { x, y, w, h }
     })
 
-    setShapes({ tops, btms, m5s, h1s, lines, ruler, rulerB })
+    setShapes({ m5s, h1s, lines })
   }, [datasets.m5[datasets.m5.length - 1][0], size])
   return shapes
 }
@@ -151,12 +159,6 @@ export default function Graph({ datasets }: Props) {
         height={size.height}
         options={{ resolution: 1 }}
       >
-        {shapes.ruler.map((l, i) => (
-          <Line key={`ruler-${i}`} {...l} color={0x330055} />
-        ))}
-        {shapes.rulerB.map((l, i) => (
-          <Line key={`rulerb-${i}`} {...l} color={0x440066} weight={2} />
-        ))}
         {h1s.map((rect, i) => (
           <Rectangle
             key={`h1-${i}`}
@@ -167,14 +169,8 @@ export default function Graph({ datasets }: Props) {
             color={0x290053}
           />
         ))}
-        {btms.map((l, i) => (
-          <Line key={`bt-${i}`} {...l} color={0xff0000} />
-        ))}
-        {tops.map((l, i) => (
-          <Line key={`tp-${i}`} {...l} color={0x00ff00} />
-        ))}
         {lines.map((l, i) => (
-          <Line key={`ln-${i}`} {...l} weight={1.5} />
+          <Line key={`ln-${i}`} {...l} />
         ))}
       </Stage>
       <p>
