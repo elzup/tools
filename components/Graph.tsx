@@ -52,6 +52,7 @@ const useGraph = (
 
   React.useEffect(() => {
     if (!size) return
+    const CB_SIZE_H = Math.round(datasets.h1.length / 2)
     const plotsm5 = datasets.m5.map(toPlot)
     const plots = datasets.h1.map(toPlot)
     const [top0, btm0] = [...plotsm5, ...plots].reduce(maxmin, [
@@ -64,7 +65,7 @@ const useGraph = (
     const yd = top - btm
     const toY = (v: number) => (1 - (v - btm) / yd) * size.height
     const right = Date.now()
-    const left = right - 39 * 60 * 60 * 1000
+    const left = right - CB_SIZE_H * 60 * 60 * 1000
     const xd = right - left
     const toX = (v: number) => ((v - left) / xd) * size.width
 
@@ -114,14 +115,14 @@ const useGraph = (
 
     const h1s: PlotRect[] = plots.map((p, i) => {
       const isLast = i === plots.length - 1
-      const w = (size.width / 39) * (isLast ? 2 : 1) // last length x2
+      const w = (size.width / CB_SIZE_H) * (isLast ? 2 : 1) // last length x2
       const h = ((p.h - p.l) / yd) * size.height
       const xr = (+p.time - left) / xd
       const x = xr * size.width - w * (isLast ? 1 / 2 : 1)
       const y = toY(p.h)
 
-      if (i >= 39) {
-        const [max, min] = _.range(i, i - 39)
+      if (i >= CB_SIZE_H) {
+        const [max, min] = _.range(i, i - CB_SIZE_H)
           .map((v) => plots[v])
           .reduce(maxmin, [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER])
           .map(toY)
@@ -141,7 +142,7 @@ const useGraph = (
 export default function Graph({ datasets }: Props) {
   const ref = React.useRef<HTMLDivElement>(null)
   const size = useWidth(ref)
-  const { tops, btms, h1s, lines, ...shapes } = useGraph(datasets, size)
+  const { h1s, lines } = useGraph(datasets, size)
 
   console.log(size)
 
