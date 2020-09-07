@@ -141,7 +141,7 @@ export const useGraphSnake = (
 
     plots.reduce((p1, p2) => {
       if (!p1) return p2
-      const xs = { x1: p1.x, x2: p2.x, weight: 1.5 }
+      const xs = { x1: p1.x, x2: p2.x, weight: 1 }
 
       lines.push({ ...xs, y1: p1.vmax, y2: p2.vmax, color: GREEN })
       lines.push({ ...xs, y1: p1.vmin, y2: p2.vmin, color: RED })
@@ -150,12 +150,12 @@ export const useGraphSnake = (
 
       lines.push({ ...xs, y1: p1.y, y2: p2.y })
 
-      const xx = { x1: p2.x, x2: p2.x }
+      const xx = { x1: p2.x, x2: p2.x, weight: 1.5 }
 
-      if (p2.enLo) lines.push({ ...xx, y1: 0, y2: h, color: BLUE })
-      if (p2.clLo) lines.push({ ...xx, y1: 0, y2: h / 2, color: BLUE })
-      if (p2.enSh) lines.push({ ...xx, y1: 0, y2: h, color: YELLOW })
-      if (p2.clSh) lines.push({ ...xx, y1: h / 2, y2: h, color: YELLOW })
+      if (p2.enLo) lines.push({ ...xx, y1: p2.y, y2: h, color: BLUE })
+      if (p2.clLo) lines.push({ ...xx, y1: 0, y2: p2.y, color: BLUE })
+      if (p2.enSh) lines.push({ ...xx, y1: 0, y2: p2.y, color: YELLOW })
+      if (p2.clSh) lines.push({ ...xx, y1: p2.y, y2: h, color: YELLOW })
 
       return p2
     }, plots[0])
