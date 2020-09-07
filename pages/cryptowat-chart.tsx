@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic'
 import * as React from 'react'
-import { DataSet } from '../components/Graph'
+import { DataSet } from '../components/GraphSnake'
 import Layout from '../components/Layout'
 
 const Graph = dynamic(() => import('../components/GraphSnake'), { ssr: false })
