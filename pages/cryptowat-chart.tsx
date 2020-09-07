@@ -3,7 +3,7 @@ import * as React from 'react'
 import { DataSet } from '../components/Graph'
 import Layout from '../components/Layout'
 
-const Graph = dynamic(() => import('../components/Graph'), { ssr: false })
+const Graph = dynamic(() => import('../components/GraphSnake'), { ssr: false })
 
 const title = 'Cryptowat Chart'
 
