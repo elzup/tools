@@ -9,6 +9,7 @@ const RED = 0xff0000
 const RED_L = 0xff6090
 const YELLOW = 0xffee58
 const BLUE = 0x67daff
+const PURPLE = 0x440066
 
 type PlotRect = { x: number; y: number; w?: number; h?: number }
 const toPlot = (row: Candle): Plot => ({
@@ -88,29 +89,24 @@ export const useGraphSnake = (
         y1: y,
         y2: y,
         weight: 2,
-        color: 0x440066,
+        color: PURPLE,
       }))
     const halfDayW = 12 * HW
     const xst = +plotsm5[0].time - (+plotsm5[0].time % halfDayW) - 9 * HW
     const xet = +plotsm5[plotsm5.length - 1].time
     const rulerXB = _.range(xst, xet, 12 * HW)
       .map(toX)
-      .map((x) => ({
-        x1: x,
-        x2: x,
-        y1: 0,
-        y2: h,
-        weight: 2,
-        color: 0x440066,
-      }))
+      .map((x1) => ({ x1, x2: x1, y1: 0, y2: h, weight: 2, color: PURPLE }))
     const rulerX = _.range(xst, xet, HW)
       .map(toX)
-      .map((x) => ({ x1: x, x2: x, y1: 0, y2: h, color: 0x330055 }))
+      .map((x1) => ({ x1, x2: x1, y1: 0, y2: h, color: 0x330055 }))
 
     const lines: LineProp[] = [...rulerXB, ...rulerYB, ...rulerX, ...rulerY]
     const rects: PlotRect[] = []
 
     let position: 'no' | 'lo' | 'sh' = 'no'
+    const snakeW = plotsm5[plotsm5.length - 1].w
+    const snakeWfrom = plotsm5.length - snakeW
 
     const plots = plotsm5.map((p) => {
       const x = toX(+p.time)
@@ -139,7 +135,7 @@ export const useGraphSnake = (
       return { ...p, x, y, mmax, mmin, vmax, vmin, enLo, clLo, enSh, clSh }
     })
 
-    plots.reduce((p1, p2) => {
+    plots.reduce((p1, p2, i) => {
       if (!p1) return p2
       const xs = { x1: p1.x, x2: p2.x, weight: 1 }
 
@@ -148,7 +144,12 @@ export const useGraphSnake = (
       lines.push({ ...xs, y1: p1.mmax, y2: p2.mmax, color: GREEN_L })
       lines.push({ ...xs, y1: p1.mmin, y2: p2.mmin, color: RED_L })
 
-      lines.push({ ...xs, y1: p1.y, y2: p2.y })
+      lines.push({
+        ...xs,
+        y1: p1.y,
+        y2: p2.y,
+        color: i < snakeWfrom ? 0xffffff : 0xffff00,
+      })
 
       const xx = { x1: p2.x, x2: p2.x, weight: 1.5 }
 
