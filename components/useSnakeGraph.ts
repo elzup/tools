@@ -3,6 +3,12 @@ import _ from 'lodash'
 import { DataSet, Candle } from './GraphSnake'
 
 const CLOSE_MARGIN = 0.3
+const GREEN = 0x00ff00
+const GREEN_L = 0x76d275
+const RED = 0xff0000
+const RED_L = 0xff6090
+const YELLOW = 0xffee58
+const BLUE = 0x67daff
 
 type PlotRect = { x: number; y: number; w?: number; h?: number }
 const toPlot = (row: Candle): Plot => ({
@@ -31,7 +37,7 @@ export type Plot = {
   w: number
 }
 type Shapes = {
-  m5s: PlotRect[]
+  rects: PlotRect[]
   lines: LineProp[]
 }
 export type LineProp = {
@@ -43,7 +49,7 @@ export type LineProp = {
   weight?: number
 }
 
-const initShapes = { m5s: [], lines: [] }
+const initShapes = { rects: [], lines: [] }
 
 export const useGraphSnake = (
   datasets: DataSet,
@@ -54,7 +60,8 @@ export const useGraphSnake = (
   useEffect(() => {
     if (!size) return
     // const len = datasets.m5.length
-    const len = 12 * 24
+    const { height: h, width: w } = size
+    const len = 12 * 48
     const plotsm5 = datasets.m5.map(toPlot).slice(datasets.m5.length - len)
     const [top0, btm0] = plotsm5.reduce(maxmin, [
       Number.MIN_SAFE_INTEGER,
@@ -64,20 +71,20 @@ export const useGraphSnake = (
     const top = top0 + yd0 * MARGIN
     const btm = btm0 - yd0 * MARGIN
     const yd = top - btm
-    const toY = (v: number) => (1 - (v - btm) / yd) * size.height
+    const toY = (v: number) => (1 - (v - btm) / yd) * h
     const right = Date.now()
     const left = right - len * 5 * 60 * 1000
     const xd = right - left
-    const toX = (v: number) => ((v - left) / xd) * size.width
+    const toX = (v: number) => ((v - left) / xd) * w
 
     const rulerY = _.range(btm, top, 10000)
       .map(toY)
-      .map((y) => ({ x1: 0, x2: size.width, y1: y, y2: y, color: 0x330055 }))
+      .map((y) => ({ x1: 0, x2: w, y1: y, y2: y, color: 0x330055 }))
     const rulerYB = _.range(btm, top, 50000)
       .map(toY)
       .map((y) => ({
         x1: 0,
-        x2: size.width,
+        x2: w,
         y1: y,
         y2: y,
         weight: 2,
@@ -92,17 +99,20 @@ export const useGraphSnake = (
         x1: x,
         x2: x,
         y1: 0,
-        y2: size.height,
+        y2: h,
         weight: 2,
         color: 0x440066,
       }))
     const rulerX = _.range(xst, xet, HW)
       .map(toX)
-      .map((x) => ({ x1: x, x2: x, y1: 0, y2: size.height, color: 0x330055 }))
+      .map((x) => ({ x1: x, x2: x, y1: 0, y2: h, color: 0x330055 }))
 
     const lines: LineProp[] = [...rulerXB, ...rulerYB, ...rulerX, ...rulerY]
+    const rects: PlotRect[] = []
 
-    const m5s = plotsm5.map((p) => {
+    let position: 'no' | 'lo' | 'sh' = 'no'
+
+    const plots = plotsm5.map((p) => {
       const x = toX(+p.time)
       const y = toY(p.v)
       const vmax = toY(p.vmax)
@@ -111,24 +121,46 @@ export const useGraphSnake = (
       const md = d * CLOSE_MARGIN
       const mmax = vmax - md
       const mmin = vmin + md
+      const enLo = position === 'no' && p.v >= p.vmax
+      const clLo = position === 'lo' && y > mmin // 反転座標
+      const enSh = position === 'no' && p.v <= p.vmin
+      const clSh = position === 'sh' && y < mmax // 反転座標
 
-      return { ...p, x, y, mmax, mmin, vmax, vmin }
+      if (enLo) {
+        position = 'lo'
+      } else if (enSh) {
+        position = 'sh'
+      } else if (clLo) {
+        position = 'no'
+      } else if (clSh) {
+        position = 'no'
+      }
+
+      return { ...p, x, y, mmax, mmin, vmax, vmin, enLo, clLo, enSh, clSh }
     })
 
-    m5s.reduce((p1, p2) => {
+    plots.reduce((p1, p2) => {
       if (!p1) return p2
       const xs = { x1: p1.x, x2: p2.x, weight: 1.5 }
 
-      lines.push({ ...xs, y1: p1.vmax, y2: p2.vmax, color: 0x00ff00 })
-      lines.push({ ...xs, y1: p1.vmin, y2: p2.vmin, color: 0xff0000 })
-      lines.push({ ...xs, y1: p1.mmax, y2: p2.mmax, color: 0x76d275 })
-      lines.push({ ...xs, y1: p1.mmin, y2: p2.mmin, color: 0xff6090 })
+      lines.push({ ...xs, y1: p1.vmax, y2: p2.vmax, color: GREEN })
+      lines.push({ ...xs, y1: p1.vmin, y2: p2.vmin, color: RED })
+      lines.push({ ...xs, y1: p1.mmax, y2: p2.mmax, color: GREEN_L })
+      lines.push({ ...xs, y1: p1.mmin, y2: p2.mmin, color: RED_L })
 
       lines.push({ ...xs, y1: p1.y, y2: p2.y })
-      return p2
-    }, m5s[0])
 
-    setShapes({ m5s, lines })
+      const xx = { x1: p2.x, x2: p2.x }
+
+      if (p2.enLo) lines.push({ ...xx, y1: 0, y2: h, color: BLUE })
+      if (p2.clLo) lines.push({ ...xx, y1: 0, y2: h / 2, color: BLUE })
+      if (p2.enSh) lines.push({ ...xx, y1: 0, y2: h, color: YELLOW })
+      if (p2.clSh) lines.push({ ...xx, y1: h / 2, y2: h, color: YELLOW })
+
+      return p2
+    }, plots[0])
+
+    setShapes({ rects, lines })
   }, [datasets.m5[datasets.m5.length - 1][0], size])
   return shapes
 }
