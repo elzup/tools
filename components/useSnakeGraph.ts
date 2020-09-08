@@ -63,7 +63,7 @@ export const useGraphSnake = (
     // const len = datasets.m5.length
     const h = size.height * 2
     const w = size.width * 2
-    const len = 12 * 48
+    const len = 12 * 36
     const plotsm5 = datasets.m5.map(toPlot).slice(datasets.m5.length - len)
     const [top0, btm0] = plotsm5.reduce(maxmin, [
       Number.MIN_SAFE_INTEGER,
@@ -141,6 +141,7 @@ export const useGraphSnake = (
     plots.reduce((p1, p2, i) => {
       if (!p1) return p2
       const xs = { x1: p1.x, x2: p2.x, weight: 2 }
+      const xx = { x1: p2.x, x2: p2.x, weight: 2 }
 
       lines.push({ ...xs, y1: p1.vmax, y2: p2.vmax, color: GREEN })
       lines.push({ ...xs, y1: p1.vmin, y2: p2.vmin, color: RED })
@@ -151,10 +152,8 @@ export const useGraphSnake = (
 
       // lines.push({ ...xs, y1: p1.h, y2: p1.l, color, weight: 3 })
       lines.push({ ...xs, y1: p1.y, y2: p2.y, color })
-      // lines.push({ ...xs, y1: p1.h, y2: p2.h, color })
-      // lines.push({ ...xs, y1: p1.l, y2: p2.l, color })
-
-      const xx = { x1: p2.x, x2: p2.x, weight: 2 }
+      // lines.push({ ...xs, y1: toY(p1.h), y2: toY(p2.h), color })
+      lines.push({ ...xx, y1: toY(p2.l), y2: toY(p2.h), color: 0xaaaaaa })
 
       if (p2.enLo) lines.push({ ...xx, y1: 0, y2: p2.y, color: BLUE })
       if (p2.clLo) lines.push({ ...xx, y1: 0, y2: p2.y, color: BLUE })
