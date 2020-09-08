@@ -101,7 +101,7 @@ export const useGraphSnake = (
     const rects: PlotRect[] = []
 
     let position: 'no' | 'lo' | 'sh' = 'no'
-    let prev = { x: 0 }
+    let prev = { x: 0, y: 0 }
     const snakeW = plotsm5[plotsm5.length - 1].w
     const snakeWfrom = plotsm5.length - snakeW
 
@@ -122,17 +122,33 @@ export const useGraphSnake = (
       if (enLo) {
         position = 'lo'
         prev.x = x
+        prev.y = y
       } else if (enSh) {
         position = 'sh'
         prev.x = x
+        prev.y = y
       } else if (clLo) {
-        lines.push({ x1: prev.x, x2: x, y1: topY, y2: topY, color: BLUE })
+        const ddy = Math.min(prev.y, y) - topY
+
+        lines.push({
+          x1: prev.x,
+          x2: x,
+          y1: prev.y - ddy,
+          y2: y - ddy,
+          color: BLUE,
+        })
         position = 'no'
-        prev.x = x
       } else if (clSh) {
-        lines.push({ x1: prev.x, x2: x, y1: btmY, y2: btmY, color: YELLOW })
+        const ddy = btmY - Math.max(prev.y, y)
+
+        lines.push({
+          x1: prev.x,
+          x2: x,
+          y1: prev.y + ddy,
+          y2: y + ddy,
+          color: YELLOW,
+        })
         position = 'no'
-        prev.x = x
       }
 
       return { ...p, x, y, mmax, mmin, vmax, vmin, enLo, clLo, enSh, clSh }
@@ -142,6 +158,11 @@ export const useGraphSnake = (
       if (!p1) return p2
       const xs = { x1: p1.x, x2: p2.x, weight: 2 }
       const xx = { x1: p2.x, x2: p2.x, weight: 2 }
+
+      if (p2.enLo) lines.push({ ...xx, y1: 0, y2: p2.y, color: BLUE })
+      if (p2.clLo) lines.push({ ...xx, y1: 0, y2: p2.y, color: BLUE })
+      if (p2.enSh) lines.push({ ...xx, y1: p2.y, y2: h, color: YELLOW })
+      if (p2.clSh) lines.push({ ...xx, y1: p2.y, y2: h, color: YELLOW })
 
       lines.push({ ...xs, y1: p1.vmax, y2: p2.vmax, color: GREEN })
       lines.push({ ...xs, y1: p1.vmin, y2: p2.vmin, color: RED })
@@ -154,11 +175,6 @@ export const useGraphSnake = (
       lines.push({ ...xs, y1: p1.y, y2: p2.y, color })
       // lines.push({ ...xs, y1: toY(p1.h), y2: toY(p2.h), color })
       lines.push({ ...xx, y1: toY(p2.l), y2: toY(p2.h), color: 0xaaaaaa })
-
-      if (p2.enLo) lines.push({ ...xx, y1: 0, y2: p2.y, color: BLUE })
-      if (p2.clLo) lines.push({ ...xx, y1: 0, y2: p2.y, color: BLUE })
-      if (p2.enSh) lines.push({ ...xx, y1: p2.y, y2: h, color: YELLOW })
-      if (p2.clSh) lines.push({ ...xx, y1: p2.y, y2: h, color: YELLOW })
 
       return p2
     }, plots[0])
