@@ -61,7 +61,8 @@ export const useGraphSnake = (
   useEffect(() => {
     if (!size) return
     // const len = datasets.m5.length
-    const { height: h, width: w } = size
+    const h = size.height * 2
+    const w = size.width * 2
     const len = 12 * 48
     const plotsm5 = datasets.m5.map(toPlot).slice(datasets.m5.length - len)
     const [top0, btm0] = plotsm5.reduce(maxmin, [
@@ -73,6 +74,8 @@ export const useGraphSnake = (
     const btm = btm0 - yd0 * MARGIN
     const yd = top - btm
     const toY = (v: number) => (1 - (v - btm) / yd) * h
+    const btmY = toY(btm0)
+    const topY = toY(top0)
     const right = Date.now()
     const left = right - len * 5 * 60 * 1000
     const xd = right - left
@@ -83,20 +86,13 @@ export const useGraphSnake = (
       .map((y) => ({ x1: 0, x2: w, y1: y, y2: y, color: 0x330055 }))
     const rulerYB = _.range(btm, top, 50000)
       .map(toY)
-      .map((y) => ({
-        x1: 0,
-        x2: w,
-        y1: y,
-        y2: y,
-        weight: 2,
-        color: PURPLE,
-      }))
+      .map((y1) => ({ x1: 0, x2: w, y1, y2: y1, weight: 4, color: PURPLE }))
     const halfDayW = 12 * HW
     const xst = +plotsm5[0].time - (+plotsm5[0].time % halfDayW) - 9 * HW
     const xet = +plotsm5[plotsm5.length - 1].time
     const rulerXB = _.range(xst, xet, 12 * HW)
       .map(toX)
-      .map((x1) => ({ x1, x2: x1, y1: 0, y2: h, weight: 2, color: PURPLE }))
+      .map((x1) => ({ x1, x2: x1, y1: 0, y2: h, weight: 4, color: PURPLE }))
     const rulerX = _.range(xst, xet, HW)
       .map(toX)
       .map((x1) => ({ x1, x2: x1, y1: 0, y2: h, color: 0x330055 }))
@@ -105,6 +101,7 @@ export const useGraphSnake = (
     const rects: PlotRect[] = []
 
     let position: 'no' | 'lo' | 'sh' = 'no'
+    let prev = { x: 0 }
     const snakeW = plotsm5[plotsm5.length - 1].w
     const snakeWfrom = plotsm5.length - snakeW
 
@@ -113,10 +110,10 @@ export const useGraphSnake = (
       const y = toY(p.v)
       const vmax = toY(p.vmax)
       const vmin = toY(p.vmin)
-      const d = vmax - vmin
-      const md = d * CLOSE_MARGIN
-      const mmax = vmax - md
-      const mmin = vmin + md
+      const d = vmin - vmax // 反転座標
+      const md = d * CLOSE_MARGIN // 反転座標
+      const mmax = vmax + md // 反転座標
+      const mmin = vmin - md // 反転座標
       const enLo = position === 'no' && p.v >= p.vmax
       const clLo = position === 'lo' && y > mmin // 反転座標
       const enSh = position === 'no' && p.v <= p.vmin
@@ -124,12 +121,18 @@ export const useGraphSnake = (
 
       if (enLo) {
         position = 'lo'
+        prev.x = x
       } else if (enSh) {
         position = 'sh'
+        prev.x = x
       } else if (clLo) {
+        lines.push({ x1: prev.x, x2: x, y1: topY, y2: topY, color: BLUE })
         position = 'no'
+        prev.x = x
       } else if (clSh) {
+        lines.push({ x1: prev.x, x2: x, y1: btmY, y2: btmY, color: YELLOW })
         position = 'no'
+        prev.x = x
       }
 
       return { ...p, x, y, mmax, mmin, vmax, vmin, enLo, clLo, enSh, clSh }
@@ -137,25 +140,25 @@ export const useGraphSnake = (
 
     plots.reduce((p1, p2, i) => {
       if (!p1) return p2
-      const xs = { x1: p1.x, x2: p2.x, weight: 1 }
+      const xs = { x1: p1.x, x2: p2.x, weight: 2 }
 
       lines.push({ ...xs, y1: p1.vmax, y2: p2.vmax, color: GREEN })
       lines.push({ ...xs, y1: p1.vmin, y2: p2.vmin, color: RED })
       lines.push({ ...xs, y1: p1.mmax, y2: p2.mmax, color: GREEN_L })
       lines.push({ ...xs, y1: p1.mmin, y2: p2.mmin, color: RED_L })
 
-      lines.push({
-        ...xs,
-        y1: p1.y,
-        y2: p2.y,
-        color: i < snakeWfrom ? 0xffffff : 0xffff00,
-      })
+      const color = i < snakeWfrom ? 0xffffff : 0xffff00
 
-      const xx = { x1: p2.x, x2: p2.x, weight: 1.5 }
+      // lines.push({ ...xs, y1: p1.h, y2: p1.l, color, weight: 3 })
+      lines.push({ ...xs, y1: p1.y, y2: p2.y, color })
+      // lines.push({ ...xs, y1: p1.h, y2: p2.h, color })
+      // lines.push({ ...xs, y1: p1.l, y2: p2.l, color })
 
-      if (p2.enLo) lines.push({ ...xx, y1: p2.y, y2: h, color: BLUE })
+      const xx = { x1: p2.x, x2: p2.x, weight: 2 }
+
+      if (p2.enLo) lines.push({ ...xx, y1: 0, y2: p2.y, color: BLUE })
       if (p2.clLo) lines.push({ ...xx, y1: 0, y2: p2.y, color: BLUE })
-      if (p2.enSh) lines.push({ ...xx, y1: 0, y2: p2.y, color: YELLOW })
+      if (p2.enSh) lines.push({ ...xx, y1: p2.y, y2: h, color: YELLOW })
       if (p2.clSh) lines.push({ ...xx, y1: p2.y, y2: h, color: YELLOW })
 
       return p2
