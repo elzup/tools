@@ -29,7 +29,14 @@ type LineProps = {
   color?: number
   weight?: number
 }
-export const Line = ({ x1, y1, x2, y2, color, weight }: LineProps) => (
+export const Line = ({
+  x1,
+  y1,
+  x2,
+  y2,
+  color = 0xffffff,
+  weight = 2,
+}: LineProps) => (
   <GraphicsC
     draw={(g) => {
       g.clear()
@@ -37,7 +44,3 @@ export const Line = ({ x1, y1, x2, y2, color, weight }: LineProps) => (
     }}
   />
 )
-Line.defaultProps = {
-  color: 0xffffff,
-  weight: 1,
-}

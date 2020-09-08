@@ -34,10 +34,18 @@ export default function GraphSnake({ datasets }: Props) {
     )
 
   return (
-    <div style={{ width: '100vw', height: '80vh' }} ref={ref}>
+    <div
+      style={{
+        width: '100vw',
+        height: '80vh',
+        transform: 'scale(0.5)',
+        transformOrigin: 'left top',
+      }}
+      ref={ref}
+    >
       <Stage
-        width={size.width}
-        height={size.height}
+        width={size.width * 2}
+        height={size.height * 2}
         options={{ resolution: 1 }}
       >
         {lines.map((l, i) => (
