@@ -115,10 +115,10 @@ export const useGraphSnake = (
       const md = d * CLOSE_MARGIN // 反転座標
       const mmax = vmax + md // 反転座標
       const mmin = vmin - md // 反転座標
-      const enLo = position === 'no' && p.v >= p.vmax
-      const clLo = position === 'lo' && y > mmin // 反転座標
-      const enSh = position === 'no' && p.v <= p.vmin
-      const clSh = position === 'sh' && y < mmax // 反転座標
+      const enLo = position === 'no' && p.h >= p.vmax
+      const clLo = position === 'lo' && toY(p.h) > mmin // 反転座標
+      const enSh = position === 'no' && p.l <= p.vmin
+      const clSh = position === 'sh' && toY(p.l) < mmax // 反転座標
 
       if (enLo) {
         position = 'lo'
@@ -172,10 +172,9 @@ export const useGraphSnake = (
 
       const color = i < snakeWfrom ? 0xffffff : 0xffff00
 
-      // lines.push({ ...xs, y1: p1.h, y2: p1.l, color, weight: 3 })
       lines.push({ ...xs, y1: p1.y, y2: p2.y, color })
-      // lines.push({ ...xs, y1: toY(p1.h), y2: toY(p2.h), color })
-      lines.push({ ...xx, y1: toY(p2.l), y2: toY(p2.h), color: 0xaaaaaa })
+      lines.push({ ...xs, y1: toY(p1.l), y2: toY(p2.l), color: 0x444444 })
+      lines.push({ ...xs, y1: toY(p1.h), y2: toY(p2.h), color: 0x444444 })
 
       return p2
     }, plots[0])
