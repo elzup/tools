@@ -36,7 +36,7 @@ export type Plot = {
   vmax: number
   vmin: number
   w: number
-  judge: boolean
+  // judge: boolean
 }
 type Shapes = {
   rects: PlotRect[]
