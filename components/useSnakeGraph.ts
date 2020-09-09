@@ -36,6 +36,7 @@ export type Plot = {
   vmax: number
   vmin: number
   w: number
+  judge: boolean
 }
 type Shapes = {
   rects: PlotRect[]
@@ -63,7 +64,7 @@ export const useGraphSnake = (
     // const len = datasets.m5.length
     const h = size.height * 2
     const w = size.width * 2
-    const len = 12 * 36
+    const len = 12 * 12
     const plotsm5 = datasets.m5.map(toPlot).slice(datasets.m5.length - len)
     const [top0, btm0] = plotsm5.reduce(maxmin, [
       Number.MIN_SAFE_INTEGER,
