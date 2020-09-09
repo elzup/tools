@@ -38,24 +38,32 @@ export default function GraphSnake({ datasets }: Props) {
     <div
       style={{
         width: '100vw',
-        height: '80vh',
-        transform: 'scale(0.5)',
-        transformOrigin: 'left top',
+        background: 'black',
       }}
-      ref={ref}
     >
-      <Stage
-        width={size.width * 2}
-        height={size.height * 2}
-        options={{ resolution: 1 }}
+      <div
+        style={{
+          width: '100vw',
+          height: '80vh',
+          transform: 'scale(0.49)',
+          transformOrigin: 'left top',
+          background: 'black',
+        }}
+        ref={ref}
       >
-        {lines.map((l, i) => (
-          <Line key={`ln-${i}`} {...l} />
-        ))}
-      </Stage>
-      <p>
-        {datasets.allo.remaining / 1000000} / {4000}
-      </p>
+        <Stage
+          width={size.width * 2}
+          height={size.height * 2}
+          options={{ resolution: 1 }}
+        >
+          {lines.map((l, i) => (
+            <Line key={`ln-${i}`} {...l} />
+          ))}
+        </Stage>
+        <p>
+          {datasets.allo.remaining / 1000000} / {4000}
+        </p>
+      </div>
     </div>
   )
 }
