@@ -3,13 +3,17 @@ import _ from 'lodash'
 import { DataSet, Candle } from './GraphSnake'
 
 const CLOSE_MARGIN = 0.3
+const ENTRY_MARGIN = 0.3
 const GREEN = 0x00ff00
 const GREEN_L = 0x76d275
 const RED = 0xff0000
 const RED_L = 0xff6090
 const YELLOW = 0xffee58
 const BLUE = 0x67daff
-const PURPLE = 0x440066
+const PURPLE = 0x551177
+const ORANGE = 0xffa000
+const WHITE = 0xffffff
+const GRAY = 0x444444
 
 type PlotRect = { x: number; y: number; w?: number; h?: number }
 const toPlot = (row: Candle): Plot => ({
@@ -84,19 +88,19 @@ export const useGraphSnake = (
 
     const rulerY = _.range(btm, top, 10000)
       .map(toY)
-      .map((y) => ({ x1: 0, x2: w, y1: y, y2: y, color: 0x330055 }))
+      .map((y) => ({ x1: 0, x2: w, y1: y, y2: y, weight: 2, color: PURPLE }))
     const rulerYB = _.range(btm, top, 50000)
       .map(toY)
-      .map((y1) => ({ x1: 0, x2: w, y1, y2: y1, weight: 4, color: PURPLE }))
+      .map((y1) => ({ x1: 0, x2: w, y1, y2: y1, weight: 6, color: PURPLE }))
     const halfDayW = 12 * HW
     const xst = +plotsm5[0].time - (+plotsm5[0].time % halfDayW) - 9 * HW
     const xet = +plotsm5[plotsm5.length - 1].time
     const rulerXB = _.range(xst, xet, 12 * HW)
       .map(toX)
-      .map((x1) => ({ x1, x2: x1, y1: 0, y2: h, weight: 4, color: PURPLE }))
+      .map((x1) => ({ x1, x2: x1, y1: 0, y2: h, weight: 6, color: PURPLE }))
     const rulerX = _.range(xst, xet, HW)
       .map(toX)
-      .map((x1) => ({ x1, x2: x1, y1: 0, y2: h, color: 0x330055 }))
+      .map((x1) => ({ x1, x2: x1, y1: 0, y2: h, color: PURPLE }))
 
     const lines: LineProp[] = [...rulerXB, ...rulerYB, ...rulerX, ...rulerY]
     const rects: PlotRect[] = []
@@ -111,14 +115,17 @@ export const useGraphSnake = (
       const y = toY(p.v)
       const vmax = toY(p.vmax)
       const vmin = toY(p.vmin)
-      const d = vmin - vmax // 反転座標
-      const md = d * CLOSE_MARGIN // 反転座標
-      const mmax = vmax + md // 反転座標
-      const mmin = vmin - md // 反転座標
-      const enLo = position === 'no' && p.h >= p.vmax
-      const clLo = position === 'lo' && toY(p.h) > mmin // 反転座標
-      const enSh = position === 'no' && p.l <= p.vmin
-      const clSh = position === 'sh' && toY(p.l) < mmax // 反転座標
+      const d = p.vmax - p.vmin
+      const mde = d * ENTRY_MARGIN
+      const mdc = d * CLOSE_MARGIN
+      const enMax = p.vmax - mde
+      const enMin = p.vmin + mde
+      const clMax = p.vmax - mdc
+      const clMin = p.vmin + mdc
+      const enLo = position === 'no' && p.h >= enMax
+      const enSh = position === 'no' && p.l <= enMin
+      const clLo = position === 'lo' && p.l <= clMin
+      const clSh = position === 'sh' && p.h >= clMax
 
       if (enLo) {
         position = 'lo'
@@ -152,7 +159,21 @@ export const useGraphSnake = (
         position = 'no'
       }
 
-      return { ...p, x, y, mmax, mmin, vmax, vmin, enLo, clLo, enSh, clSh }
+      return {
+        ...p,
+        x,
+        y,
+        enMax: toY(enMax),
+        enMin: toY(enMin),
+        clMax: toY(clMax),
+        clMin: toY(clMin),
+        vmax,
+        vmin,
+        enLo,
+        clLo,
+        enSh,
+        clSh,
+      }
     })
 
     plots.reduce((p1, p2, i) => {
@@ -167,14 +188,25 @@ export const useGraphSnake = (
 
       lines.push({ ...xs, y1: p1.vmax, y2: p2.vmax, color: GREEN })
       lines.push({ ...xs, y1: p1.vmin, y2: p2.vmin, color: RED })
-      lines.push({ ...xs, y1: p1.mmax, y2: p2.mmax, color: GREEN_L })
-      lines.push({ ...xs, y1: p1.mmin, y2: p2.mmin, color: RED_L })
+      lines.push({ ...xs, y1: p1.enMax, y2: p2.enMax, color: GREEN_L })
+      lines.push({ ...xs, y1: p1.enMin, y2: p2.enMin, color: RED_L })
+      lines.push({ ...xs, y1: p1.clMax, y2: p2.clMax, color: GREEN_L })
+      lines.push({ ...xs, y1: p1.clMin, y2: p2.clMin, color: RED_L })
 
-      const color = i < snakeWfrom ? 0xffffff : 0xffff00
+      const color = i < snakeWfrom ? WHITE : ORANGE
 
       lines.push({ ...xs, y1: p1.y, y2: p2.y, color })
-      lines.push({ ...xs, y1: toY(p1.l), y2: toY(p2.l), color: 0x444444 })
-      lines.push({ ...xs, y1: toY(p1.h), y2: toY(p2.h), color: 0x444444 })
+      lines.push({ ...xs, y1: toY(p1.l), y2: toY(p2.l), color: GRAY })
+      lines.push({ ...xs, y1: toY(p1.h), y2: toY(p2.h), color: GRAY })
+      if (i === plots.length - 1 && position !== 'no') {
+        const base = { x1: prev.x, x2: p2.x, y1: prev.y }
+
+        if (position === 'sh') {
+          lines.push({ ...base, y2: p2.clMax, color: YELLOW })
+        } else if (position === 'lo') {
+          lines.push({ ...base, y2: p2.clMin, color: BLUE })
+        }
+      }
 
       return p2
     }, plots[0])
