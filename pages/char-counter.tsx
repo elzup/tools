@@ -7,13 +7,10 @@ type Count = { char: string; count: number }
 
 function analyzeCount(text: string): Count[] {
   const map: Record<string, number> = {}
-  const codes = punycode.ucs2.decode(text)
+  const chars = punycode.ucs2.decode(text).map((v) => punycode.ucs2.encode([v]))
 
-  codes.forEach((code) => {
-    let c = punycode.ucs2.encode([code])
-
-    if (!map[c]) map[c] = 0
-    map[c]++
+  chars.forEach((c) => {
+    map[c] = (map[c] || 0) + 1
   })
   return Object.entries(map)
     .sort(([, v1], [, v2]) => v2 - v1)
