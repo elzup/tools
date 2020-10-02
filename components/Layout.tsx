@@ -18,6 +18,11 @@ type Routing = {
 const routings: Routing[] = [
   { icon: 'home', label: 'Top', path: '/' },
   {
+    icon: 'chart bar outline',
+    label: '文字列カウント Charactor frequency analysis',
+    path: '/char-counter',
+  },
+  {
     icon: 'translate',
     label: 'GHA BadgeMaker',
     path: '/gha-badge-maker',
