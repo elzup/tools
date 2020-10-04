@@ -5,9 +5,12 @@ import Layout from '../components/Layout'
 
 type Count = { char: string; count: number }
 
+const punySplit = (s: string) =>
+  punycode.ucs2.decode(s).map((v) => punycode.ucs2.encode([v]))
+
 function analyzeCount(text: string): Count[] {
   const map: Record<string, number> = {}
-  const chars = punycode.ucs2.decode(text).map((v) => punycode.ucs2.encode([v]))
+  const chars = punySplit(text)
 
   chars.forEach((c) => {
     map[c] = (map[c] || 0) + 1
