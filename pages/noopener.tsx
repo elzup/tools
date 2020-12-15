@@ -8,9 +8,16 @@ const NoOpener = () => {
     <Layout title={title}>
       <Header as="h1">{title}</Header>
       <p>
-        <a href="/noopener-attacker" target="_blank">
-          noopenerをつけていない危険なリンク
+        <a
+          href="/noopener-attacker"
+          target="_blank"
+          rel="opener" /* default at Chrome <= 87 */
+        >
+          <s>noopenerをつけていない危険なリンク</s> → openerをつけたリンク
         </a>
+        {
+          '(多くのブラウザで target="_blank"な場合は rel="noopener" がつくようになりました)'
+        }
       </p>
       <p>
         <a href="/noopener-attacker" target="_blank" rel="noopener">
