@@ -33,6 +33,11 @@ const routings: Routing[] = [
     path: '/noopener',
   },
   {
+    icon: 'fire',
+    label: 'XSS Attack Demo',
+    path: '/xss',
+  },
+  {
     icon: 'calculator',
     label: 'Pi Lab Monte Carlo',
     path: '/pi-lab',
