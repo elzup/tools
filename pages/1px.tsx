@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { SketchPicker } from 'react-color'
+import { HSLColor, RGBColor, SketchPicker } from 'react-color'
 
 import {
   Button,
@@ -14,7 +14,7 @@ import {
 } from 'semantic-ui-react'
 import Layout from '../components/Layout'
 
-function gen1pxDataUrl(hex: string) {
+function gen1pxDataUrl(rgb: RGBColor) {
   const size = 1
   const canvasElem = document.createElement('canvas')
 
@@ -25,14 +25,35 @@ function gen1pxDataUrl(hex: string) {
   if (!ctx) return ''
 
   ctx.clearRect(0, 0, size, size)
-  ctx.fillStyle = hex
+  ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${rgb.a || 0})`
   ctx.fillRect(0, 0, size, size)
 
   return canvasElem.toDataURL()
 }
+
+const checkerUrl =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVQ4T2NkYGAQYcAP3uCTZhw1gGGYhAGBZIA/nYDCgBDAm9BGDWAAJyRCgLaBCAAgXwixzAS0pgAAAABJRU5ErkJggg=='
+
 const title = '1px data url generator'
+const defaultPresetColors = [
+  '#D0021B',
+  '#F5A623',
+  '#F8E71C',
+  '#8B572A',
+  '#7ED321',
+  '#417505',
+  '#BD10E0',
+  '#9013FE',
+  '#4A90E2',
+  '#50E3C2',
+  '#B8E986',
+  '#000000',
+  '#4A4A4A',
+  '#9B9B9B',
+  '#FFFFFF',
+]
 const NoOpener = () => {
-  const [hex, setHex] = useState<string>('')
+  const [hex, setHex] = useState<RGBColor>({ r: 0, g: 0, b: 0, a: 1 })
   const [url, setUrl] = useState<string>('')
 
   useEffect(() => {
@@ -45,11 +66,26 @@ const NoOpener = () => {
     <Layout title={title}>
       <Header as="h1">{title}</Header>
 
-      <div style={{ display: 'grid', gap: '8px' }}>
-        <SketchPicker color={hex} onChange={(e) => setHex(e.hex)} />
-        <Image src={url} size="tiny" bordered />
-        <TextArea value={url} style={{ background: '#eee' }} />
-        <TextArea value={imgUrl} style={{ background: '#eee' }} />
+      <div style={{ display: 'grid' }}>
+        <SketchPicker
+          presetColors={[...defaultPresetColors, 'rgba(0, 0, 0, 0)']}
+          color={hex}
+          onChange={(e) => setHex(e.rgb)}
+        />
+        <div
+          style={{
+            padding: '8px',
+            backgroundImage: `url(${checkerUrl})`,
+            width: 'fit-content',
+          }}
+        >
+          <Image src={url} size="tiny" bordered />
+        </div>
+        <TextArea value={url} style={{ background: '#eee', width: '100%' }} />
+        <TextArea
+          value={imgUrl}
+          style={{ background: '#eee', width: '100%' }}
+        />
       </div>
     </Layout>
   )
