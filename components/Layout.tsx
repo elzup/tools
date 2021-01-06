@@ -52,6 +52,11 @@ const routings: Routing[] = [
     label: 'Cryptowat chart three',
     path: '/cryptowat-chart',
   },
+  {
+    icon: 'image outline',
+    label: '1px image data url',
+    path: '/1px',
+  },
   // {
   //   icon: 'calculator',
   //   label: '正規分布ツール',
