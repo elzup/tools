@@ -22,15 +22,17 @@ const zoomCenter = (prev: Rect, px: number, py: number, scale = 2) => {
   return { sx, sy, ex, ey }
 }
 
-const size = 600
 const initialZoom = { sx: -2, sy: -2, ex: 2, ey: 2 }
 
 const title = 'マンデルブロ集合'
 
+const wholeSize = 600
+
 function MandelEditPage() {
   const [zoom, setZoom] = useState<Rect>(initialZoom)
   const [rep, setRep] = useState<number>(40)
-  const [png] = useMandelbulb(zoom, rep)
+  const [size, setSize] = useState<number>(600)
+  const [png] = useMandelbulb(zoom, rep, size)
 
   return (
     <Layout title={title}>
@@ -38,12 +40,11 @@ function MandelEditPage() {
       <img
         src={png}
         alt="plot"
-        style={{ width: `${size}px`, height: `${size}px` }}
+        style={{ width: `${wholeSize}px`, height: `${wholeSize}px` }}
         onMouseDown={({ nativeEvent: { offsetX, offsetY } }) => {
-          const px = offsetX / size
-          const py = offsetY / size
+          const px = offsetX / wholeSize
+          const py = offsetY / wholeSize
 
-          console.log({ px, py })
           setZoom(zoomCenter(zoom, px, py, 2))
         }}
       />
@@ -53,8 +54,18 @@ function MandelEditPage() {
           size="large"
           type="number"
           value={rep}
-          inputProps={{ min: 1, max: 60, defaultValue: 40 }}
+          inputProps={{ min: 1, max: 60 }}
           onChange={(e) => setRep(Number(e.target.value))}
+        />
+      </div>
+      <div>
+        size:{' '}
+        <Input
+          size="large"
+          type="number"
+          value={size}
+          inputProps={{ min: 1, max: 1000 }}
+          onChange={(e) => setSize(Number(e.target.value))}
         />
       </div>
     </Layout>

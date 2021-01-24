@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const range = (v: number) => [...Array(v).keys()]
-const width = 600
 
 const draw = (
   x: number,
@@ -19,17 +18,18 @@ function view(
   x2: number,
   y2: number,
   ctx: CanvasRenderingContext2D,
-  rep: number
+  rep: number,
+  size: number
 ) {
   if (!ctx) return
   ctx.fillStyle = 'white'
-  ctx.fillRect(0, 0, width, width)
-  range(width).forEach((i) => {
-    const a = (i * (x2 - x1)) / width + x1 // 定数Cの実部
+  ctx.fillRect(0, 0, size, size)
+  range(size).forEach((i) => {
+    const a = (i * (x2 - x1)) / size + x1 // 定数Cの実部
 
-    range(width).forEach((j) => {
+    range(size).forEach((j) => {
       // y（虚部）方向のループ
-      const b = (j * (y2 - y1)) / width + y1 // 定数Cの虚部
+      const b = (j * (y2 - y1)) / size + y1 // 定数Cの虚部
       const z = { x: 0, y: 0 }
 
       range(rep).some((k) => {
@@ -47,7 +47,7 @@ function view(
 }
 
 export type Area = { sx: number; sy: number; ex: number; ey: number }
-export const useMandelbulb = (zoom: Area, rep: number) => {
+export const useMandelbulb = (zoom: Area, rep: number, size: number) => {
   const [png, setPng] = useState<string>('')
 
   useEffect(() => {
@@ -57,19 +57,17 @@ export const useMandelbulb = (zoom: Area, rep: number) => {
 
     if (!ctx) return
 
-    canvas.width = width
-    canvas.height = width
+    canvas.width = size
+    canvas.height = size
 
-    view(sx, sy, ex, ey, ctx, rep)
-    ctx.moveTo(0, width / 2)
-    ctx.lineTo(width, width / 2)
-    ctx.moveTo(width / 2, 0)
-    ctx.lineTo(width / 2, width)
+    view(sx, sy, ex, ey, ctx, rep, size)
+    ctx.moveTo(0, size / 2)
+    ctx.lineTo(size, size / 2)
+    ctx.moveTo(size / 2, 0)
+    ctx.lineTo(size / 2, size)
     ctx.stroke()
     setPng(canvas.toDataURL())
-  }, [zoom, rep])
+  }, [zoom, rep, size])
 
   return [png]
 }
-
-export default () => <div>About us</div>
