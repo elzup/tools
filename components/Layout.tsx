@@ -57,6 +57,11 @@ const routings: Routing[] = [
     label: '1px image data url',
     path: '/1px',
   },
+  {
+    icon: 'chart bar outline',
+    label: 'マンデルブロ集合 Mandelbrat',
+    path: '/mandelbulb',
+  },
   // {
   //   icon: 'calculator',
   //   label: '正規分布ツール',
