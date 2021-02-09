@@ -43,6 +43,11 @@ const routings: Routing[] = [
     path: '/pi-lab',
   },
   {
+    icon: 'id badge outline',
+    label: 'Mirror Camela',
+    path: '/mirror',
+  },
+  {
     icon: 'calculator',
     label: 'Collatz graph',
     path: '/collatz-graph',
