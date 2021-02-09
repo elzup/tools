@@ -4,7 +4,7 @@ import Layout from '../components/Layout'
 
 const title = 'モンテカルロ PI ラボ'
 const PiLab = () => {
-  const { total, inCount, pi, countStop, start } = useMonteCarlo()
+  const { total, inCount, pi, start } = useMonteCarlo()
   const [upNum, setUpnum] = React.useState<number>(0)
 
   return (

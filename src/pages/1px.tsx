@@ -1,17 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { HSLColor, RGBColor, SketchPicker } from 'react-color'
-
-import {
-  Button,
-  Card,
-  Form,
-  Grid,
-  Header,
-  Icon,
-  Image,
-  Input,
-  TextArea,
-} from 'semantic-ui-react'
+import { RGBColor, SketchPicker } from 'react-color'
+import { Header, Image, TextArea } from 'semantic-ui-react'
 import Layout from '../components/Layout'
 
 function gen1pxDataUrl(rgb: RGBColor) {

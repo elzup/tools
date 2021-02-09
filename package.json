@@ -8,6 +8,7 @@
     "test:e2e": "qawolf test",
     "export": "yarn build && next export",
     "start": "next start",
+    "lint": "eslint --ext .ts,.tsx src",
     "type-check": "tsc"
   },
   "dependencies": {

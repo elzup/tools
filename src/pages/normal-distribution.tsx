@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { Form, Header, Input, Label } from 'semantic-ui-react'
 import { Chart } from 'react-google-charts'
 // eslint-disable-next-line import/no-unresolved
 import { GoogleDataTableColumn } from 'react-google-charts/dist/types'
+import { Form, Header } from 'semantic-ui-react'
 import Layout from '../components/Layout'
 
 type ParseResult = {
