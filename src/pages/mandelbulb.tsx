@@ -2,23 +2,20 @@ import React, { useState } from 'react'
 import { Header, Input } from 'semantic-ui-react'
 import Layout from '../components/Layout'
 import { useMandelbulb } from '../components/useMandelbulb'
+import { zoom2D } from '../utils'
 
 type Rect = { sx: number; sy: number; ex: number; ey: number }
-const zoomCenter1D = (s: number, e: number, p: number, scale = 2) => {
-  const d = e - s
-  const o = s + d * p
-  const r = d / scale / 2
-  const ns = o - r
-  const ne = o + r
+const zoomCenter = (zoom: Rect, px: number, py: number, scale = 2) => {
+  const [sx, sy, ex, ey] = zoom2D(
+    zoom.sx,
+    zoom.sy,
+    zoom.ex,
+    zoom.ey,
+    px,
+    py,
+    scale
+  )
 
-  console.log({ ns, ne, o, d, r })
-  return { ns, ne }
-}
-const zoomCenter = (prev: Rect, px: number, py: number, scale = 2) => {
-  const { ns: sx, ne: ex } = zoomCenter1D(prev.sx, prev.ex, px, scale)
-  const { ns: sy, ne: ey } = zoomCenter1D(prev.sy, prev.ey, py, scale)
-
-  console.log({ sx, sy, ex, ey })
   return { sx, sy, ex, ey }
 }
 
