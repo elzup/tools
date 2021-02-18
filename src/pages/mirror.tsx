@@ -1,4 +1,3 @@
-import { repeat } from 'lodash'
 import React, { useState } from 'react'
 import Webcam from 'react-webcam'
 import { Button, Header } from 'semantic-ui-react'
