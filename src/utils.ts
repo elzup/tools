@@ -1,3 +1,5 @@
+import through from 'through'
+
 export const zoom1D = (
   s: number,
   e: number,
@@ -24,4 +26,29 @@ export const zoom2D = (
   const [nsy, ney] = zoom1D(sy, ey, py, scale)
 
   return [nsx, nex, nsy, ney]
+}
+
+export const sleep = (msec: number) =>
+  new Promise((resolve) => setTimeout(resolve, msec))
+
+export const delay = (time: number) => {
+  const queue = []
+
+  function next(data) {
+    queue.push(data)
+    setTimeout(function () {
+      ts.queue(queue.shift())
+    }, time)
+  }
+
+  var ts = through(
+    function (data) {
+      next(data)
+    },
+    function () {
+      next(null)
+    }
+  )
+
+  return ts
 }
