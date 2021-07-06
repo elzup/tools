@@ -12,11 +12,16 @@ const NoOpenerAttacker = () => {
 
     setSource(source || 'noopener設定あり')
     if (!source) return
-    window.opener.document
-      .getElementsByTagName('input')[0]
-      .addEventListener('input', (e: React.ChangeEvent<HTMLInputElement>) =>
-        setPassword(e.target.value)
-      )
+
+    const _e = window.opener?.document
+      ?.getElementsByTagName('input')[0]
+      ?.addEventListener('input', ({ target }) => {
+        if (!(target instanceof HTMLInputElement)) {
+          return
+        }
+
+        setPassword(target.value)
+      })
   }, [])
 
   return (
