@@ -6,20 +6,25 @@ const API_URL = 'https://api.ipify.org/?format=json'
 
 type IpData = { ip: string }
 
-const title = 'public IP取得'
-const GlobalIp = () => {
-  const [status, setStatus] = React.useState<'start' | 'loading' | 'finish'>(
-    'start'
-  )
-  const [result, setResult] = React.useState<string>('')
+function usePublicIp() {
+  const [loading, setLoading] = React.useState<boolean>(false)
+  const [result, setResult] = React.useState<string | null>(null)
+
   const getIp = async () => {
-    setStatus('loading')
+    setLoading(true)
     const res = await fetch(API_URL)
     const data = (await res.json()) as IpData
 
     setResult(data.ip)
-    setStatus('finish')
+    setLoading(false)
   }
+
+  return [loading, result, getIp] as const
+}
+
+const title = 'public IP取得'
+const GlobalIp = () => {
+  const [loading, ip, getIp] = usePublicIp()
 
   return (
     <Layout title={title}>
@@ -29,11 +34,11 @@ const GlobalIp = () => {
         <code>{API_URL}</code>
       </p>
       <p>
-        status: <code>{status}</code>
+        loading: <code>{loading ? 'true' : 'none'}</code>
       </p>
       <Button onClick={getIp}>IP取得実行</Button>
       <div>
-        IP: <code>{result}</code>
+        IP: <code>{ip}</code>
       </div>
     </Layout>
   )
