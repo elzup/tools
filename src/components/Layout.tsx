@@ -67,6 +67,11 @@ const routings: Routing[] = [
     label: 'マンデルブロ集合 Mandelbrat',
     path: '/mandelbulb',
   },
+  {
+    icon: 'globe',
+    label: 'Global Public IP',
+    path: '/global-ip',
+  },
   // {
   //   icon: 'calculator',
   //   label: '正規分布ツール',
