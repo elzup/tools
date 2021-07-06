@@ -32,22 +32,18 @@ export const sleep = (msec: number) =>
   new Promise((resolve) => setTimeout(resolve, msec))
 
 export const delay = (time: number) => {
-  const queue = []
+  const queue: unknown[] = []
 
-  function next(data) {
+  function next(data: unknown) {
     queue.push(data)
     setTimeout(function () {
       ts.queue(queue.shift())
     }, time)
   }
 
-  var ts = through(
-    function (data) {
-      next(data)
-    },
-    function () {
-      next(null)
-    }
+  const ts = through(
+    (data) => next(data),
+    () => next(null)
   )
 
   return ts
