@@ -72,6 +72,11 @@ const routings: Routing[] = [
     label: 'Global Public IP',
     path: '/global-ip',
   },
+  {
+    icon: 'thermometer three quarters',
+    label: 'Sub window demo',
+    path: '/sub-window-ex',
+  },
   // {
   //   icon: 'calculator',
   //   label: '正規分布ツール',
