@@ -1,6 +1,8 @@
 import React from 'react'
 import { Button } from 'semantic-ui-react'
 
+import { stringify } from 'flatted'
+
 const toj = (a: unknown) => JSON.stringify(a, null, '\t')
 const SubWindowParts = () => (
   <div>
@@ -21,7 +23,9 @@ const SubWindowParts = () => (
       {`window.open(location.href, '_blank', 'height=300,width=300')`}
     </Button>
 
-    <pre>{/* <code>{toj(window.opener)}</code> */}</pre>
+    <pre>
+      <code>{stringify(window.opener, null, ' ')}</code>
+    </pre>
   </div>
 )
 
