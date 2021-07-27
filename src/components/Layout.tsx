@@ -77,6 +77,12 @@ const routings: Routing[] = [
     label: 'Sub window demo',
     path: '/sub-window-ex',
   },
+  {
+    icon: 'text',
+    label: 'Text transformer',
+    path: '/textmaster',
+  },
+
   // {
   //   icon: 'calculator',
   //   label: '正規分布ツール',
