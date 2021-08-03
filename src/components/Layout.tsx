@@ -87,6 +87,11 @@ const routings: Routing[] = [
     label: 'word search',
     path: '/word-search',
   },
+  {
+    icon: 'bowling ball icon',
+    label: '楕円ビリヤード',
+    path: '/ellip-billiards',
+  },
 
   // {
   //   icon: 'calculator',
