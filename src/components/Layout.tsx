@@ -78,17 +78,17 @@ const routings: Routing[] = [
     path: '/sub-window-ex',
   },
   {
-    icon: 'puzzle piece icon',
+    icon: 'pencil alternate',
     label: 'Text transformer',
     path: '/textmaster',
   },
   {
-    icon: 'puzzle piece icon',
+    icon: 'puzzle piece',
     label: 'word search',
     path: '/word-search',
   },
   {
-    icon: 'bowling ball icon',
+    icon: 'bowling ball',
     label: '楕円ビリヤード',
     path: '/ellip-billiards',
   },
