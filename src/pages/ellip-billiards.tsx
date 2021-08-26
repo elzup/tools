@@ -1,22 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import Matter, { Engine, Events, Runner, World, Bodies } from 'matter-js'
 
-function useWords() {
-  const [words, setWords] = useState<string[] | null>(null)
-
-  useEffect(() => {
-    // fetch('/words.nohead.csv').then(async (res) => {
-    //   const text = await res.text()
-    //   text
-    //     .trim()
-    //     .split('\n')
-    //     .map((line) => line.split(','))
-    // })
-  }, [setWords])
-
-  return words
-}
-
 const engine = Engine.create()
 const runner = Runner.create()
 const WIDTH = 640
@@ -35,6 +19,14 @@ function Component() {
     Events.on(engine, 'afterUpdate', handleUpdate)
 
     Runner.run(runner, engine)
+
+    const circle1 = Bodies.circle(100, -2.0, 10)
+    const circle2 = Bodies.circle(-100, -1.0, 10)
+
+    Matter.Body.applyForce(circle1, { x: 0, y: 0 }, { x: -0.01, y: -0.01 })
+    World.add(engine.world, circle1)
+    Matter.Body.applyForce(circle2, { x: 0, y: 0 }, { x: 0.01, y: -0.01 })
+    World.add(engine.world, circle2)
 
     return () => {
       Events.off(engine, 'afterUpdate', handleUpdate)
@@ -67,10 +59,17 @@ function Component() {
       </svg>
       <button
         onClick={() => {
-          const circle = Bodies.circle(0, -1.0, 10)
+          const circle1 = Bodies.circle(100, -2.0, 10)
+          const circle2 = Bodies.circle(-100, -1.0, 10)
 
-          Matter.Body.applyForce(circle, { x: 0, y: 0 }, { x: 0, y: -0.01 })
-          World.add(engine.world, circle)
+          Matter.Body.applyForce(
+            circle1,
+            { x: 0, y: 0 },
+            { x: -0.01, y: -0.01 }
+          )
+          World.add(engine.world, circle1)
+          Matter.Body.applyForce(circle2, { x: 0, y: 0 }, { x: 0.01, y: -0.01 })
+          World.add(engine.world, circle2)
         }}
       >
         PUSH
