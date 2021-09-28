@@ -92,6 +92,11 @@ const routings: Routing[] = [
     label: '楕円ビリヤード',
     path: '/ellip-billiards',
   },
+  {
+    icon: 'creature',
+    label: 'Diginima',
+    path: '/diginima',
+  },
 
   // {
   //   icon: 'calculator',
