@@ -98,6 +98,12 @@ const routings: Routing[] = [
     path: '/diginima',
   },
 
+  {
+    icon: 'keyboard',
+    label: 'KeyEvent Demo',
+    path: '/key-event-master',
+  },
+
   // {
   //   icon: 'calculator',
   //   label: '正規分布ツール',
