@@ -1,14 +1,50 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 
 type KeyEvent = (key: string) => void
 
-export const useRefKeyPress = ({
-  onKeyDown,
-  onKeyUp,
+type KeyElement = HTMLElement | Window | null
+
+export const useKeyPress = ({
+  element = window,
+  onKeyDown = () => {},
+  onKeyUp = () => {},
 }: {
-  onKeyDown?: KeyEvent
-  onKeyUp?: KeyEvent
+  element: KeyElement
+  onKeyDown: KeyEvent
+  onKeyUp: KeyEvent
 }) => {
+  const keyDownHandler = useRef<KeyEvent>()
+  const keyUpHandler = useRef<KeyEvent>()
+
+  useEffect(() => {
+    keyDownHandler.current = onKeyDown
+  }, [onKeyDown])
+
+  useEffect(() => {
+    keyUpHandler.current = onKeyUp
+  }, [onKeyUp])
+
+  useEffect(
+    () => {
+      const isSupported = element && element.addEventListener
+
+      if (!isSupported) return
+      const handleKeyDown = ({ key }: KeyboardEvent) => {
+        keyDownHandler.current?.(key)
+      }
+      const handleKeyUp = ({ key }: KeyboardEvent) => {
+        keyUpHandler.current?.(key)
+      }
+
+      element.addEventListener('keydown', handleKeyDown)
+      element.addEventListener('keyup', handleKeyUp)
+
+      return () => {
+        // element.removeEventListener(eventName, eventListener)
+      }
+    },
+    [eventName, element] // Re-run if eventName or element changes
+  )
   const ref = useCallback(
     (node: HTMLElement) => {
       if (node === null) return
@@ -33,7 +69,24 @@ export const useGlobalKeyPress = (events: {
   onKeyDown?: KeyEvent
   onKeyUp?: KeyEvent
 }) => {
-  const { ref } = useRefKeyPress(events)
+  // const { ref } = useRefKeyPress(events)
+
+  const { onKeyDown, onKeyUp } = events
+
+  useEffect(() => {
+    console.log('global registered')
+
+    const upHandler = ({ key }: KeyboardEvent) => onKeyDown?.(key)
+    const downHandler = ({ key }: KeyboardEvent) => onKeyUp?.(key)
+
+    window.addEventListener('keydown', downHandler)
+    window.addEventListener('keyup', upHandler)
+
+    return () => {
+      window.removeEventListener('keydown', downHandler)
+      window.removeEventListener('keyup', upHandler)
+    }
+  }, [onKeyDown, onKeyUp])
 }
 
 export const useKeyJust = ({
@@ -107,6 +160,18 @@ export const useKeyQueue = () => {
     handleKeyUp: (key: string) => {
       handleKeyUp(key)
     },
+    pressQueue,
+    changePressQueue,
+  }
+}
+
+export const useGlobalKeyQueue = () => {
+  const { pressQueue, changePressQueue, handleKeyDown, handleKeyUp } =
+    useKeyQueue()
+
+  useGlobalKeyPress({ onKeyDown: handleKeyDown, onKeyUp: handleKeyUp })
+
+  return {
     pressQueue,
     changePressQueue,
   }
