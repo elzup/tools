@@ -5,13 +5,14 @@ import { useKeyQueue } from '../components/useKey'
 
 const title = 'React KeyEvnet hooks'
 const KeyEventMaster = () => {
-  const { downQueue, upQueue } = useKeyQueue()
+  const { downQueue, upQueue, downAllQueue } = useKeyQueue()
 
   return (
     <Layout title={title}>
       <Header as="h1">{title}</Header>
-      <p>press: {downQueue.join(',')}</p>
-      <p>changedPress: {upQueue.join(',')}</p>
+      <p>downQueue: {downQueue.join(',')}</p>
+      <p>upQueue: {upQueue.join(',')}</p>
+      <p>downAllQueue: {downAllQueue.join(',')}</p>
     </Layout>
   )
 }

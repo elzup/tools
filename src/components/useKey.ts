@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { useEffect, useMemo, useReducer, useRef } from 'react'
 import { useKey } from 'react-use'
 import { Handler } from 'react-use/lib/useKey'
 import { noop } from '../utils'
@@ -96,6 +96,7 @@ export const useQueue = <T>(size: number, initArr: T[] = []) => {
 
 export const useKeyQueue = () => {
   const [downQueue, setDownQueue] = useQueue<string>(10)
+  const [downAllQueue, setDownAllQueue] = useQueue<string>(10)
   const [upQueue, setUpQueue] = useQueue<string>(10)
 
   useKeyPressAll(
@@ -104,11 +105,15 @@ export const useKeyQueue = () => {
     },
     ({ key }) => {
       setUpQueue(key)
+    },
+    ({ key }) => {
+      setDownAllQueue(key)
     }
   )
 
   return {
     downQueue,
+    downAllQueue,
     upQueue,
   }
 }
