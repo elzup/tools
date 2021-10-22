@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { useKey } from 'react-use'
 import { Handler } from 'react-use/lib/useKey'
+import { noop } from '../utils'
 
 type KeyElement = HTMLElement | null
 export type KeyHandler = Handler
@@ -44,60 +45,36 @@ export const useGlobalKeyOld = (events: {
   onKeyUp?: KeyHandler
 }) => useKeyEvents(events, getWindow()?.document.body || null)
 
-export const useKeyPressAll = () => {
-  const [map, set] = useState<Record<string, boolean>>({})
-  const [last, setLast] = useState<KeyboardEvent | null>(null)
+const mapReducer = (
+  v: Record<string, boolean>,
+  { key, down }: { key: string; down: boolean }
+) => ({ ...v, [key]: down })
+
+export const useKeyPressAll = (
+  keydown: KeyHandler,
+  keyup: KeyHandler = noop,
+  keydownAll: KeyHandler = noop
+) => {
+  const [downs, set] = useReducer(mapReducer, {} as Record<string, boolean>)
 
   useKey(
     () => true,
     (e) => {
-      set((v) => ({ ...v, [e.key]: true }))
-      setLast(e)
+      keydownAll(e)
+      if (!downs[e.key]) keydown(e)
+      set({ key: e.key, down: true })
     },
     { event: 'keydown' }
   )
   useKey(
     () => true,
     (e) => {
-      set((v) => ({ ...v, [e.key]: false }))
-      setLast(e)
+      if (downs[e.key]) keyup(e)
+      set({ key: e.key, down: false })
     },
     { event: 'keyup' }
   )
-  return { map, last }
-}
-
-function usePrevious<T>(value: T) {
-  const ref = useRef<T>()
-
-  useEffect(() => {
-    ref.current = value
-  }, [value])
-  return ref.current
-}
-
-export const useKeyPressEventAll = (
-  keydown: KeyHandler,
-  keyup?: KeyHandler
-) => {
-  const pressed = useKeyPressAll()
-  const prev = usePrevious(pressed)
-
-  useEffect(() => {
-    const key = pressed.last?.key
-
-    if (!pressed.last || !key || !pressed.map[key]) return
-    const isDownPrev = prev?.map[key]
-    const isDown = pressed.map[key]
-
-    if (isDown === isDownPrev) return
-
-    if (isDown) {
-      keydown(pressed.last)
-    } else {
-      keyup?.(pressed.last)
-    }
-  }, [prev, pressed])
+  return { downs }
 }
 
 export const useRefKey = (events: {
@@ -121,7 +98,7 @@ export const useKeyQueue = () => {
   const [downQueue, setDownQueue] = useQueue<string>(10)
   const [upQueue, setUpQueue] = useQueue<string>(10)
 
-  useKeyPressEventAll(
+  useKeyPressAll(
     ({ key }) => {
       setDownQueue(key)
     },
