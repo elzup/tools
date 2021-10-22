@@ -1,34 +1,28 @@
-import { useEffect, useRef, useState } from 'react'
-import { useKey, useKeyPress, useKeyPressEvent } from 'react-use'
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { useKey } from 'react-use'
 import { Handler } from 'react-use/lib/useKey'
 
 type KeyElement = HTMLElement | null
-export type KeyHandler = (event: KeyboardEvent) => void
+export type KeyHandler = Handler
 
 export const useKeyEvent = (
   eventType: 'keypress' | 'keydown' | 'keyup',
   onKeyEvent: KeyHandler | undefined,
   element: KeyElement
 ) => {
-  const handler = useRef<KeyHandler>()
-
-  useEffect(() => {
-    handler.current = onKeyEvent
-  }, [onKeyEvent])
+  const handler = useMemo(() => onKeyEvent, [onKeyEvent])
 
   useEffect(() => {
     const isSupported = element && element.addEventListener
 
-    if (!isSupported) return
+    if (!isSupported || !handler) return
 
-    const handleKeyDown = ({ key }: KeyboardEvent) => handler.current?.(key)
-
-    element.addEventListener(eventType, handleKeyDown)
+    element.addEventListener(eventType, handler)
 
     return () => {
-      element.removeEventListener(eventType, handleKeyDown)
+      element.removeEventListener(eventType, handler)
     }
-  }, [eventType, element])
+  }, [eventType, element, handler])
 }
 
 export const useKeyEvents = (
@@ -44,41 +38,66 @@ const getWindow = () => {
   return null
 }
 
-export const useGlobalKey = (keydown: Handler, keyup: Handler) => {
-  useKeyPressEvent(() => true, keydown)
-}
-export const useKeyPressAll = useKeyPressEvent.bind(null, () => true)
-// export const useKeyPressAll = (...args) => useKeyPressEvent(() => true, ...args) みたいな感じ
-
 /** @deprecated */
 export const useGlobalKeyOld = (events: {
   onKeyDown?: KeyHandler
   onKeyUp?: KeyHandler
 }) => useKeyEvents(events, getWindow()?.document.body || null)
 
-export const useKeyJust = ({
-  onKeyDownJust,
-  onKeyUpJust,
-}: {
-  onKeyDownJust?: KeyHandler
-  onKeyUpJust?: KeyHandler
-}) => {
-  const [pressed, setPressed] = useState<Record<string, boolean>>({})
+export const useKeyPressAll = () => {
+  const [map, set] = useState<Record<string, boolean>>({})
+  const [last, setLast] = useState<KeyboardEvent | null>(null)
 
-  const handleKeyDown: KeyHandler = (e) => {
-    if (pressed[e.key]) return
+  useKey(
+    () => true,
+    (e) => {
+      set((v) => ({ ...v, [e.key]: true }))
+      setLast(e)
+    },
+    { event: 'keydown' }
+  )
+  useKey(
+    () => true,
+    (e) => {
+      set((v) => ({ ...v, [e.key]: false }))
+      setLast(e)
+    },
+    { event: 'keyup' }
+  )
+  return { map, last }
+}
 
-    onKeyDownJust?.(e)
-    setPressed((v) => ({ ...v, [e.key]: true }))
-  }
-  const handleKeyUp: KeyHandler = (e) => {
-    if (!pressed[e.key]) return
+function usePrevious<T>(value: T) {
+  const ref = useRef<T>()
 
-    onKeyUpJust?.(e)
-    setPressed((v) => ({ ...v, [e.key]: false }))
-  }
+  useEffect(() => {
+    ref.current = value
+  }, [value])
+  return ref.current
+}
 
-  return { handleKeyDown, handleKeyUp }
+export const useKeyPressEventAll = (
+  keydown: KeyHandler,
+  keyup?: KeyHandler
+) => {
+  const pressed = useKeyPressAll()
+  const prev = usePrevious(pressed)
+
+  useEffect(() => {
+    const key = pressed.last?.key
+
+    if (!pressed.last || !key || !pressed.map[key]) return
+    const isDownPrev = prev?.map[key]
+    const isDown = pressed.map[key]
+
+    if (isDown === isDownPrev) return
+
+    if (isDown) {
+      keydown(pressed.last)
+    } else {
+      keyup?.(pressed.last)
+    }
+  }, [prev, pressed])
 }
 
 export const useRefKey = (events: {
@@ -91,28 +110,28 @@ export const useRefKey = (events: {
   return ref
 }
 
+const updateQueue = <T>(arr: T[], size: number, item: T) =>
+  [...arr, item].slice(-size)
+
+export const useQueue = <T>(size: number, initArr: T[] = []) => {
+  return useReducer((v: T[], item: T) => updateQueue(v, size, item), initArr)
+}
+
 export const useKeyQueue = () => {
-  const [pressQueue, setPressQueue] = useState<string[]>([])
-  const [changePressQueue, setChangePressQueue] = useState<string[]>([])
+  const [downQueue, setDownQueue] = useQueue<string>(10)
+  const [upQueue, setUpQueue] = useQueue<string>(10)
 
-  useGlobalKey({
-    onKeyDown: (e) => {
-      handleKeyDown(e)
-      setPressQueue((v) => [...v, e.key].slice(-10))
+  useKeyPressEventAll(
+    ({ key }) => {
+      setDownQueue(key)
     },
-    onKeyUp: (e) => {
-      handleKeyUp(e)
-    },
-  })
-
-  const { handleKeyDown, handleKeyUp } = useKeyJust({
-    onKeyDownJust: ({ key }) => {
-      setChangePressQueue((v) => [...v, key].slice(-10))
-    },
-  })
+    ({ key }) => {
+      setUpQueue(key)
+    }
+  )
 
   return {
-    pressQueue,
-    changePressQueue,
+    downQueue,
+    upQueue,
   }
 }
