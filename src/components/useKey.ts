@@ -18,10 +18,10 @@ export const useKeyEvent = (
 
     if (!isSupported || !handler) return
 
-    element.addEventListener(eventType, handler)
+    element?.addEventListener(eventType, handler)
 
     return () => {
-      element.removeEventListener(eventType, handler)
+      element?.removeEventListener(eventType, handler)
     }
   }, [eventType, element, handler])
 }
@@ -77,13 +77,17 @@ export const useKeyPressAll = (
   return { downs }
 }
 
-export const useRefKey = (events: {
-  onKeyDown?: KeyHandler
-  onKeyUp?: KeyHandler
-}) => {
+export const useRefKey = (_keydown?: KeyHandler, _keyup?: KeyHandler) => {
   const ref = useRef<HTMLElement>(null)
 
-  useKeyEvents(events, ref.current)
+  useKey(
+    'a',
+    (_e) => {
+      // keyup
+    },
+    { event: 'keyup' }
+  )
+  // TODO: Element assign
   return ref
 }
 
