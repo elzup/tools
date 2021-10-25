@@ -1,49 +1,7 @@
-import { useEffect, useMemo, useReducer, useRef } from 'react'
+import { useEffect, useReducer, useRef } from 'react'
 import { useKey } from 'react-use'
 import { Handler } from 'react-use/lib/useKey'
 import { noop } from '../utils'
-
-type KeyElement = HTMLElement | null
-export type KeyHandler = Handler
-
-export const useKeyEvent = (
-  eventType: 'keypress' | 'keydown' | 'keyup',
-  onKeyEvent: KeyHandler | undefined,
-  element: KeyElement
-) => {
-  const handler = useMemo(() => onKeyEvent, [onKeyEvent])
-
-  useEffect(() => {
-    const isSupported = element && element.addEventListener
-
-    if (!isSupported || !handler) return
-
-    element?.addEventListener(eventType, handler)
-
-    return () => {
-      element?.removeEventListener(eventType, handler)
-    }
-  }, [eventType, element, handler])
-}
-
-export const useKeyEvents = (
-  { onKeyDown, onKeyUp }: { onKeyDown?: KeyHandler; onKeyUp?: KeyHandler },
-  element: KeyElement
-) => {
-  useKeyEvent('keyup', onKeyUp, element)
-  useKeyEvent('keydown', onKeyDown, element)
-}
-
-const getWindow = () => {
-  if (typeof window !== 'undefined') return window
-  return null
-}
-
-/** @deprecated */
-export const useGlobalKeyOld = (events: {
-  onKeyDown?: KeyHandler
-  onKeyUp?: KeyHandler
-}) => useKeyEvents(events, getWindow()?.document.body || null)
 
 const mapReducer = (
   v: Record<string, boolean>,
@@ -51,9 +9,9 @@ const mapReducer = (
 ) => ({ ...v, [key]: down })
 
 export const useKeyPressAll = (
-  keydown: KeyHandler,
-  keyup: KeyHandler = noop,
-  keydownAll: KeyHandler = noop
+  keydown: Handler,
+  keyup: Handler = noop,
+  keydownAll: Handler = noop
 ) => {
   const [downs, set] = useReducer(mapReducer, {} as Record<string, boolean>)
 
@@ -77,17 +35,19 @@ export const useKeyPressAll = (
   return { downs }
 }
 
-export const useRefKey = (_keydown?: KeyHandler, _keyup?: KeyHandler) => {
-  const ref = useRef<HTMLElement>(null)
+export const useRefKey = <T extends HTMLElement>(
+  keydown: Handler = noop,
+  keyup: Handler = noop
+) => {
+  const ref = useRef<T>(null)
 
-  useKey(
-    'a',
-    (_e) => {
-      // keyup
-    },
-    { event: 'keyup' }
-  )
+  useKey(() => true, keydown, { event: 'keyup', target: ref.current })
+  useKey(() => true, keyup, { event: 'keyup', target: ref.current })
   // TODO: Element assign
+  useEffect(() => {
+    if (!ref.current) return
+    ref.current.setAttribute('tabIndex', '-1')
+  }, [ref.current])
   return ref
 }
 
