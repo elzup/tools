@@ -43,7 +43,6 @@ export const useRefKey = <T extends HTMLElement>(
 
   useKey(() => true, keydown, { event: 'keyup', target: ref.current })
   useKey(() => true, keyup, { event: 'keyup', target: ref.current })
-  // TODO: Element assign
   useEffect(() => {
     if (!ref.current) return
     ref.current.setAttribute('tabIndex', '-1')
