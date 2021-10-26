@@ -5,12 +5,6 @@ import { GoogleDataTableColumn } from 'react-google-charts/dist/types'
 import { Form, Header } from 'semantic-ui-react'
 import Layout from '../components/Layout'
 
-type ParseResult = {
-  actionName: string
-  badgeUrl: string
-  badgeText: string
-} | null
-
 const columns: GoogleDataTableColumn[] = [
   {
     label: 'num',
