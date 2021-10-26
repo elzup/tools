@@ -1,115 +1,13 @@
-import * as React from 'react'
-import Link from 'next/link'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { Container, List } from 'semantic-ui-react'
+import * as React from 'react'
+import { Container } from 'semantic-ui-react'
+import Footer from './Footer'
 
 type Props = {
   title?: string
   fullWidth?: boolean
 }
-
-type Routing = {
-  icon: string
-  label: string
-  path: string
-}
-
-const routings: Routing[] = [
-  { icon: 'home', label: 'Top', path: '/' },
-  {
-    icon: 'chart bar outline',
-    label: '文字列カウント Charactor frequency analysis',
-    path: '/char-counter',
-  },
-  {
-    icon: 'translate',
-    label: 'GHA BadgeMaker',
-    path: '/gha-badge-maker',
-  },
-  {
-    icon: 'fire',
-    label: 'noopener Attack Demo',
-    path: '/noopener',
-  },
-  {
-    icon: 'fire',
-    label: 'XSS Attack Demo',
-    path: '/xss',
-  },
-  {
-    icon: 'calculator',
-    label: 'Pi Lab Monte Carlo',
-    path: '/pi-lab',
-  },
-  {
-    icon: 'id badge outline',
-    label: 'Mirror Camela',
-    path: '/mirror',
-  },
-  {
-    icon: 'calculator',
-    label: 'Collatz graph',
-    path: '/collatz-graph',
-  },
-  {
-    icon: 'chart line',
-    label: 'Cryptowat chart three',
-    path: '/cryptowat-chart',
-  },
-  {
-    icon: 'image outline',
-    label: '1px image data url',
-    path: '/1px',
-  },
-  {
-    icon: 'chart bar outline',
-    label: 'マンデルブロ集合 Mandelbrat',
-    path: '/mandelbulb',
-  },
-  {
-    icon: 'globe',
-    label: 'Global Public IP',
-    path: '/global-ip',
-  },
-  {
-    icon: 'thermometer three quarters',
-    label: 'Sub window demo',
-    path: '/sub-window-ex',
-  },
-  {
-    icon: 'pencil alternate',
-    label: 'Text transformer',
-    path: '/textmaster',
-  },
-  {
-    icon: 'puzzle piece',
-    label: 'word search',
-    path: '/word-search',
-  },
-  {
-    icon: 'bowling ball',
-    label: '楕円ビリヤード',
-    path: '/ellip-billiards',
-  },
-  {
-    icon: 'creature',
-    label: 'Diginima',
-    path: '/diginima',
-  },
-
-  {
-    icon: 'keyboard',
-    label: 'KeyEvent Demo',
-    path: '/key-event-master',
-  },
-
-  // {
-  //   icon: 'calculator',
-  //   label: '正規分布ツール',
-  //   path: '/normal-distribution',
-  // },
-]
 
 const Layout: React.FC<Props & { currentPath: string }> = ({
   children,
@@ -127,24 +25,7 @@ const Layout: React.FC<Props & { currentPath: string }> = ({
       <header></header>
       {fullWidth ? children : <Container>{children}</Container>}
     </div>
-    <footer>
-      <Container>
-        <hr />
-        <nav>
-          <List>
-            {routings.map((routing) => (
-              <MenuItem
-                routing={routing}
-                data-qa={routing.path}
-                opened={routing.path === currentPath}
-                key={routing.path}
-              />
-            ))}
-          </List>
-        </nav>
-        <a href="https://anozon.me">anozon.me</a>
-      </Container>
-    </footer>
+    <Footer {...{ currentPath }} />
     <style jsx>{`
       .root {
         padding: 2rem 0;
@@ -165,32 +46,6 @@ const Layout: React.FC<Props & { currentPath: string }> = ({
     `}</style>
   </div>
 )
-
-function MenuItem({ routing, opened }: { routing: Routing; opened: boolean }) {
-  return (
-    <>
-      <List.Item
-        icon={routing.icon}
-        data-opened={opened}
-        content={
-          opened ? (
-            routing.label
-          ) : (
-            <Link href={routing.path}>
-              <a>{routing.label}</a>
-            </Link>
-          )
-        }
-      />
-      <style jsx>{`
-        .item {
-          border: blue solid;
-          background: blue;
-        }
-      `}</style>
-    </>
-  )
-}
 
 function LayoutRouter(props: React.PropsWithChildren<Props>) {
   const { pathname } = useRouter()
