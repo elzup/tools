@@ -96,6 +96,11 @@ const routings: Routing[] = [
     label: 'KeyEvent Demo',
     path: '/key-event-master',
   },
+  {
+    icon: 'button',
+    label: 'Submit loop',
+    path: '/hard-confirm',
+  },
 
   // {
   //   icon: 'calculator',
