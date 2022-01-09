@@ -1,21 +1,23 @@
 import React, { useState } from 'react'
 import { Header } from 'semantic-ui-react'
+import DivergenceMeterComp from '../components/DivergenceMeter'
 import Layout from '../components/Layout'
-import Nixie from '../components/DivergenceMeter/Nixie'
 
 const title = 'DivergenceMeter'
 const DivergenceMeter = () => {
-  const [text, setText] = useState<string>('')
+  const [text, setText] = useState<string>('0.123456789')
 
   React.useEffect(() => {}, [])
 
   return (
     <Layout title={title}>
       <Header as="h1">{title}</Header>
-      <input onChange={({ target: { value } }) => setText(value)}></input>
-      {text.split('').map((n, i) => (
-        <Nixie key={`nk-${i}`} active={n} />
-      ))}
+      <input
+        // pattern="[0-9.]{0,12}"
+        defaultValue={text}
+        onChange={({ target: { value } }) => setText(value)}
+      ></input>
+      <DivergenceMeterComp chars={text}></DivergenceMeterComp>
     </Layout>
   )
 }
