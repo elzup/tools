@@ -86,7 +86,7 @@ const routings: Routing[] = [
     path: '/ellip-billiards',
   },
   {
-    icon: 'creature',
+    icon: 'bug',
     label: 'Diginima',
     path: '/diginima',
   },
@@ -97,12 +97,12 @@ const routings: Routing[] = [
     path: '/key-event-master',
   },
   {
-    icon: 'button',
+    icon: 'envelope',
     label: 'Submit loop',
     path: '/hard-confirm',
   },
   {
-    icon: 'button',
+    icon: 'lightbulb',
     label: 'DivergenceMeter',
     path: '/divergence-meter',
   },
