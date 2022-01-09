@@ -101,6 +101,11 @@ const routings: Routing[] = [
     label: 'Submit loop',
     path: '/hard-confirm',
   },
+  {
+    icon: 'button',
+    label: 'DivergenceMeter',
+    path: '/divergence-meter',
+  },
 
   // {
   //   icon: 'calculator',
