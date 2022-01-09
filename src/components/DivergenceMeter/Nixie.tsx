@@ -23,9 +23,9 @@ const NixieContainer = styled.div`
 
     .digit {
       position: absolute;
-      width: 170px;
-      line-height: 1.65em;
       left: 0;
+      line-height: 1.65em;
+      width: 60px;
       text-shadow: rgba(50, 50, 50, 0.05) 0 0 1px;
       //color: rgba(12, 12, 12, 1);
       color: transparent;
@@ -40,6 +40,11 @@ const NixieContainer = styled.div`
         -webkit-text-stroke-width: 3px;
         -webkit-text-stroke-color: #ff6e00;
       }
+      &[data-char='.'] {
+        left: 40px;
+      }
+      &:not([data-char='.']) {
+      }
     }
   }
 `
@@ -49,7 +54,12 @@ function Nixie({ active }: Props) {
     <NixieContainer>
       <span className="tube">
         {NUMS.map((n) => (
-          <span key={n} className="digit" data-active={n === active}>
+          <span
+            key={n}
+            className="digit"
+            data-active={n === active}
+            data-char={n}
+          >
             {n}
           </span>
         ))}
