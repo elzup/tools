@@ -106,6 +106,11 @@ const routings: Routing[] = [
     label: 'DivergenceMeter',
     path: '/divergence-meter',
   },
+  {
+    icon: 'clone-outline',
+    label: 'SVG Playground',
+    path: '/svg-play',
+  },
 
   // {
   //   icon: 'calculator',
