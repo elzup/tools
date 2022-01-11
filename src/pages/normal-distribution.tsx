@@ -1,9 +1,10 @@
+import { TextField } from '@mui/material'
 import * as React from 'react'
 import { Chart } from 'react-google-charts'
 // eslint-disable-next-line import/no-unresolved
 import { GoogleDataTableColumn } from 'react-google-charts/dist/types'
-import { Form, Header } from 'semantic-ui-react'
 import Layout from '../components/Layout'
+import { Title } from '../components/Title'
 
 const columns: GoogleDataTableColumn[] = [
   {
@@ -30,22 +31,20 @@ const NormalDistribution = () => {
   return (
     <Layout title={title}>
       <Title>{title}</Title>
-      <Form.Group widths="equal">
-        <Form.Input
+      <div>
+        <TextField
           label="μ"
           value={sigma}
           style={{ width: '100%' }}
-          size="large"
           onChange={({ target: { value } }) => setSigma(Number(value))}
         />
-        <Form.Input
+        <TextField
           value={mu}
           label="σ"
           style={{ width: '100%' }}
-          size="large"
           onChange={({ target: { value } }) => setMu(Number(value))}
         />
-      </Form.Group>
+      </div>
       <Chart
         chartType="AreaChart"
         width="100%"
