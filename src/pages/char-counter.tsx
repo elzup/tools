@@ -1,7 +1,8 @@
 import punycode from 'punycode'
 import React, { useState } from 'react'
-import { Button, Form, Header, Table, TextArea } from 'semantic-ui-react'
+import { Button, Form, Table, TextArea } from 'semantic-ui-react'
 import Layout from '../components/Layout'
+import { Title } from '../components/Title'
 
 type Count = { char: string; count: number }
 
@@ -49,7 +50,7 @@ const NoOpenerAttacker = () => {
 
   return (
     <Layout title={title}>
-      <Header as="h1">{title}</Header>
+      <Title>{title}</Title>
 
       <Form>
         <TextArea

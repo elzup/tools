@@ -29,7 +29,7 @@ const NormalDistribution = () => {
 
   return (
     <Layout title={title}>
-      <Header as="h1">{title}</Header>
+      <Title>{title}</Title>
       <Form.Group widths="equal">
         <Form.Input
           label="μ"

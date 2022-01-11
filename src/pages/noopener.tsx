@@ -1,12 +1,14 @@
+import { TextField } from '@mui/material'
 import * as React from 'react'
-import { Input, Header, Form } from 'semantic-ui-react'
+import { Card } from 'semantic-ui-react'
 import Layout from '../components/Layout'
+import { Title } from '../components/Title'
 
 const title = 'noopener検証'
 const NoOpener = () => {
   return (
     <Layout title={title}>
-      <Header as="h1">{title}</Header>
+      <Title>{title}</Title>
       <p>
         <a
           href="/noopener-attacker"
@@ -26,10 +28,10 @@ const NoOpener = () => {
       </p>
       <p>リンクを開いた状態でフォームに入力してください。</p>
 
-      <Form.Field>
+      <Card>
         <label></label>
-        <Input style={{ width: '100%' }} type="password" size="large" />
-      </Form.Field>
+        <TextField style={{ width: '100%' }} type="password" />
+      </Card>
     </Layout>
   )
 }

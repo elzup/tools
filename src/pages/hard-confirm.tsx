@@ -1,6 +1,7 @@
 import React from 'react'
 import { Header } from 'semantic-ui-react'
 import Layout from '../components/Layout'
+import { Title } from '../components/Title'
 
 const title = 'Submit'
 const HardConfirm = () => {
@@ -12,7 +13,7 @@ const HardConfirm = () => {
 
   return (
     <Layout title={title}>
-      <Header as="h1">{title}</Header>
+      <Title>{title}</Title>
 
       <button onClick={() => handleClick('送信')}>送信</button>
     </Layout>

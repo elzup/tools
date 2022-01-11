@@ -1,8 +1,8 @@
 import Head from 'next/head'
 import React, { useState } from 'react'
-import { Header } from 'semantic-ui-react'
 import DivergenceMeterComp from '../components/DivergenceMeter'
 import Layout from '../components/Layout'
+import { Title } from '../components/Title'
 
 const title = 'DivergenceMeter'
 const DivergenceMeter = () => {
@@ -21,7 +21,7 @@ const DivergenceMeter = () => {
           rel="stylesheet"
         />
       </Head>
-      <Header as="h1">{title}</Header>
+      <Title>{title}</Title>
       <input
         // pattern="[0-9.]{0,12}"
         defaultValue={text}

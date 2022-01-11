@@ -31,7 +31,7 @@ const title = 'SVG Playground'
 const SvgPlay = () => {
   return (
     <Layout title={title}>
-      <Header as="h1">{title}</Header>
+      <Title>{title}</Title>
       <Wrap>
         <Ground />
       </Wrap>

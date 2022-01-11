@@ -1,6 +1,7 @@
+import { Button } from '@mui/material'
 import * as React from 'react'
-import { Button, Header } from 'semantic-ui-react'
 import Layout from '../components/Layout'
+import { Title } from '../components/Title'
 
 const API_URL = 'https://api.ipify.org/?format=json'
 
@@ -28,8 +29,8 @@ const GlobalIp = () => {
 
   return (
     <Layout title={title}>
-      <Header as="h1">{title}</Header>
-      <Header as="h3">get global ip on CSR application</Header>
+      <Title>{title}</Title>
+      <p>get global ip on CSR application</p>
       <p>
         <code>{API_URL}</code>
       </p>

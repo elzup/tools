@@ -23,7 +23,6 @@ const Layout: React.FC<Props & { currentPath: string }> = ({
         <meta charSet="utf-8" />
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
-      <header></header>
       {fullWidth ? children : <Container>{children}</Container>}
     </div>
     <Footer {...{ currentPath }} />

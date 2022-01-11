@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { RGBColor, SketchPicker } from 'react-color'
-import { Header, Image, TextArea } from 'semantic-ui-react'
+import { Image, TextArea } from 'semantic-ui-react'
 import Layout from '../components/Layout'
+import { Title } from '../components/Title'
 
 function gen1pxDataUrl(rgb: RGBColor) {
   const size = 1
@@ -53,7 +54,7 @@ const NoOpener = () => {
 
   return (
     <Layout title={title}>
-      <Header as="h1">{title}</Header>
+      <Title>{title}</Title>
 
       <div style={{ display: 'grid' }}>
         <SketchPicker
