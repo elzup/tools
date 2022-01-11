@@ -1,13 +1,11 @@
-import React from 'react'
-import { Button } from 'semantic-ui-react'
-
+import { Button } from '@mui/material'
 import { stringify } from 'flatted'
+import React from 'react'
 
-const toj = (a: unknown) => JSON.stringify(a, null, '\t')
 const SubWindowParts = () => (
   <div>
     <Button
-      primary
+      color="primary"
       onClick={() => {
         window.open(location.href)
       }}
@@ -15,7 +13,7 @@ const SubWindowParts = () => (
       {`window.open(location.href)`}
     </Button>
     <Button
-      primary
+      color="primary"
       onClick={() => {
         window.open(location.href, '_blank', 'height=300,width=300')
       }}

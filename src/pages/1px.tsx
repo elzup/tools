@@ -1,6 +1,6 @@
+import { TextField } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { RGBColor, SketchPicker } from 'react-color'
-import { Image, TextArea } from 'semantic-ui-react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 
@@ -69,10 +69,15 @@ const NoOpener = () => {
             width: 'fit-content',
           }}
         >
-          <Image src={url} size="tiny" bordered />
+          <img style={{ width: '40px' }} src={url} />
         </div>
-        <TextArea value={url} style={{ background: '#eee', width: '100%' }} />
-        <TextArea
+        <TextField
+          multiline
+          value={url}
+          style={{ background: '#eee', width: '100%' }}
+        />
+        <TextField
+          multiline
           value={imgUrl}
           style={{ background: '#eee', width: '100%' }}
         />

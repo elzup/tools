@@ -1,6 +1,6 @@
 import punycode from 'punycode'
+import { Button, TextField } from '@mui/material'
 import React, { useState } from 'react'
-import { Button, Form, Table, TextArea } from 'semantic-ui-react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 
@@ -44,7 +44,7 @@ function visibleEscapes(text: string) {
 // ¥uXXXX	4桁のXXXX(16進数)が表すUnicode文字
 
 const title = '文字頻度カウント(絵文字対応)'
-const NoOpenerAttacker = () => {
+const CharCounter = () => {
   const [text, setText] = useState<string>('Hello!!! 😎')
   const [counts, setCount] = useState<Count[]>([])
 
@@ -52,14 +52,15 @@ const NoOpenerAttacker = () => {
     <Layout title={title}>
       <Title>{title}</Title>
 
-      <Form>
-        <TextArea
+      <div>
+        <TextField
+          multiline
           rows={8}
-          onChange={(e, { value }) => setText(String(value || ''))}
-        ></TextArea>
-      </Form>
+          onChange={(e) => setText(String(e.target.value || ''))}
+        />
+      </div>
       <Button
-        primary
+        color="primary"
         onClick={() => {
           setCount(analyzeCount(text))
         }}
@@ -67,47 +68,47 @@ const NoOpenerAttacker = () => {
         カウントする
       </Button>
       <p>結果</p>
-      <Table celled>
-        <Table.Header>
-          <Table.Row>
-            <Table.HeaderCell>文字</Table.HeaderCell>
-            <Table.HeaderCell>数</Table.HeaderCell>
-          </Table.Row>
-        </Table.Header>
+      <table>
+        <thead>
+          <tr>
+            <th>文字</th>
+            <th>数</th>
+          </tr>
+        </thead>
 
-        <Table.Body>
+        <tbody>
           {counts.map(({ char, count }) => (
-            <Table.Row key={char}>
-              <Table.Cell>{char}</Table.Cell>
-              <Table.Cell>{count}</Table.Cell>
-            </Table.Row>
+            <tr key={char}>
+              <td>{char}</td>
+              <td>{count}</td>
+            </tr>
           ))}
-        </Table.Body>
-      </Table>
+        </tbody>
+      </table>
       <p>詳細</p>
-      <Table celled>
-        <Table.Header>
-          <Table.Row>
-            <Table.HeaderCell>文字</Table.HeaderCell>
-            <Table.HeaderCell>Raw</Table.HeaderCell>
-            <Table.HeaderCell>Escape</Table.HeaderCell>
-            <Table.HeaderCell>数</Table.HeaderCell>
-          </Table.Row>
-        </Table.Header>
+      <table>
+        <thead>
+          <tr>
+            <th>文字</th>
+            <th>Raw</th>
+            <th>Escape</th>
+            <th>数</th>
+          </tr>
+        </thead>
 
-        <Table.Body>
+        <tbody>
           {counts.map(({ char, count }) => (
-            <Table.Row key={char}>
-              <Table.Cell>{char}</Table.Cell>
-              <Table.Cell>{visibleEscapes(char)}</Table.Cell>
-              <Table.Cell>{escape(char)}</Table.Cell>
-              <Table.Cell>{count}</Table.Cell>
-            </Table.Row>
+            <tr key={char}>
+              <td>{char}</td>
+              <td>{visibleEscapes(char)}</td>
+              <td>{escape(char)}</td>
+              <td>{count}</td>
+            </tr>
           ))}
-        </Table.Body>
-      </Table>
+        </tbody>
+      </table>
     </Layout>
   )
 }
 
-export default NoOpenerAttacker
+export default CharCounter

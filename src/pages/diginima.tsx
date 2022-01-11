@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react'
-
-import { Header } from 'semantic-ui-react'
+import React, { useEffect, useState } from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 

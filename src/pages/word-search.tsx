@@ -1,6 +1,5 @@
+import { TextField } from '@mui/material'
 import React, { useState, useEffect } from 'react'
-
-import { Input } from 'semantic-ui-react'
 
 function useWords() {
   const [words, setWords] = useState<string[] | null>(null)
@@ -27,10 +26,10 @@ function Component() {
 
   return (
     <div>
-      <Input
+      <TextField
         value={filter}
         onChange={({ target: { value } }) => setFilter(value)}
-      ></Input>
+      ></TextField>
     </div>
   )
 }
