@@ -1,7 +1,7 @@
+import { Container } from '@mui/material'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { Container } from 'semantic-ui-react'
 import styled from 'styled-components'
 import Footer from './Footer'
 

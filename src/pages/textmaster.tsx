@@ -1,5 +1,5 @@
+import { Button } from '@mui/material'
 import React, { useState } from 'react'
-import { Button } from 'semantic-ui-react'
 
 type Props = {}
 function Component(_props: Props) {

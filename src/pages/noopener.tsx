@@ -1,6 +1,5 @@
-import { TextField } from '@mui/material'
+import { Card, TextField } from '@mui/material'
 import * as React from 'react'
-import { Card } from 'semantic-ui-react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 

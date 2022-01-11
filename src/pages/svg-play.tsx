@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { Header } from 'semantic-ui-react'
 import styled from 'styled-components'
 import Layout from '../components/Layout'
+import { Title } from '../components/Title'
 
 const W = 1280
 const H = 720

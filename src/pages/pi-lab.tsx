@@ -1,5 +1,5 @@
+import { Button, TextField } from '@mui/material'
 import * as React from 'react'
-import { Button, Form, Header, Input } from 'semantic-ui-react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 
@@ -15,10 +15,9 @@ const PiLab = () => {
       <p>inCount: {inCount}</p>
       <p>PI: {pi}</p>
 
-      <Form.Field>
-        <Input
+      <div>
+        <TextField
           style={{ width: '100%' }}
-          size="large"
           type="number"
           // TODO
           inputProps={{
@@ -29,7 +28,7 @@ const PiLab = () => {
           onChange={(e) => setUpnum(Number(e.target.value))}
         />
         <Button onClick={() => start(upNum)}>try</Button>
-      </Form.Field>
+      </div>
     </Layout>
   )
 }

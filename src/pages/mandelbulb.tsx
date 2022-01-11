@@ -1,5 +1,5 @@
+import { TextField } from '@mui/material'
 import React, { useState } from 'react'
-import { Header, Input } from 'semantic-ui-react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 import { useMandelbulb } from '../components/useMandelbulb'
@@ -48,8 +48,7 @@ function MandelEditPage() {
       />
       <div>
         rep:{' '}
-        <Input
-          size="large"
+        <TextField
           type="number"
           value={rep}
           inputProps={{ min: 1, max: 60 }}
@@ -58,8 +57,7 @@ function MandelEditPage() {
       </div>
       <div>
         size:{' '}
-        <Input
-          size="large"
+        <TextField
           type="number"
           value={size}
           inputProps={{ min: 1, max: 1000 }}

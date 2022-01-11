@@ -1,5 +1,4 @@
 import React from 'react'
-import { Header } from 'semantic-ui-react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 
