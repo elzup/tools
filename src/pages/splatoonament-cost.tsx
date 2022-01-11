@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { Header, TextArea } from 'semantic-ui-react'
+import styled from 'styled-components'
 import Layout from '../components/Layout'
 import { sum } from '../utils'
 
@@ -112,7 +113,7 @@ X(2176-2225)：2200
             />
           </div>
           <div style={{ maxWidth: '50%' }}>
-            <table>
+            <Table>
               <thead>
                 <tr>
                   <th>参加</th>
@@ -143,23 +144,7 @@ X(2176-2225)：2200
                   </tr>
                 ))}
               </tbody>
-              <style jsx>{`
-                table {
-                  border-collapse: collapse;
-                }
-                td,
-                th {
-                  border: 1px solid #333;
-                  text-align: right;
-                  &:nth-child(1) {
-                    text-align: center;
-                  }
-                  &:nth-child(3) {
-                    text-align: center;
-                  }
-                }
-              `}</style>
-            </table>
+            </Table>
             <h5>合計</h5>
             <p>
               メンバ({entries.length}人):{' '}
@@ -174,5 +159,21 @@ X(2176-2225)：2200
     </Layout>
   )
 }
+
+const Table = styled.table`
+  border-collapse: collapse;
+
+  td,
+  th {
+    border: 1px solid #333;
+    text-align: right;
+    &:nth-child(1) {
+      text-align: center;
+    }
+    &:nth-child(3) {
+      text-align: center;
+    }
+  }
+`
 
 export default SplatoonamentCost

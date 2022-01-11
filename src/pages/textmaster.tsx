@@ -34,14 +34,16 @@ function Component(_props: Props) {
       ></textarea>
       <pre style={{ background: pretext ? '#ddd' : '#aaa' }}>
         {(pretext || text).split('').map((c, i) => (
-          <span key={`${c}_${i}`}>{c}</span>
+          <span
+            style={{
+              borderBottom: '1px solid #ccc',
+            }}
+            key={`${c}_${i}`}
+          >
+            {c}
+          </span>
         ))}
       </pre>
-      <style jsx>{`
-        span {
-          border-bottom: 1px solid #ccc;
-        }
-      `}</style>
     </div>
   )
 }

@@ -135,12 +135,6 @@ function MenuItem({ routing, opened }: { routing: Routing; opened: boolean }) {
           )
         }
       />
-      <style jsx>{`
-        .item {
-          border: blue solid;
-          background: blue;
-        }
-      `}</style>
     </>
   )
 }

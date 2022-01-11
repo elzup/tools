@@ -7408,11 +7408,6 @@ styled-components@^5.3.3:
     shallowequal "^1.1.0"
     supports-color "^5.5.0"
 
-styled-jsx-plugin-sass@1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/styled-jsx-plugin-sass/-/styled-jsx-plugin-sass-1.0.0.tgz#a26e2002f57519f97a03a38ea6aabe1ee48478df"
-  integrity sha512-24c+jRreOo5mn7ln7q5QaeyBAAsBaUAJsBc7voLygmrF7fThXbo8Bn1UEbAKIfF2K8xSeiY3XGGt6xRYi4/C4g==
-
 styled-jsx@5.0.0-beta.3:
   version "5.0.0-beta.3"
   resolved "https://registry.yarnpkg.com/styled-jsx/-/styled-jsx-5.0.0-beta.3.tgz#400d16179b5dff10d5954ab8be27a9a1b7780dd2"
