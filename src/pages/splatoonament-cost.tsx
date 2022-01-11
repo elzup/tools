@@ -1,7 +1,8 @@
+import { TextField } from '@mui/material'
 import React, { useMemo, useState } from 'react'
-import { Header, TextArea } from 'semantic-ui-react'
 import styled from 'styled-components'
 import Layout from '../components/Layout'
+import { Title } from '../components/Title'
 import { sum } from '../utils'
 
 const placeholder = `
@@ -106,7 +107,8 @@ X(2176-2225)：2200
           }}
         >
           <div style={{ maxWidth: '50%' }}>
-            <TextArea
+            <TextField
+              multiline
               rows={8}
               value={text}
               onChange={(e) => setText(e.target.value)}

@@ -1,6 +1,6 @@
+import { Button } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import Webcam from 'react-webcam'
-import { Button, Header } from 'semantic-ui-react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 

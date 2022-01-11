@@ -1,4 +1,4 @@
-import { Container } from '@mui/material'
+import { Container, CssBaseline } from '@mui/material'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import * as React from 'react'
@@ -17,6 +17,7 @@ const Layout: React.FC<Props & { currentPath: string }> = ({
   currentPath,
 }) => (
   <Wrap data-test={`page-${currentPath.replace(/\//g, '')}`}>
+    <CssBaseline />
     <div>
       <Head>
         <title>{title}</title>
