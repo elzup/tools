@@ -1,6 +1,7 @@
+import { TextField } from '@mui/material'
 import * as React from 'react'
-import { TextArea, Header } from 'semantic-ui-react'
 import Layout from '../components/Layout'
+import { Title } from '../components/Title'
 
 const title = 'noopener検証(攻撃側)'
 const NoOpenerAttacker = () => {
@@ -15,7 +16,9 @@ const NoOpenerAttacker = () => {
 
     const _e = window.opener?.document
       ?.getElementsByTagName('input')[0]
-      ?.addEventListener('input', ({ target }) => {
+      ?.addEventListener('input', (e: InputEvent) => {
+        const { target } = e
+
         if (!(target instanceof HTMLInputElement)) {
           return
         }
@@ -26,7 +29,7 @@ const NoOpenerAttacker = () => {
 
   return (
     <Layout title={title}>
-      <Header as="h1">{title}</Header>
+      <Title>{title}</Title>
       <p>このデモ以外でここのURLに直接リンクするのは控えてください。</p>
       <p>以下の操作をしています。</p>
       <ul>
@@ -36,7 +39,7 @@ const NoOpenerAttacker = () => {
       </ul>
       <p>アクセス元: {source}</p>
       <p>フォーム内容:</p>
-      <TextArea value={password} />
+      <TextField value={password} />
     </Layout>
   )
 }

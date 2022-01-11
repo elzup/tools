@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Webcam from 'react-webcam'
 import { Button, Header } from 'semantic-ui-react'
 import Layout from '../components/Layout'
+import { Title } from '../components/Title'
 
 const title = 'mirror camera'
 const MirrorCamera = () => {
@@ -59,7 +60,7 @@ const MirrorCamera = () => {
 
   return (
     <Layout title={title}>
-      <Header as="h1">{title}</Header>
+      <Title>{title}</Title>
 
       <Button onClick={toggleFlip}>LR - Flip</Button>
       <Button onClick={capture}>Capture</Button>

@@ -1,6 +1,7 @@
+import { Card, TextField, Typography } from '@mui/material'
 import * as React from 'react'
-import { Input, Header, Message, Form, TextArea } from 'semantic-ui-react'
 import Layout from '../components/Layout'
+import { Title } from '../components/Title'
 
 type ParseResult = {
   actionName: string
@@ -44,33 +45,30 @@ const GHABadgePage = () => {
 
   return (
     <Layout title={title}>
-      <Header as="h1">{title}</Header>
+      <Title>{title}</Title>
       <p>Generate GitHub Actions Badge by url.</p>
-      <Form.Field>
+      <div>
         <label>
           Badge Page URL <a href={exampleUrl}>example</a>
         </label>
-        <Input
+        <TextField
           value={url}
           style={{ width: '100%' }}
-          size="large"
           placeholder={exampleUrl}
           onChange={({ target: { value } }) => setUrl(value)}
         />
-      </Form.Field>
+      </div>
 
       {result && (
-        <Message>
-          <Message.Header>
+        <Card>
+          <Typography>
             {`Badge Generated Action "${result.actionName}"`}
-          </Message.Header>
+          </Typography>
+          <TextField fullWidth value={result.badgeText} />
           <p>
-            <Form>
-              <TextArea value={result.badgeText} />
-            </Form>
             <img src={result.badgeUrl}></img>
           </p>
-        </Message>
+        </Card>
       )}
     </Layout>
   )

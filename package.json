@@ -12,7 +12,11 @@
     "type-check": "tsc"
   },
   "dependencies": {
+    "@emotion/react": "^11.7.1",
+    "@emotion/styled": "^11.6.0",
     "@inlet/react-pixi": "^6.6.3",
+    "@mui/material": "^5.2.8",
+    "@mui/styled-engine-sc": "^5.1.0",
     "flatted": "^3.2.1",
     "isomorphic-unfetch": "3.1.0",
     "json-cyclic": "^1.0.2",

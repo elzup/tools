@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Header, Input } from 'semantic-ui-react'
 import Layout from '../components/Layout'
+import { Title } from '../components/Title'
 import { useMandelbulb } from '../components/useMandelbulb'
 import { zoom2D } from '../utils'
 
@@ -33,7 +34,7 @@ function MandelEditPage() {
 
   return (
     <Layout title={title}>
-      <Header as="h1">{title}</Header>
+      <Title>{title}</Title>
       <img
         src={png}
         alt="plot"

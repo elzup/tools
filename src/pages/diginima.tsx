@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 
 import { Header } from 'semantic-ui-react'
 import Layout from '../components/Layout'
+import { Title } from '../components/Title'
 
 type Animal = {
   pos: {
@@ -42,7 +43,7 @@ const Diginima = () => {
 
   return (
     <Layout title={title}>
-      <Header as="h1">{title}</Header>
+      <Title>{title}</Title>
       <div>
         <svg width="400" height="400">
           <g>

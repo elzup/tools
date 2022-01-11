@@ -1,21 +1,18 @@
-import * as React from 'react'
+import { Typography } from '@mui/material'
 import { NextPage } from 'next'
-import { Header, Icon } from 'semantic-ui-react'
+import * as React from 'react'
+import { Icon } from 'semantic-ui-react'
 import Layout from '../components/Layout'
 
 const IndexPage: NextPage = () => {
   return (
     <Layout title="Home | Next.js + TypeScript Example">
-      <Header as="h1" icon textAlign="center" style={{ marginTop: '40px' }}>
+      <Typography variant="h1" style={{ marginTop: '40px' }}>
         <Icon name="microchip" circular />
-        <Header.Content>
-          Tools
-          <p>made by anozon</p>
-        </Header.Content>
-      </Header>
-      <Header as="h3" icon textAlign="center">
-        Collection of Minimum web tools
-      </Header>
+        TODO: Tools
+        <p>made by anozon</p>
+      </Typography>
+      <Typography variant="h3">Collection of Minimum web tools</Typography>
     </Layout>
   )
 }

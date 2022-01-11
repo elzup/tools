@@ -75,7 +75,7 @@ const SplatoonamentCost = () => {
 
   return (
     <Layout title={title}>
-      <Header as="h1">{title}</Header>
+      <Title>{title}</Title>
       <pre>
         <code>
           {`～C+：1200

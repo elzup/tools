@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Button, Form, Header, Input } from 'semantic-ui-react'
 import Layout from '../components/Layout'
+import { Title } from '../components/Title'
 
 const title = 'モンテカルロ PI ラボ'
 const PiLab = () => {
@@ -9,7 +10,7 @@ const PiLab = () => {
 
   return (
     <Layout title={title}>
-      <Header as="h1">{title}</Header>
+      <Title>{title}</Title>
       <p>Total: {total}</p>
       <p>inCount: {inCount}</p>
       <p>PI: {pi}</p>
