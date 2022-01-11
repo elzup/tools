@@ -9,8 +9,7 @@ const IndexPage: NextPage = () => {
     <Layout title="Home | Next.js + TypeScript Example">
       <Typography variant="h1" style={{ marginTop: '40px' }}>
         <Icon name="microchip" circular />
-        TODO: Tools
-        <p>made by anozon</p>
+        anozon/tools
       </Typography>
       <Typography variant="h3">Collection of Minimum web tools</Typography>
     </Layout>
