@@ -1,9 +1,10 @@
+import { Container } from '@mui/material'
 import Link from 'next/link'
 import * as React from 'react'
-import { Container, List } from 'semantic-ui-react'
+import { Icon, SemanticICONS } from 'semantic-ui-react'
 
 type Routing = {
-  icon: string
+  icon: SemanticICONS
   label: string
   path: string
 }
@@ -107,7 +108,7 @@ const routings: Routing[] = [
     path: '/divergence-meter',
   },
   {
-    icon: 'clone-outline',
+    icon: 'clone outline',
     label: 'SVG Playground',
     path: '/svg-play',
   },
@@ -122,19 +123,18 @@ const routings: Routing[] = [
 function MenuItem({ routing, opened }: { routing: Routing; opened: boolean }) {
   return (
     <>
-      <List.Item
-        icon={routing.icon}
-        data-opened={opened}
-        content={
-          opened ? (
-            routing.label
-          ) : (
+      <div data-opened={opened}>
+        {opened ? (
+          routing.label
+        ) : (
+          <>
+            <Icon name={routing.icon} />
             <Link href={routing.path}>
               <a>{routing.label}</a>
             </Link>
-          )
-        }
-      />
+          </>
+        )}
+      </div>
     </>
   )
 }
@@ -147,7 +147,7 @@ const Footer = ({ currentPath }: Props) => (
     <Container>
       <hr />
       <nav>
-        <List>
+        <div style={{ display: 'grid' }}>
           {routings.map((routing) => (
             <MenuItem
               routing={routing}
@@ -156,7 +156,7 @@ const Footer = ({ currentPath }: Props) => (
               key={routing.path}
             />
           ))}
-        </List>
+        </div>
       </nav>
       <a href="https://anozon.me">anozon.me</a>
     </Container>
