@@ -60,4 +60,11 @@ export const theme = createTheme({
       fontSize: 16,
     },
   },
+  components: {
+    MuiButton: {
+      defaultProps: {
+        variant: 'contained',
+      },
+    },
+  },
 })
