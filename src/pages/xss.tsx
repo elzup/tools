@@ -1,6 +1,7 @@
+import { faUser } from '@fortawesome/free-regular-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Button, Card, TextField } from '@mui/material'
 import * as React from 'react'
-import { Icon } from 'semantic-ui-react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 
@@ -31,7 +32,7 @@ const NoOpener = () => {
           </Button>
         </div>
         <div>
-          <Card>
+          <Card style={{ width: '200px', padding: '10px' }}>
             <img
               src={`https://avatars.dicebear.com/4.5/api/male/${name}.svg`}
             />
@@ -44,7 +45,7 @@ const NoOpener = () => {
             </div>
             <div>
               <a>
-                <Icon name="user" />
+                <FontAwesomeIcon icon={faUser} />
                 22 Friends
               </a>
             </div>
