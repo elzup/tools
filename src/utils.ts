@@ -1,4 +1,6 @@
 import through from 'through'
+import ReactDOM from 'react-dom'
+import React from 'react'
 
 export const zoom1D = (
   s: number,
@@ -51,3 +53,13 @@ export const delay = (time: number) => {
 export const sum = (a: number, b: number) => a + b
 
 export const noop = () => {}
+
+export function getComponentHtmlCode(component: React.ReactElement) {
+  const div = document.createElement('div')
+
+  return new Promise<string>((resolve) => {
+    ReactDOM.render(component, div, () => {
+      resolve(div.innerHTML)
+    })
+  })
+}
