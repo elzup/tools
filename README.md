@@ -6,10 +6,9 @@
 
 Collection of Minimum web tools.
 
-
 ## Made with
 
 - Next.js
 - TypeScript
-- Semantic UI
+- MUI
 - QA Wolf

@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Typography } from '@mui/material'
 import { NextPage } from 'next'
 import * as React from 'react'
-import { Icon } from 'semantic-ui-react'
 import Layout from '../components/Layout'
 
 const IndexPage: NextPage = () => {

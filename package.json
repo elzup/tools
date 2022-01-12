@@ -37,8 +37,6 @@
     "react-google-charts": "^3.0.15",
     "react-use": "^17.3.2",
     "react-webcam": "^5.2.4",
-    "semantic-ui-css": "2.4.1",
-    "semantic-ui-react": "2.0.3",
     "styled-components": "^5.3.3",
     "swr": "^0.5.6",
     "through": "^2.3.8"
