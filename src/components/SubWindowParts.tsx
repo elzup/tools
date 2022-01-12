@@ -1,6 +1,7 @@
 import { Button } from '@mui/material'
 import { stringify } from 'flatted'
 import React from 'react'
+import Code from './Code'
 
 const SubWindowParts = () => (
   <div>
@@ -21,9 +22,7 @@ const SubWindowParts = () => (
       {`window.open(location.href, '_blank', 'height=300,width=300')`}
     </Button>
 
-    <pre>
-      <code>{stringify(window.opener, null, ' ')}</code>
-    </pre>
+    <Code>{stringify(window.opener, null, ' ')}</Code>
   </div>
 )
 

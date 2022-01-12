@@ -1,6 +1,7 @@
 import { TextField } from '@mui/material'
 import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
+import Code from '../components/Code'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 import { sum } from '../utils'
@@ -77,9 +78,8 @@ const SplatoonamentCost = () => {
   return (
     <Layout title={title}>
       <Title>{title}</Title>
-      <pre>
-        <code>
-          {`～C+：1200
+      <Code>
+        {`～C+：1200
 B-：1300
 B：1400
 B+：1500
@@ -95,8 +95,7 @@ X(2126-2175)：2150
 X(2176-2225)：2200
 以下略 50区切りで近い値
 `}
-        </code>
-      </pre>
+      </Code>
 
       <div style={{ padding: '8px' }}>
         <div

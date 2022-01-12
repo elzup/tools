@@ -5,17 +5,15 @@ type Props = {}
 const Code: FC<Props> = ({ children }) => {
   return (
     <Style>
-      <pre>{children}</pre>
+      <code>{children}</code>
     </Style>
   )
 }
 
-const Style = styled.code`
-  pre {
-    background: #ddd;
-    font-size: 0.8rem;
-    padding: 4px 8px;
-  }
+const Style = styled.pre`
+  background: #ddd;
+  font-size: 0.8rem;
+  padding: 4px 8px;
 `
 
 export default Code
