@@ -1,5 +1,6 @@
 import { Button } from '@mui/material'
 import * as React from 'react'
+import Code from '../components/Code'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 
@@ -32,14 +33,14 @@ const GlobalIp = () => {
       <Title>{title}</Title>
       <p>get global ip on CSR application</p>
       <p>
-        <code>{API_URL}</code>
+        <Code>{API_URL}</Code>
       </p>
       <p>
         loading: <code>{loading ? 'true' : 'none'}</code>
       </p>
       <Button onClick={getIp}>IP取得実行</Button>
       <div>
-        IP: <code>{ip}</code>
+        <Code>IP: {ip}</Code>
       </div>
     </Layout>
   )
