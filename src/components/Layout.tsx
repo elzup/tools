@@ -1,9 +1,10 @@
-import { Container, CssBaseline } from '@mui/material'
+import { Box, Container, CssBaseline, ThemeProvider } from '@mui/material'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import styled from 'styled-components'
 import Footer from './Footer'
+import { theme } from './theme'
 
 type Props = {
   title?: string
@@ -17,16 +18,16 @@ const Layout: React.FC<Props & { currentPath: string }> = ({
   currentPath,
 }) => (
   <Wrap data-test={`page-${currentPath.replace(/\//g, '')}`}>
-    <CssBaseline />
-    <div>
-      <Head>
-        <title>{title}</title>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-      </Head>
-      {fullWidth ? children : <Container>{children}</Container>}
-    </div>
-    <Footer {...{ currentPath }} />
+    <Head>
+      <title>{title}</title>
+      <meta charSet="utf-8" />
+      <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+    </Head>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box>{fullWidth ? children : <Container>{children}</Container>}</Box>
+      <Footer {...{ currentPath }} />
+    </ThemeProvider>
   </Wrap>
 )
 
