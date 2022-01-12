@@ -1,8 +1,9 @@
 import { Button, TextField } from '@mui/material'
-import * as React from 'react'
-import styled from 'styled-components'
 import prettier from 'prettier'
 import parserHtml from 'prettier/parser-html'
+import * as React from 'react'
+import styled from 'styled-components'
+import Code from '../components/Code'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 import { getComponentHtmlCode } from '../utils'
@@ -25,31 +26,25 @@ const NoOpener = () => {
     <Layout title={title}>
       <Title>{title}</Title>
       <p>指定された名前を生のHTMLでレンダリングします。</p>
-      <div>
+      <div style={{ display: 'flex', gap: '1rem' }}>
         <TextField
           value={preName}
-          onChange={(e) => {
-            setPreName(e.target.value)
-          }}
+          onChange={(e) => setPreName(e.target.value)}
         />
-        <Button
-          onClick={() => {
-            setName(preName)
-          }}
-        >
-          更新する
-        </Button>
+        <Button onClick={() => setName(preName)}>更新する</Button>
       </div>
       <div
-        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'max-content 1fr',
+          gap: '1rem',
+        }}
       >
         <div>
           <ProfileCard name={name} />
         </div>
         <div>
-          <code>
-            <pre>{html}</pre>
-          </code>
+          <Code>{html}</Code>
         </div>
       </div>
     </Layout>
@@ -58,7 +53,7 @@ const NoOpener = () => {
 
 function ProfileCard({ name }: { name: string }) {
   return (
-    <Card style={{}}>
+    <Card>
       <img src={`https://avatars.dicebear.com/4.5/api/male/${name}.svg`} />
       <div>
         <div dangerouslySetInnerHTML={{ __html: name }}></div>
