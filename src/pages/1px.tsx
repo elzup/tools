@@ -1,6 +1,7 @@
 import { TextField, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { RGBColor, SketchPicker } from 'react-color'
+import { defaultPresetColors } from '../components/constants/color'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 import { getComponentHtmlCode } from '../utils'
@@ -26,23 +27,6 @@ const checkerUrl =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVQ4T2NkYGAQYcAP3uCTZhw1gGGYhAGBZIA/nYDCgBDAm9BGDWAAJyRCgLaBCAAgXwixzAS0pgAAAABJRU5ErkJggg=='
 
 const title = '1px data url generator'
-const defaultPresetColors = [
-  '#D0021B',
-  '#F5A623',
-  '#F8E71C',
-  '#8B572A',
-  '#7ED321',
-  '#417505',
-  '#BD10E0',
-  '#9013FE',
-  '#4A90E2',
-  '#50E3C2',
-  '#B8E986',
-  '#000000',
-  '#4A4A4A',
-  '#9B9B9B',
-  '#FFFFFF',
-]
 
 export const Svg1px = ({ color }: { color: string }) => {
   return (
