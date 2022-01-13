@@ -1,8 +1,9 @@
-import { TextField } from '@mui/material'
+import { TextField, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { RGBColor, SketchPicker } from 'react-color'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
+import { getComponentHtmlCode } from '../utils'
 
 function gen1pxDataUrl(rgb: RGBColor) {
   const size = 1
@@ -42,15 +43,37 @@ const defaultPresetColors = [
   '#9B9B9B',
   '#FFFFFF',
 ]
-const NoOpener = () => {
+
+export const Svg1px = ({ color }: { color: string }) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="1"
+      height="1"
+      style={{ background: color }}
+    ></svg>
+  )
+}
+
+const Px1 = () => {
   const [hex, setHex] = useState<RGBColor>({ r: 0, g: 0, b: 0, a: 1 })
   const [url, setUrl] = useState<string>('')
+  const [svgCode, setSvgCode] = useState<string>('')
+
+  const colorStr = `rgba(${hex.r}, ${hex.g}, ${hex.b}, ${hex.a})`
+
+  const component = <Svg1px color={colorStr} />
 
   useEffect(() => {
     setUrl(gen1pxDataUrl(hex))
+
+    getComponentHtmlCode(component).then((code) => {
+      setSvgCode(code)
+    })
   }, [hex])
 
   const imgUrl = `<img src="${url}" />`
+  const svgUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svgCode)}`
 
   return (
     <Layout title={title}>
@@ -62,6 +85,7 @@ const NoOpener = () => {
           color={hex}
           onChange={(e) => setHex(e.rgb)}
         />
+        <Typography variant="h4">png</Typography>
         <div
           style={{
             padding: '8px',
@@ -81,9 +105,38 @@ const NoOpener = () => {
           value={imgUrl}
           style={{ background: '#eee', width: '100%' }}
         />
+
+        <Typography variant="h4">svg</Typography>
+        <div
+          style={{
+            padding: '8px',
+            backgroundImage: `url(${checkerUrl})`,
+            width: 'fit-content',
+          }}
+          dangerouslySetInnerHTML={{ __html: svgCode.replace(/"1"/g, '40') }}
+        ></div>
+        <div
+          style={{
+            padding: '8px',
+            backgroundImage: `url(${checkerUrl})`,
+            width: 'fit-content',
+          }}
+        >
+          <img style={{ width: '40px' }} src={svgUrl} />
+        </div>
+        <TextField
+          multiline
+          value={svgUrl}
+          style={{ background: '#eee', width: '100%' }}
+        />
+        <TextField
+          multiline
+          value={svgCode}
+          style={{ background: '#eee', width: '100%' }}
+        />
       </div>
     </Layout>
   )
 }
 
-export default NoOpener
+export default Px1
