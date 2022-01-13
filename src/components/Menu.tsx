@@ -27,6 +27,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Typography } from '@mui/material'
 import Link from 'next/link'
 import * as React from 'react'
+import styled from 'styled-components'
 
 type Routing = {
   icon: IconDefinition
@@ -86,21 +87,7 @@ const routings: RoutingGroup[] = [
       },
     ],
   },
-  {
-    label: 'Closed',
-    routings: [
-      {
-        icon: faPortrait,
-        label: 'Mirror Camela',
-        path: '/mirror',
-      },
-      {
-        icon: faIdBadge,
-        label: 'GHA BadgeMaker',
-        path: '/gha-badge-maker',
-      },
-    ],
-  },
+
   {
     label: 'Security',
     routings: [
@@ -171,6 +158,21 @@ const routings: RoutingGroup[] = [
       },
     ],
   },
+  {
+    label: 'Closed',
+    routings: [
+      {
+        icon: faPortrait,
+        label: 'Mirror Camela',
+        path: '/mirror',
+      },
+      {
+        icon: faIdBadge,
+        label: 'GHA BadgeMaker',
+        path: '/gha-badge-maker',
+      },
+    ],
+  },
   // {
   //   icon: 'calculator',
   //   label: '正規分布ツール',
@@ -180,24 +182,20 @@ const routings: RoutingGroup[] = [
 
 function MenuItem({ routing, opened }: { routing: Routing; opened: boolean }) {
   return (
-    <>
-      <div data-opened={opened}>
-        {opened ? (
-          <>
-            <FontAwesomeIcon icon={routing.icon} />
-
-            {routing.label}
-          </>
-        ) : (
-          <>
-            <FontAwesomeIcon icon={routing.icon} />
-            <Link href={routing.path}>
-              <a>{routing.label}</a>
-            </Link>
-          </>
-        )}
-      </div>
-    </>
+    <div className="item">
+      <FontAwesomeIcon icon={routing.icon} />
+      {opened ? (
+        <Typography>{routing.label}</Typography>
+      ) : (
+        <>
+          <Link href={routing.path}>
+            <a>
+              <Typography>{routing.label}</Typography>
+            </a>
+          </Link>
+        </>
+      )}
+    </div>
   )
 }
 
@@ -206,7 +204,7 @@ type Props = {
 }
 const Menu = ({ currentPath }: Props) => (
   <nav>
-    <div style={{ display: 'grid', gridAutoFlow: 'column' }}>
+    <Style>
       {routings.map((group) => (
         <div key={group.label}>
           <Typography>{group.label}</Typography>
@@ -220,8 +218,20 @@ const Menu = ({ currentPath }: Props) => (
           ))}
         </div>
       ))}
-    </div>
+    </Style>
   </nav>
 )
+
+const Style = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  .item {
+    display: flex;
+    gap: 4px;
+    svg {
+      margin-top: 4px;
+    }
+  }
+`
 
 export default Menu
