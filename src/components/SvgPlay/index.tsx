@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React, { SVGProps } from 'react'
 import styled from 'styled-components'
 
 const W = 1280
@@ -20,6 +20,8 @@ const Ground = () => {
       <g id="g1">
         <circle id="c1" cx={100} cy={100} r={100} />
         <circle id="c2" cx={200} cy={140} r={100} />
+        <rect id="c3" x={100} y={100} width={100} height={100} />
+        <line id="c4" x1={100} y1={100} x2={200} y2={140} />
       </g>
     </svg>
   )
