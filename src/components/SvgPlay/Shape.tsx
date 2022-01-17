@@ -1,4 +1,4 @@
-type Props = {
+export type Props = {
   w: number
 }
 
@@ -12,4 +12,10 @@ export const Rect = ({ w }: Props) => {
 
 export const RectInCircle = ({ w }: Props) => {
   return <Rect w={w / Math.SQRT2} />
+}
+
+export const Fan = ({ w }: Props) => {
+  const path = `M 0,0 L ${w},0 a ${w} ${w} 0 0 1 -${w},${w} z`
+
+  return <path d={path} fill="red" stroke="black" />
 }
