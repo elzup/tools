@@ -25,10 +25,22 @@ const Ground = () => {
         <line id="c4" x1={100} y1={100} x2={200} y2={140} />
       </g>
       <svg id="g2" x={400} y={400} viewBox="">
-        <Circle w={100} />
-        <Circle w={200} />
-        <Rect w={200} />
-        <RectInCircle w={100} />
+        <g className="spin">
+          <Circle w={100} />
+          <Circle w={200} />
+          <Rect w={200} />
+          <svg x={0} y={50} viewBox="">
+            <g className="spin">
+              <Circle w={100} />
+              <RectInCircle w={100} />
+              <svg x={25} y={0} viewBox="">
+                {/* <g className="spin"> */}
+                <Circle w={50} />
+                {/* </g> */}
+              </svg>
+            </g>
+          </svg>
+        </g>
       </svg>
     </svg>
   )
@@ -49,7 +61,7 @@ const Style = styled.div`
     animation: move 10s infinite;
   }
   .spin {
-    animation: spin 10s infinite;
+    animation: spin 10s linear infinite;
   }
   @keyframes move {
     0% {
