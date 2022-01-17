@@ -1,5 +1,6 @@
 import React, { SVGProps } from 'react'
 import styled from 'styled-components'
+import { Circle, Rect, RectInCircle } from './RandomShape'
 
 const W = 1280
 const H = 720
@@ -23,6 +24,12 @@ const Ground = () => {
         <rect id="c3" x={100} y={100} width={100} height={100} />
         <line id="c4" x1={100} y1={100} x2={200} y2={140} />
       </g>
+      <svg id="g2" x={400} y={400} viewBox="">
+        <Circle w={100} />
+        <Circle w={200} />
+        <Rect w={200} />
+        <RectInCircle w={100} />
+      </svg>
     </svg>
   )
 }
@@ -35,8 +42,14 @@ const SvgPlay = () => {
 }
 const Style = styled.div`
   border: gray solid 1px;
+  svg {
+    overflow: visible;
+  }
   #g1 {
     animation: move 10s infinite;
+  }
+  .spin {
+    animation: spin 10s infinite;
   }
   @keyframes move {
     0% {
@@ -44,6 +57,15 @@ const Style = styled.div`
     }
     100% {
       transform: translateX(100%);
+    }
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
     }
   }
 `
