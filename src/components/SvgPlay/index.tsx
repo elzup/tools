@@ -1,7 +1,11 @@
+import dynamic from 'next/dynamic'
 import React from 'react'
 import styled from 'styled-components'
-import { RandomShapeTree } from './RandomShapeTree'
-import { Circle, Fan, Rect, RectInCircle } from './Shape'
+import { Circle, Fan, Rect, SmallRect } from './Shape'
+
+const RandomShapeTree = dynamic(() => import('./RandomShapeTree'), {
+  ssr: false,
+})
 
 const W = 1280
 const H = 720
@@ -19,33 +23,12 @@ const Ground = () => {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <g id="g1">
-        <circle id="c1" cx={100} cy={100} r={100} />
-        <circle id="c2" cx={200} cy={140} r={100} />
-        <rect id="c3" x={100} y={100} width={100} height={100} />
-        <line id="c4" x1={100} y1={100} x2={200} y2={140} />
-      </g>
-      <svg id="g2" x={200} y={400}>
-        <g className="spin">
-          <Circle w={100} />
-          <Circle w={200} />
-          <Rect w={200} />
-          <svg x={0} y={50}>
-            <g className="spin">
-              <Circle w={100} />
-              <RectInCircle w={100} />
-              <Fan w={100} />
-              <svg x={25} y={0}>
-                {/* <g className="spin"> */}
-                <Circle w={50} />
-                {/* </g> */}
-              </svg>
-            </g>
-          </svg>
-        </g>
-      </svg>
-      <svg id="g3" x={600} y={400} viewBox="">
-        <RandomShapeTree w={200} depthLimit={3} />
+      <svg x={400} y={400} viewBox="">
+        <RandomShapeTree
+          w={400}
+          depthLimit={4}
+          force={{ pos: { sx: 0, sy: 0 } }}
+        />
       </svg>
     </svg>
   )
@@ -62,14 +45,11 @@ const Style = styled.div`
   svg {
     overflow: visible;
   }
-  #g1 {
-    animation: move 10s infinite;
-  }
   .spin {
     animation: spin 10s linear infinite;
   }
   .move {
-    animation: move 10s linear infinite;
+    /* animation: move 10s linear infinite; */
   }
   @keyframes move {
     0% {
