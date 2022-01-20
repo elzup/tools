@@ -1,6 +1,6 @@
-import { faFan, faLeaf } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faLeaf } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { Typography } from '@mui/material'
+import { Box, FormControlLabel, Switch, Typography } from '@mui/material'
 import React from 'react'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
@@ -33,11 +33,29 @@ function usePikminDb() {
 
 function PikblMemo() {
   const { memo, switchMemo } = usePikminDb()
+  const [desc, setDesc] = useLocalStorage<boolean>('pkbl-desk-mode', false)
 
   console.log(memo)
 
   return (
     <Style>
+      <Box style={{ marginLeft: '8px' }}>
+        <label>
+          <FormControlLabel
+            value="end"
+            control={
+              <Switch
+                onClick={() => {
+                  setDesc(!desc)
+                }}
+              ></Switch>
+            }
+            label="詳細表示"
+            labelPlacement="end"
+            checked={desc}
+          />
+        </label>
+      </Box>
       <table>
         <tbody>
           <tr>
@@ -55,7 +73,7 @@ function PikblMemo() {
           {groups.map((g) => (
             <tr key={g.id}>
               <th>
-                <div className="group-label">
+                <div className="group-label" data-desc={desc}>
                   <div>
                     <FontAwesomeIcon icon={g.icon} />
                   </div>
@@ -73,7 +91,7 @@ function PikblMemo() {
                     <FontAwesomeIcon icon={faLeaf} />
                   )}
                   {memo[g.id]?.[p.id] === 'get' && (
-                    <FontAwesomeIcon icon={faFan} />
+                    <FontAwesomeIcon icon={faCheck} />
                   )}
                 </td>
               ))}
@@ -120,6 +138,12 @@ const Style = styled.div`
     justify-content: center;
     > * {
       text-align: center;
+    }
+    &[data-desc='false'] {
+      font-size: 1.5rem;
+      >*:last-child {
+        display: none;
+      }
     }
   }
 `
