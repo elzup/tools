@@ -1,7 +1,7 @@
 import { faCheck, faLeaf } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Box, FormControlLabel, Switch, Typography } from '@mui/material'
-import React from 'react'
+import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
 import { groups, picmins } from './picminConstants'
@@ -36,29 +36,46 @@ function usePikminDb() {
     },
   }
 }
+function sort<T>(a: T[], comp: (v: T) => number): T[] {
+  return a
+    .map((v) => [v, comp(v)] as const)
+    .sort(([, a], [, b]) => a - b)
+    .map(([v]) => v)
+}
 
 function PikblMemo() {
   const { memo, switchMemo, checkAll } = usePikminDb()
   const [desc, setDesc] = useLocalStorage<boolean>('pkbl-desk-mode', false)
+  const [comp, setComp] = useLocalStorage<boolean>('pkbl-smart-mode', false)
 
-  console.log(memo)
+  const sortGroups = useMemo(() => {
+    if (!comp) return groups
+    const isComp = (group: Record<string, MemoState>) => {
+      const memos = Object.values(group || {})
+
+      return memos.length === 7 && memos.every((v) => v === 'get')
+    }
+
+    return sort(groups, (v) => (isComp(memo[v.id]) ? 1 : 0))
+  }, [memo, comp])
 
   return (
     <Style>
       <Box style={{ marginLeft: '8px' }}>
         <label>
           <FormControlLabel
-            value="end"
-            control={
-              <Switch
-                onClick={() => {
-                  setDesc(!desc)
-                }}
-              ></Switch>
-            }
+            control={<Switch onClick={() => setDesc(!desc)}></Switch>}
             label="詳細表示"
             labelPlacement="end"
             checked={desc}
+          />
+        </label>
+        <label>
+          <FormControlLabel
+            control={<Switch onClick={() => setComp(!comp)}></Switch>}
+            label="コンプを整理"
+            labelPlacement="end"
+            checked={comp}
           />
         </label>
       </Box>
@@ -76,7 +93,7 @@ function PikblMemo() {
               </th>
             ))}
           </tr>
-          {groups.map((g) => (
+          {sortGroups.map((g) => (
             <tr key={g.id}>
               <th
                 onClick={() => {
