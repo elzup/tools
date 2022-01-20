@@ -231,11 +231,18 @@ const Menu = ({ currentPath }: Props) => (
 const Style = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  > div {
+    margin-top: 16px;
+  }
   .item {
     display: flex;
     gap: 4px;
     svg {
       margin-top: 4px;
+      min-width: 1.4rem;
     }
   }
 `
