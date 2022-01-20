@@ -1,4 +1,4 @@
-import { random, range, sample } from 'lodash'
+import _, { fill, random, range, sample } from 'lodash'
 import { useMemo } from 'react'
 import { Circle, Donut, Fan, PadCircle, Rect, SmallRect } from './Shape'
 
@@ -17,10 +17,10 @@ const shapes = [
   'padCircle',
 ] as const
 // const anims = ['stay'] as const
-const anims = ['spin', 'stay', 'move'] as const
+const animes = ['spin', 'stay', 'move'] as const
 
 type Shape = typeof shapes[number]
-type Anime = typeof anims[number]
+type Anime = typeof animes[number]
 type ChildPos = 'top' | 'left' | 'right' | 'bottom' | 'center'
 type Pos = { sx: number; sy: number }
 const positions: Record<ChildPos, Pos> = {
@@ -31,12 +31,43 @@ const positions: Record<ChildPos, Pos> = {
   center: { sx: 0, sy: 0 },
 } as const
 
-// const randomShapeRating = {
-//   1: ['circle', 'fan', 'rect', 'smallRect'],
-//   2: ['circle', 'fan', 'rect', 'smallRect', 'donut', 'padCircle'],
-//   3: ['circle', 'fan', 'rect', 'smallRect', 'donut', 'padCircle'],
-//   4: ['circle', 'fan', 'rect'],
-// }
+type RateSet = { shapes: Shape[]; animes: Anime[] }
+type RateMap = { shape: Record<Shape, number>; anime: Record<Anime, number> }
+const randomRates: Record<number, RateMap> = {
+  1: {
+    shape: {
+      circle: 1,
+      fan: 0,
+      rect: 1,
+      smallRect: 1,
+      donut: 0,
+      padCircle: 0,
+    },
+    anime: { spin: 1, stay: 1, move: 0 },
+  },
+  2: {
+    shape: {
+      circle: 1,
+      fan: 1,
+      rect: 1,
+      smallRect: 1,
+      donut: 1,
+      padCircle: 1,
+    },
+    anime: { spin: 1, stay: 1, move: 1 },
+  },
+  3: {
+    shape: {
+      circle: 1,
+      fan: 1,
+      rect: 1,
+      smallRect: 1,
+      donut: 1,
+      padCircle: 1,
+    },
+    anime: { spin: 0, stay: 1, move: 1 },
+  },
+}
 
 type ShapeItem = {
   pos: Pos
@@ -46,17 +77,38 @@ type ShapeItem = {
   deg: number
 }
 
+const convertRatesToSet = (rate: RateMap) => {
+  return {
+    shapes: shapes.reduce(
+      (acc, k) => [...acc, ...fill(range(rate.shape[k]), k)],
+      [] as Shape[]
+    ),
+    animes: animes.reduce(
+      (acc, k) => [...acc, ...fill(range(rate.anime[k]), k)],
+      [] as Anime[]
+    ),
+  }
+}
+const randomRatesSets = Object.entries(randomRates).reduce(
+  (acc, [k, v]) => ({ ...acc, [k]: convertRatesToSet(v) }),
+  {} as Record<number, RateSet>
+)
+
 const RandomShapeTree = ({ force, depthLimit, w }: Props) => {
   const item: ShapeItem = useMemo(() => {
+    const rates = randomRatesSets[Math.max(1, Math.min(depthLimit, 3))]
+
     return {
       pos: sample(Object.values(positions)) || { sx: 0, sy: 0 },
-      shape: sample(shapes) || 'circle',
-      anime: sample(anims) || 'stay',
-      childNum: random(1, 4),
+      shape: sample(rates.shapes) || 'circle',
+      anime: sample(rates.animes) || 'stay',
+      childNum: random(depthLimit, depthLimit + 1),
       deg: random(360),
       ...force,
     }
   }, [force])
+
+  console.log(item)
 
   if (depthLimit === 0) {
     return null
