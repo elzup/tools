@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { Typography } from '@mui/material'
 import React from 'react'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
@@ -38,14 +40,21 @@ function PikblMemo() {
       <table>
         <tbody>
           <tr>
-            <th>Group</th>
+            <th></th>
             {picmins.map((p) => (
               <th key={p.id}>{p.name}</th>
             ))}
           </tr>
           {groups.map((g) => (
             <tr key={g.id}>
-              <th>{g.name}</th>
+              <th>
+                <div className="group-label">
+                  <div>
+                    <FontAwesomeIcon icon={g.icon} />
+                  </div>
+                  <Typography variant="caption">{g.name}</Typography>
+                </div>
+              </th>
               {picmins.map((p) => (
                 <td
                   data-memo={memo[g.id]?.[p.id] || 'emp'}
@@ -71,15 +80,26 @@ const Style = styled.div`
     border-collapse: collapse;
     border: 1px solid #333;
   }
+  th:first-child {
+    width: 7rem;
+  }
 
   td {
+    height: 2rem;
     &[data-memo='emp'] {
     }
     &[data-memo='pre'] {
       background-color: #ffc;
     }
     &[data-memo='get'] {
-      background-color: #cff;
+      background-color: #af0;
+    }
+  }
+  .group-label {
+    display: grid;
+    justify-content: center;
+    > * {
+      text-align: center;
     }
   }
 `
