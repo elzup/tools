@@ -1,12 +1,8 @@
 import { createTheme } from '@mui/material'
 import { brown, green, red } from '@mui/material/colors'
 import { createGlobalStyle } from 'styled-components'
-import { config, dom } from '@fortawesome/fontawesome-svg-core'
-
-config.autoAddCss = false
 
 export const GlobalStyle = createGlobalStyle`
-${dom.css()}
 html,
 body {
   height: 100%;
