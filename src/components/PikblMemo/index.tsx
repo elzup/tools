@@ -62,7 +62,7 @@ function PikblMemo() {
           />
         </label>
       </Box>
-      <table>
+      <table data-desc={desc}>
         <tbody>
           <tr>
             <th></th>
@@ -84,7 +84,7 @@ function PikblMemo() {
                     checkAll(g.id)
                 }}
               >
-                <div className="group-label" data-desc={desc}>
+                <div className="group-label">
                   <div>
                     <FontAwesomeIcon icon={g.icon} />
                   </div>
@@ -134,13 +134,10 @@ const Style = styled.div`
     text-align: center;
     font-size: 1.5rem;
 
-    }
-    [data-memo='emp'] {
-    }
-    [data-memo='pre'] {
+    &[data-memo='pre'] {
       background-color: #fd0 !important;
     }
-    [data-memo='get'] {
+    &[data-memo='get'] {
       background-color: #af0 !important;
     }
   }
@@ -150,11 +147,21 @@ const Style = styled.div`
     > * {
       text-align: center;
     }
-    &[data-desc='false'] {
-      font-size: 1.5rem;
-      >*:last-child {
+  }
+
+  table[data-desc='false'] {
+    td,
+    th {
+      height: 1.2rem;
+      font-size: 1rem !important;
+    }
+    .group-label {
+      > *:last-child {
         display: none;
       }
+    }
+    th {
+      width: calc(100vw / 8);
     }
   }
 `
