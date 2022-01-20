@@ -2,23 +2,21 @@ import React from 'react'
 import styled from 'styled-components'
 import { groups, picmins } from './picminConstants'
 
-type Props = {}
-
-function PikblMemo(props: Props) {
+function PikblMemo() {
   return (
     <Style>
       <table>
         <tbody>
           <tr>
             <th>Group</th>
-            {picmins.map((p, i) => (
+            {picmins.map((p) => (
               <th key={p.id}>{p.name}</th>
             ))}
           </tr>
-          {groups.map((g, i) => (
+          {groups.map((g) => (
             <tr key={g.id}>
               <th>{g.name}</th>
-              {picmins.map((p, j) => (
+              {picmins.map((p) => (
                 <td key={p.id}></td>
               ))}
             </tr>

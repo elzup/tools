@@ -3,7 +3,7 @@ import Layout from '../components/Layout'
 import PikblMemo from '../components/PikblMemo'
 import { Title } from '../components/Title'
 
-const title = 'PikblMemo'
+const title = 'デコピクミンMEMO'
 const PikblMemoPage = () => {
   return (
     <Layout title={title}>
