@@ -1,5 +1,14 @@
 import { createTheme } from '@mui/material'
 import { brown, green, red } from '@mui/material/colors'
+import { createGlobalStyle } from 'styled-components'
+
+export const GlobalStyle = createGlobalStyle`
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+`
 
 export const theme = createTheme({
   palette: {
