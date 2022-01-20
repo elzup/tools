@@ -47,19 +47,14 @@ const routings: RoutingGroup[] = [
     routings: [
       { icon: faHome, label: 'Top', path: '/' },
       {
+        icon: faLeaf,
+        label: 'ピクブルMEMO',
+        path: '/pikbl-memo',
+      },
+      {
         icon: faListOl,
         label: '文字カウント',
         path: '/char-counter',
-      },
-      {
-        icon: faCalculator,
-        label: 'Collatz graph',
-        path: '/collatz-graph',
-      },
-      {
-        icon: faStopCircle,
-        label: '1px image data url',
-        path: '/1px',
       },
       {
         icon: faGlobe,
@@ -71,10 +66,15 @@ const routings: RoutingGroup[] = [
         label: 'DivergenceMeter',
         path: '/divergence-meter',
       },
+    ],
+  },
+  {
+    label: 'DevTool',
+    routings: [
       {
-        icon: faLeaf,
-        label: 'ピクブルMEMO',
-        path: '/pikbl-memo',
+        icon: faStopCircle,
+        label: '1px image data url',
+        path: '/1px',
       },
     ],
   },
@@ -90,6 +90,11 @@ const routings: RoutingGroup[] = [
         icon: faRing,
         label: 'マンデルブロ集合',
         path: '/mandelbulb',
+      },
+      {
+        icon: faCalculator,
+        label: 'Collatz graph',
+        path: '/collatz-graph',
       },
     ],
   },
@@ -143,11 +148,6 @@ const routings: RoutingGroup[] = [
     label: 'ProtoType',
     routings: [
       {
-        icon: faChartLine,
-        label: 'Cryptowat chart three',
-        path: '/cryptowat-chart',
-      },
-      {
         icon: faTextWidth,
         label: 'Text transformer',
         path: '/textmaster',
@@ -161,6 +161,11 @@ const routings: RoutingGroup[] = [
         icon: faBowlingBall,
         label: '楕円ビリヤード',
         path: '/ellip-billiards',
+      },
+      {
+        icon: faChartLine,
+        label: 'Cryptowat chart three',
+        path: '/cryptowat-chart',
       },
     ],
   },
