@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/web-manifest-combined.json",
   "name": "デコピクミンMEMO",
   "short_name": "デコピクMEMO",
-  "start_url": ".",
+  "start_url": "/pikbl-memo",
   "display": "standalone",
   "background_color": "#86cb70",
   "description": "ピクミンブルームのデコピクミンメモアプリ",
