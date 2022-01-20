@@ -75,5 +75,5 @@ export const groups: Group[] = [
   { id: 'x', name: 'ファッション', short: 'ファ', icon: faTshirt },
   { id: 'y', name: '公園', short: '公', icon: faCampground },
   { id: 'z', name: 'みちばた', short: 'み', icon: faRoad },
-  { id: 'z', name: 'みちばた(冬)', short: '冬', icon: faSnowflake },
+  { id: 'z1', name: 'みちばた(冬)', short: '冬', icon: faSnowflake },
 ]
