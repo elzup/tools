@@ -11,7 +11,14 @@ const PikblMemo = dynamic(() => import('../components/PikblMemo'), {
 
 const GlobalStyle = createGlobalStyle`
   body {  background: #86cb70;}
+  h1 {
+    margin-left: 16px !important;
+  }
+  svg {
+    min-width: 1.4rem;
+  }
 `
+
 const title = 'デコピクミンMEMO'
 const description = 'ピクミンブルームのデコピクミンメモアプリ'
 const url = 'https://tools.anozon.me/pikbl-memo'
