@@ -126,7 +126,7 @@ const Style = styled.div`
     border: 1px solid #86cb70;
   }
   th:not(:first-child) {
-    width: calc(calc(100vw - 4.5rem) / 7);
+    width: calc(calc(100vw - 5rem) / 7);
   }
 
   td {
