@@ -31,12 +31,12 @@ const positions: Record<ChildPos, Pos> = {
   center: { sx: 0, sy: 0 },
 } as const
 
-const randomShapeRating = {
-  1: ['circle', 'fan', 'rect', 'smallRect'],
-  2: ['circle', 'fan', 'rect', 'smallRect', 'donut', 'padCircle'],
-  3: ['circle', 'fan', 'rect', 'smallRect', 'donut', 'padCircle'],
-  4: ['circle', 'fan', 'rect'],
-}
+// const randomShapeRating = {
+//   1: ['circle', 'fan', 'rect', 'smallRect'],
+//   2: ['circle', 'fan', 'rect', 'smallRect', 'donut', 'padCircle'],
+//   3: ['circle', 'fan', 'rect', 'smallRect', 'donut', 'padCircle'],
+//   4: ['circle', 'fan', 'rect'],
+// }
 
 type ShapeItem = {
   pos: Pos
