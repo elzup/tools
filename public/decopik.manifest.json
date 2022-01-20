@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "name": "デコピクミンMEMO",
+  "short_name": "デコピクMEMO",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#fff",
+  "description": "ピクミンブルームのデコピクミンメモアプリ",
+  "icons": [
+    {
+      "src": "./decopikmin-memo-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "decopikmin-memo-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
