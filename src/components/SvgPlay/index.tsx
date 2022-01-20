@@ -1,7 +1,6 @@
 import dynamic from 'next/dynamic'
 import React from 'react'
 import styled from 'styled-components'
-import { Circle, Fan, Rect, SmallRect } from './Shape'
 
 const RandomShapeTree = dynamic(() => import('./RandomShapeTree'), {
   ssr: false,
