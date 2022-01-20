@@ -28,11 +28,17 @@ function usePikminDb() {
         },
       }))
     },
+    checkAll: (groupId: string) => {
+      setMemo((prev) => ({
+        ...prev,
+        [groupId]: picmins.reduce((acc, p) => ({ ...acc, [p.id]: 'get' }), {}),
+      }))
+    },
   }
 }
 
 function PikblMemo() {
-  const { memo, switchMemo } = usePikminDb()
+  const { memo, switchMemo, checkAll } = usePikminDb()
   const [desc, setDesc] = useLocalStorage<boolean>('pkbl-desk-mode', false)
 
   console.log(memo)
@@ -72,7 +78,12 @@ function PikblMemo() {
           </tr>
           {groups.map((g) => (
             <tr key={g.id}>
-              <th>
+              <th
+                onClick={() => {
+                  if (confirm(`"${g.name}"をすべてチェックしますか?`))
+                    checkAll(g.id)
+                }}
+              >
                 <div className="group-label" data-desc={desc}>
                   <div>
                     <FontAwesomeIcon icon={g.icon} />
