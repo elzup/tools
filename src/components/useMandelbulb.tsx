@@ -41,6 +41,7 @@ function view(
           draw(i, j, k, ctx)
           return true
         }
+        return false
       })
     })
   })
