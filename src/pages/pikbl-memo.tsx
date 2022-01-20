@@ -16,7 +16,11 @@ const PikblMemoPage = () => {
   return (
     <Layout title={title} fullWidth>
       <GlobalStyle />
-      <Title>{title}</Title>
+      <Title>
+        <div style={{ margin: '0 8px 8px', fontSize: '2rem', color: 'white' }}>
+          {title}
+        </div>
+      </Title>
       <PikblMemo />
     </Layout>
   )
