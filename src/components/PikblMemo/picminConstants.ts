@@ -1,4 +1,4 @@
-type Picmin = {
+type Pikmin = {
   id: string
   name: string
   color: string
@@ -8,7 +8,7 @@ type Group = {
   name: string
 }
 
-export const picmins: Picmin[] = [
+export const picmins: Pikmin[] = [
   { id: 're', name: '赤', color: '#ff0000' },
   { id: 'yw', name: '黄', color: '#ffff00' },
   { id: 'bu', name: '青', color: '#0000ff' },
