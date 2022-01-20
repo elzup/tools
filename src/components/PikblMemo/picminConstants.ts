@@ -1,13 +1,11 @@
 import { IconDefinition } from '@fortawesome/free-regular-svg-icons'
 import {
   faAppleAlt,
-  faBeer,
   faBreadSlice,
   faBug,
   faCampground,
   faCapsules,
   faCoffee,
-  faConciergeBell,
   faCut,
   faEnvelope,
   faFilm,

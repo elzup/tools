@@ -4,7 +4,7 @@
   "short_name": "デコピクMEMO",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#fff",
+  "background_color": "#86cb70",
   "description": "ピクミンブルームのデコピクミンメモアプリ",
   "icons": [
     {
