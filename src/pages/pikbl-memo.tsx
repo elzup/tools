@@ -10,7 +10,9 @@ const PikblMemo = dynamic(() => import('../components/PikblMemo'), {
 })
 
 const GlobalStyle = createGlobalStyle`
-  body {  background: #86cb70;}
+  body {
+    background: #86cb70 !important;
+  }
   h1 {
     margin-left: 16px !important;
   }
