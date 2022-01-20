@@ -1,3 +1,4 @@
+import { faFan, faLeaf } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Typography } from '@mui/material'
 import React from 'react'
@@ -42,7 +43,13 @@ function PikblMemo() {
           <tr>
             <th></th>
             {picmins.map((p) => (
-              <th key={p.id}>{p.name}</th>
+              <th
+                key={p.id}
+                data-pid={p.id}
+                style={{ background: `${p.color}88` }}
+              >
+                {p.name}
+              </th>
             ))}
           </tr>
           {groups.map((g) => (
@@ -58,9 +65,17 @@ function PikblMemo() {
               {picmins.map((p) => (
                 <td
                   data-memo={memo[g.id]?.[p.id] || 'emp'}
+                  style={{ background: `${p.color}11` }}
                   key={p.id}
                   onClick={() => switchMemo(g.id, p.id)}
-                ></td>
+                >
+                  {memo[g.id]?.[p.id] === 'pre' && (
+                    <FontAwesomeIcon icon={faLeaf} />
+                  )}
+                  {memo[g.id]?.[p.id] === 'get' && (
+                    <FontAwesomeIcon icon={faFan} />
+                  )}
+                </td>
               ))}
             </tr>
           ))}
@@ -71,6 +86,7 @@ function PikblMemo() {
 }
 
 const Style = styled.div`
+  background: white;
   table {
     width: 100%;
   }
@@ -78,21 +94,25 @@ const Style = styled.div`
   td,
   th {
     border-collapse: collapse;
-    border: 1px solid #333;
+    border: 1px solid #86cb70;
   }
-  th:first-child {
-    width: 7rem;
+  th:not(:first-child) {
+    width: calc(calc(100vw - 4.5rem) / 7);
   }
 
   td {
     height: 2rem;
-    &[data-memo='emp'] {
+    text-align: center;
+    font-size: 1.5rem;
+
     }
-    &[data-memo='pre'] {
-      background-color: #ffc;
+    [data-memo='emp'] {
     }
-    &[data-memo='get'] {
-      background-color: #af0;
+    [data-memo='pre'] {
+      background-color: #fd0 !important;
+    }
+    [data-memo='get'] {
+      background-color: #af0 !important;
     }
   }
   .group-label {
