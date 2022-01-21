@@ -24,7 +24,7 @@ const Ground = () => {
     >
       <svg x={400} y={400} viewBox="">
         <RandomShapeTree
-          w={400}
+          w={800}
           depthLimit={4}
           force={{ pos: { sx: 0, sy: 0 } }}
         />
@@ -45,7 +45,16 @@ const Style = styled.div`
     overflow: visible;
   }
   .spin {
-    animation: spin 10s linear infinite;
+    animation: spin 5s linear infinite;
+    &[data-a-opt='1'] {
+      animation: spin 10s linear infinite;
+    }
+    &[data-a-opt='2'] {
+      animation: spin 5s linear reverse infinite;
+    }
+    &[data-a-opt='3'] {
+      animation: spin 10s linear reverse infinite;
+    }
   }
   .move {
     /* animation: move 10s linear infinite; */

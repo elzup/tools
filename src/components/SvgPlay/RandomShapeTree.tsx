@@ -16,19 +16,23 @@ const shapes = [
   'donut',
   'padCircle',
 ] as const
-// const anims = ['stay'] as const
+
 const animes = ['spin', 'stay', 'move'] as const
 
 type Shape = typeof shapes[number]
 type Anime = typeof animes[number]
-type ChildPos = 'top' | 'left' | 'right' | 'bottom' | 'center'
+type ChildPos = 't' | 'b' | 'l' | 'r' | 'c' | 'it' | 'id' | 'il' | 'ir'
 type Pos = { sx: number; sy: number }
 const positions: Record<ChildPos, Pos> = {
-  top: { sx: 0, sy: -1 },
-  bottom: { sx: 0, sy: 1 },
-  left: { sx: -1, sy: 0 },
-  right: { sx: 1, sy: 0 },
-  center: { sx: 0, sy: 0 },
+  t: { sx: 0, sy: -1 },
+  b: { sx: 0, sy: 1 },
+  l: { sx: -1, sy: 0 },
+  r: { sx: 1, sy: 0 },
+  it: { sx: 0, sy: -0.5 },
+  id: { sx: 0, sy: 0.5 },
+  il: { sx: -0.5, sy: 0 },
+  ir: { sx: 0.5, sy: 0 },
+  c: { sx: 0, sy: 0 },
 } as const
 
 type RateSet = { shapes: Shape[]; animes: Anime[] }
@@ -73,6 +77,7 @@ type ShapeItem = {
   pos: Pos
   shape: Shape
   anime: Anime
+  animeOpt: number
   childNum: number
   deg: number
 }
@@ -102,8 +107,9 @@ const RandomShapeTree = ({ force, depthLimit, w }: Props) => {
       pos: sample(Object.values(positions)) || { sx: 0, sy: 0 },
       shape: sample(rates.shapes) || 'circle',
       anime: sample(rates.animes) || 'stay',
+      animeOpt: random(4),
       childNum: random(depthLimit, depthLimit + 1),
-      deg: random(360),
+      deg: random(8) * 45,
       ...force,
     }
   }, [force])
@@ -120,7 +126,11 @@ const RandomShapeTree = ({ force, depthLimit, w }: Props) => {
   return (
     <svg x={wx} y={wy}>
       {/* <rect x={-w / 2} y={-w / 2} stroke="orange" width={w} height={w} /> */}
-      <g className={item.anime} style={{ transform: `rotate(${item.deg}deg)` }}>
+      <g
+        className={item.anime}
+        data-a-opt={item.animeOpt}
+        style={{ transform: `rotate(${item.deg}deg)` }}
+      >
         <RandomShapeDraw shape={item.shape} w={w} />
         {range(item.childNum).map((i) => (
           <RandomShapeTree key={i} w={w / 2} depthLimit={depthLimit - 1} />
