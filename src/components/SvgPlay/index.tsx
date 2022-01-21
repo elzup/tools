@@ -57,11 +57,11 @@ const Style = styled.div`
     }
   }
   .move {
-    /* animation: move 10s linear infinite; */
+    animation: move 20s linear -10s infinite;
   }
   @keyframes move {
     0% {
-      transform: translateX(0);
+      transform: translateX(-100%);
     }
     100% {
       transform: translateX(100%);
