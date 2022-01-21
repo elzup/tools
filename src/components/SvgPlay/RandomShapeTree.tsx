@@ -69,7 +69,7 @@ const randomRates: Record<number, RateMap> = {
       donut: 1,
       padCircle: 1,
     },
-    anime: { spin: 0, stay: 1, move: 1 },
+    anime: { spin: 0, stay: 1, move: 0 },
   },
 }
 
@@ -109,6 +109,7 @@ const RandomShapeTree = ({ force, depthLimit, w }: Props) => {
       anime: sample(rates.animes) || 'stay',
       animeOpt: random(4),
       childNum: random(depthLimit, depthLimit + 1),
+      // deg: random(36) * 10,
       deg: random(8) * 45,
       ...force,
     }
