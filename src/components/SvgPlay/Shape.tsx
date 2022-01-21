@@ -30,6 +30,21 @@ export const SmallRect = ({ w }: Props) => {
   return <Rect w={w / Math.SQRT2} />
 }
 
+export const ShineCircle = ({ w }: Props) => {
+  return (
+    <>
+      <Circle w={w * 1.1} />
+      <Circle w={w} />
+      {[0.1, 0.2, 0.3, 0.4, 0.5].map((i) => {
+        const vx1 = (Math.cos(i) * w) / 2
+        const vy1 = (Math.sin(i) * w) / 2
+
+        return <line key={i} x1={vx1} y1={vy1} x2={-vx1} y2={-vy1} />
+      })}
+    </>
+  )
+}
+
 export const Fan = ({ w }: Props) => {
   const path = `M 0,0 L ${w},0 a ${w} ${w} 0 0 1 -${w},${w} z`
 

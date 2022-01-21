@@ -1,6 +1,14 @@
 import _, { fill, random, range, sample } from 'lodash'
 import { useMemo } from 'react'
-import { Circle, Donut, Fan, PadCircle, Rect, SmallRect } from './Shape'
+import {
+  Circle,
+  Donut,
+  Fan,
+  PadCircle,
+  Rect,
+  ShineCircle,
+  SmallRect,
+} from './Shape'
 
 type Props = {
   depthLimit: number
@@ -15,6 +23,7 @@ const shapes = [
   'smallRect',
   'donut',
   'padCircle',
+  'shineCircle',
 ] as const
 
 const animes = ['spin', 'stay', 'move'] as const
@@ -40,12 +49,13 @@ type RateMap = { shape: Record<Shape, number>; anime: Record<Anime, number> }
 const randomRates: Record<number, RateMap> = {
   1: {
     shape: {
-      circle: 1,
+      circle: 5,
       fan: 0,
-      rect: 1,
-      smallRect: 1,
+      rect: 5,
+      smallRect: 5,
       donut: 0,
       padCircle: 0,
+      shineCircle: 1,
     },
     anime: { spin: 1, stay: 1, move: 0 },
   },
@@ -57,6 +67,7 @@ const randomRates: Record<number, RateMap> = {
       smallRect: 1,
       donut: 1,
       padCircle: 1,
+      shineCircle: 0,
     },
     anime: { spin: 1, stay: 1, move: 1 },
   },
@@ -68,6 +79,7 @@ const randomRates: Record<number, RateMap> = {
       smallRect: 1,
       donut: 1,
       padCircle: 1,
+      shineCircle: 0,
     },
     anime: { spin: 0, stay: 1, move: 0 },
   },
@@ -155,6 +167,8 @@ export const RandomShapeDraw = ({ shape, w }: { shape: Shape; w: number }) => {
       return <PadCircle w={w} />
     case 'donut':
       return <Donut w={w} />
+    case 'shineCircle':
+      return <ShineCircle w={w} />
     default:
       return null
   }
