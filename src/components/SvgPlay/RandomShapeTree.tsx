@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import {
   Circle,
   Donut,
+  DraftFan,
   Fan,
   PadCircle,
   Rect,
@@ -19,6 +20,7 @@ type Props = {
 const shapes = [
   'circle',
   'fan',
+  'draftFan',
   'rect',
   'smallRect',
   'donut',
@@ -51,6 +53,7 @@ const randomRates: Record<number, RateMap> = {
     shape: {
       circle: 5,
       fan: 0,
+      draftFan: 0,
       rect: 5,
       smallRect: 5,
       donut: 0,
@@ -63,6 +66,7 @@ const randomRates: Record<number, RateMap> = {
     shape: {
       circle: 1,
       fan: 1,
+      draftFan: 1,
       rect: 1,
       smallRect: 1,
       donut: 1,
@@ -75,6 +79,7 @@ const randomRates: Record<number, RateMap> = {
     shape: {
       circle: 1,
       fan: 1,
+      draftFan: 2,
       rect: 1,
       smallRect: 1,
       donut: 1,
@@ -127,8 +132,6 @@ const RandomShapeTree = ({ force, depthLimit, w }: Props) => {
     }
   }, [force])
 
-  console.log(item)
-
   if (depthLimit === 0) {
     return null
   }
@@ -159,6 +162,8 @@ export const RandomShapeDraw = ({ shape, w }: { shape: Shape; w: number }) => {
       return <Circle w={w} />
     case 'fan':
       return <Fan w={w} />
+    case 'draftFan':
+      return <DraftFan w={w} />
     case 'rect':
       return <Rect w={w} />
     case 'smallRect':

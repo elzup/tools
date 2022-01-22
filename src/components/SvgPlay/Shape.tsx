@@ -45,8 +45,18 @@ export const ShineCircle = ({ w }: Props) => {
   )
 }
 
+const fanPath = (w: number) => `M 0,0 L ${w},0 a ${w} ${w} 0 0 1 -${w},${w} z`
+
 export const Fan = ({ w }: Props) => {
-  const path = `M 0,0 L ${w},0 a ${w} ${w} 0 0 1 -${w},${w} z`
+  return <path d={fanPath(w)} />
+}
+
+const arkPath = (w: number) => `M ${w},0 A ${w} ${w} 0 0 1 0,${w}`
+
+export const DraftFan = ({ w }: Props) => {
+  const path = `${arkPath(w * 0.7)} ${arkPath(
+    w * 0.5
+  )} M ${w},0 L 0,0 L 0,${w} M 0,0 L ${w * 0.7},${w * 0.7}`
 
   return <path d={path} />
 }
