@@ -61,3 +61,14 @@ export const DraftFan = ({ w }: Props) => {
 
   return <path d={path} />
 }
+
+export const ClockHand = ({ w }: Props) => {
+  const r = w / 20
+
+  return (
+    <>
+      <line x1={0} y1={0} x2={0} y2={w} />
+      <circle cx={0} cy={w - 2 * r} r={r} />
+    </>
+  )
+}
