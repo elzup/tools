@@ -72,3 +72,12 @@ export const ClockHand = ({ w }: Props) => {
     </>
   )
 }
+
+export const Cross = ({ w }: Props) => {
+  return (
+    <>
+      <line x1={0} y1={0} x2={0} y2={w} />
+      <line x1={-w / 4} y1={w / 2} x2={w / 4} y2={w / 2} />
+    </>
+  )
+}

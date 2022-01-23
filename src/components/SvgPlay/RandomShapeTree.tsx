@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import {
   Circle,
   ClockHand,
+  Cross,
   Donut,
   DraftFan,
   Fan,
@@ -28,6 +29,7 @@ const shapes = [
   'padCircle',
   'shineCircle',
   'clockHand',
+  'cross',
 ] as const
 
 const animes = ['spin', 'stay', 'move'] as const
@@ -62,6 +64,7 @@ const randomRates: Record<number, RateMap> = {
       padCircle: 0,
       shineCircle: 1,
       clockHand: 1,
+      cross: 1,
     },
     anime: { spin: 1, stay: 1, move: 0 },
   },
@@ -76,6 +79,7 @@ const randomRates: Record<number, RateMap> = {
       padCircle: 1,
       shineCircle: 0,
       clockHand: 1,
+      cross: 1,
     },
     anime: { spin: 1, stay: 1, move: 1 },
   },
@@ -90,6 +94,7 @@ const randomRates: Record<number, RateMap> = {
       padCircle: 1,
       shineCircle: 0,
       clockHand: 1,
+      cross: 1,
     },
     anime: { spin: 0, stay: 1, move: 0 },
   },
@@ -181,6 +186,8 @@ export const RandomShapeDraw = ({ shape, w }: { shape: Shape; w: number }) => {
       return <ShineCircle w={w} />
     case 'clockHand':
       return <ClockHand w={w} />
+    case 'cross':
+      return <Cross w={w} />
     default:
       return null
   }
