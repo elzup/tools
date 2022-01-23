@@ -2,6 +2,7 @@ import _, { fill, random, range, sample } from 'lodash'
 import { useMemo } from 'react'
 import {
   Circle,
+  ClockHand,
   Donut,
   DraftFan,
   Fan,
@@ -26,6 +27,7 @@ const shapes = [
   'donut',
   'padCircle',
   'shineCircle',
+  'clockHand',
 ] as const
 
 const animes = ['spin', 'stay', 'move'] as const
@@ -59,6 +61,7 @@ const randomRates: Record<number, RateMap> = {
       donut: 0,
       padCircle: 0,
       shineCircle: 1,
+      clockHand: 1,
     },
     anime: { spin: 1, stay: 1, move: 0 },
   },
@@ -72,6 +75,7 @@ const randomRates: Record<number, RateMap> = {
       donut: 1,
       padCircle: 1,
       shineCircle: 0,
+      clockHand: 1,
     },
     anime: { spin: 1, stay: 1, move: 1 },
   },
@@ -85,6 +89,7 @@ const randomRates: Record<number, RateMap> = {
       donut: 1,
       padCircle: 1,
       shineCircle: 0,
+      clockHand: 1,
     },
     anime: { spin: 0, stay: 1, move: 0 },
   },
@@ -174,6 +179,8 @@ export const RandomShapeDraw = ({ shape, w }: { shape: Shape; w: number }) => {
       return <Donut w={w} />
     case 'shineCircle':
       return <ShineCircle w={w} />
+    case 'clockHand':
+      return <ClockHand w={w} />
     default:
       return null
   }
