@@ -33,6 +33,18 @@ const shapes = [
 ] as const
 
 const animes = ['spin', 'stay', 'move'] as const
+const baseShapeRate = {
+  circle: 10,
+  fan: 10,
+  draftFan: 10,
+  rect: 10,
+  smallRect: 10,
+  donut: 10,
+  padCircle: 10,
+  shineCircle: 10,
+  clockHand: 10,
+  cross: 10,
+}
 
 type Shape = typeof shapes[number]
 type Anime = typeof animes[number]
@@ -55,46 +67,29 @@ type RateMap = { shape: Record<Shape, number>; anime: Record<Anime, number> }
 const randomRates: Record<number, RateMap> = {
   1: {
     shape: {
-      circle: 5,
+      ...baseShapeRate,
       fan: 0,
       draftFan: 0,
-      rect: 5,
-      smallRect: 5,
       donut: 0,
       padCircle: 0,
-      shineCircle: 1,
-      clockHand: 1,
-      cross: 1,
+      shineCircle: 2,
+      clockHand: 2,
+      cross: 2,
     },
     anime: { spin: 1, stay: 1, move: 0 },
   },
   2: {
     shape: {
-      circle: 1,
-      fan: 1,
-      draftFan: 1,
-      rect: 1,
-      smallRect: 1,
-      donut: 1,
-      padCircle: 1,
+      ...baseShapeRate,
       shineCircle: 0,
-      clockHand: 1,
-      cross: 1,
     },
     anime: { spin: 1, stay: 1, move: 1 },
   },
   3: {
     shape: {
-      circle: 1,
-      fan: 1,
-      draftFan: 2,
-      rect: 1,
-      smallRect: 1,
-      donut: 1,
-      padCircle: 1,
+      ...baseShapeRate,
+      draftFan: 20,
       shineCircle: 0,
-      clockHand: 1,
-      cross: 1,
     },
     anime: { spin: 0, stay: 1, move: 0 },
   },
