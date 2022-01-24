@@ -35,7 +35,7 @@ export const ShineCircle = ({ w }: Props) => {
     <>
       <Circle w={w * 1.1} />
       <Circle w={w} />
-      {[0.1, 0.2, 0.3, 0.4, 0.5].map((i) => {
+      {[0, 0.2, 0.4, 0.6, 0.8].map((i) => {
         const vx1 = (Math.cos(i) * w) / 2
         const vy1 = (Math.sin(i) * w) / 2
 
@@ -80,4 +80,10 @@ export const Cross = ({ w }: Props) => {
       <line x1={-w / 4} y1={w / 2} x2={w / 4} y2={w / 2} />
     </>
   )
+}
+
+export const Triangle = ({ w }: Props) => {
+  const path = `M 0,0 L 0,${w} L ${w / 2},0 Z`
+
+  return <path d={path} />
 }
