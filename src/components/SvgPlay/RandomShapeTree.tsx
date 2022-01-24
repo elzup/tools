@@ -11,6 +11,7 @@ import {
   Rect,
   ShineCircle,
   SmallRect,
+  Triangle,
 } from './Shape'
 
 type Props = {
@@ -30,6 +31,7 @@ const shapes = [
   'shineCircle',
   'clockHand',
   'cross',
+  'triangle',
 ] as const
 
 const animes = ['spin', 'stay', 'move'] as const
@@ -44,6 +46,7 @@ const baseShapeRate = {
   shineCircle: 10,
   clockHand: 10,
   cross: 10,
+  triangle: 10,
 }
 
 type Shape = typeof shapes[number]
@@ -183,6 +186,8 @@ export const RandomShapeDraw = ({ shape, w }: { shape: Shape; w: number }) => {
       return <ClockHand w={w} />
     case 'cross':
       return <Cross w={w} />
+    case 'triangle':
+      return <Triangle w={w} />
     default:
       return null
   }
