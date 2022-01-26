@@ -1402,6 +1402,11 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
+"@elzup/kit@^1.3.6":
+  version "1.3.6"
+  resolved "https://registry.yarnpkg.com/@elzup/kit/-/kit-1.3.6.tgz#ff25b12a1b391b94d379b76b4c83a868c0e9a495"
+  integrity sha512-haopNe0BR7yJvjm4Wgtdomv53I12eAIspV+EHZPfjXTjLMhEsA13xuk5RJqyRNN3Hs5UiOUIi20PucErOlgMaQ==
+
 "@emotion/babel-plugin@^11.3.0":
   version "11.7.2"
   resolved "https://registry.yarnpkg.com/@emotion/babel-plugin/-/babel-plugin-11.7.2.tgz#fec75f38a6ab5b304b0601c74e2a5e77c95e5fa0"
