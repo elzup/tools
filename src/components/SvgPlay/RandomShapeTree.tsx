@@ -1,4 +1,4 @@
-import _, { fill, random, range, sample } from 'lodash'
+import _, { fill, random, range, sample, sampleSize } from 'lodash'
 import { useMemo } from 'react'
 import {
   Circle,
@@ -99,6 +99,7 @@ const randomRates: Record<number, RateMap> = {
 }
 
 type ShapeItem = {
+  childPoss: Pos[]
   pos: Pos
   shape: Shape
   anime: Anime
@@ -128,12 +129,15 @@ const RandomShapeTree = ({ force, depthLimit, w }: Props) => {
   const item: ShapeItem = useMemo(() => {
     const rates = randomRatesSets[Math.max(1, Math.min(depthLimit, 3))]
 
+    const childNum = random(depthLimit, depthLimit + 1)
+
     return {
-      pos: sample(Object.values(positions)) || { sx: 0, sy: 0 },
+      childPoss: sampleSize(Object.values(positions), childNum),
+      pos: { sx: 0, sy: 0 }, // unused
       shape: sample(rates.shapes) || 'circle',
       anime: sample(rates.animes) || 'stay',
       animeOpt: random(4),
-      childNum: random(depthLimit, depthLimit + 1),
+      childNum,
       // deg: random(36) * 10,
       deg: random(8) * 45,
       ...force,
@@ -157,7 +161,12 @@ const RandomShapeTree = ({ force, depthLimit, w }: Props) => {
       >
         <RandomShapeDraw shape={item.shape} w={w} />
         {range(item.childNum).map((i) => (
-          <RandomShapeTree key={i} w={w / 2} depthLimit={depthLimit - 1} />
+          <RandomShapeTree
+            key={i}
+            w={w / 2}
+            depthLimit={depthLimit - 1}
+            force={{ pos: item.childPoss[i] }}
+          />
         ))}
       </g>
     </svg>
