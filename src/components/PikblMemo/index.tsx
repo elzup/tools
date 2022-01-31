@@ -42,6 +42,9 @@ function sort<T>(a: T[], comp: (v: T) => number): T[] {
     .sort(([, a], [, b]) => a - b)
     .map(([v]) => v)
 }
+function count<T>(a: T[], func: (v: T) => boolean): number {
+  return a.reduce((p, v) => p + (func(v) ? 1 : 0), 0)
+}
 
 function PikblMemo() {
   const { memo, switchMemo, checkAll } = usePikminDb()
@@ -50,13 +53,13 @@ function PikblMemo() {
 
   const sortGroups = useMemo(() => {
     if (!comp) return groups
-    const isComp = (group: Record<string, MemoState>) => {
+    const compRate = (group: Record<string, MemoState>) => {
       const memos = Object.values(group || {})
 
-      return memos.length === 7 && memos.every((v) => v === 'get')
+      return -count(memos, (v) => v === 'get')
     }
 
-    return sort(groups, (v) => (isComp(memo[v.id]) ? 1 : 0))
+    return sort(groups, (v) => compRate(memo[v.id]))
   }, [memo, comp])
 
   return (
@@ -73,7 +76,7 @@ function PikblMemo() {
         <label>
           <FormControlLabel
             control={<Switch onClick={() => setComp(!comp)}></Switch>}
-            label="コンプを整理"
+            label="ソート"
             labelPlacement="end"
             checked={comp}
           />
