@@ -66,6 +66,11 @@ const routings: RoutingGroup[] = [
         label: 'DivergenceMeter',
         path: '/divergence-meter',
       },
+      {
+        icon: faPortrait,
+        label: 'Mirror Camera',
+        path: '/mirror',
+      },
     ],
   },
   {
@@ -172,11 +177,6 @@ const routings: RoutingGroup[] = [
   {
     label: 'Closed',
     routings: [
-      {
-        icon: faPortrait,
-        label: 'Mirror Camela',
-        path: '/mirror',
-      },
       {
         icon: faIdBadge,
         label: 'GHA BadgeMaker',

@@ -1,4 +1,4 @@
-import { Card, TextField, Typography } from '@mui/material'
+import { Alert, Card, TextField, Typography } from '@mui/material'
 import * as React from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
@@ -47,6 +47,11 @@ const GHABadgePage = () => {
     <Layout title={title}>
       <Title>{title}</Title>
       <p>Generate GitHub Actions Badge by url.</p>
+      <Alert severity="warning">
+        リポジトリ {'>'} Actions {'>'} Wrokflow ページの{' '}
+        {`"Create status badge"`}
+        から作れるようになりました。
+      </Alert>
       <div>
         <label>
           Badge Page URL <a href={exampleUrl}>example</a>
