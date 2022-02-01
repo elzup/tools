@@ -1,4 +1,4 @@
-import { Button } from '@mui/material'
+import { Alert, Button } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import Webcam from 'react-webcam'
 import Layout from '../components/Layout'
@@ -61,6 +61,12 @@ const MirrorCamera = () => {
   return (
     <Layout title={title}>
       <Title>{title}</Title>
+      {/* <Stack sx={{ width: '100%' }} spacing={2}> */}
+      <Alert severity="warning">
+        こちらのツール集に<strong>移動しました。</strong>
+        <a href="https://mitelop.anozon.me/">https://mitelop.anozon.me/</a>
+      </Alert>
+      {/* </Stack> */}
 
       <Button onClick={toggleFlip}>LR - Flip</Button>
       <Button onClick={capture}>Capture</Button>
