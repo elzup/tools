@@ -1,3 +1,4 @@
+import { TextField } from '@mui/material'
 import Head from 'next/head'
 import React, { useState } from 'react'
 import DivergenceMeterComp from '../components/DivergenceMeter'
@@ -22,11 +23,11 @@ const DivergenceMeter = () => {
         />
       </Head>
       <Title>{title}</Title>
-      <input
+      <TextField
         // pattern="[0-9.]{0,12}"
         defaultValue={text}
         onChange={({ target: { value } }) => setText(value)}
-      ></input>
+      ></TextField>
       <DivergenceMeterComp chars={text}></DivergenceMeterComp>
     </Layout>
   )
