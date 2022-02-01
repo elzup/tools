@@ -44,6 +44,7 @@ const NixieContainer = styled.div`
         font-weight: 100;
         color: #ff6e0022;
       } */
+      /* font-variant-numeric: tabular-nums; */
       &[data-char='.'] {
         left: 32px;
       }
@@ -76,7 +77,8 @@ const NixieContainer = styled.div`
 
     .dagger {
       position: absolute;
-      left: 0;
+      left: 0.5rem;
+      top: 0.6rem;
       display: grid;
       width: 60px;
       grid-template-columns: 30px 30px;
