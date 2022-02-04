@@ -1,0 +1,97 @@
+import { Button } from '@mui/material'
+import * as React from 'react'
+import Layout from '../components/Layout'
+import { Title } from '../components/Title'
+
+type Frog = 'm' | 'f'
+
+// male は鳴く
+// female は助かる
+const sampleFrog = (): Frog => (Math.random() > 0.5 ? 'm' : 'f')
+
+type Sample = [[Frog, Frog], [Frog]]
+
+// 2匹の方からオスの鳴き声が聞こえる 少なくとも1匹はオス
+const okSample = ([[a, b], _c]: Sample) => a === 'm' || b === 'm'
+
+const sample = (): Sample => {
+  return [[sampleFrog(), sampleFrog()], [sampleFrog()]]
+}
+const genOkSample = () => {
+  while (true) {
+    const s = sample()
+
+    if (okSample(s)) return s
+  }
+}
+
+type Case = { sample: Sample; f2: boolean; f1: boolean }
+
+function useSample() {
+  const [list, setList] = React.useState<Case[]>([])
+  const [count, setCounts] = React.useState<{
+    n: number
+    f1: number
+    f2: number
+  }>({
+    n: 0,
+    f1: 0,
+    f2: 0,
+  })
+
+  function drawOne() {
+    const sample = genOkSample()
+    const f2 = sample[0].includes('f')
+    const f1 = sample[1].includes('f')
+
+    setList((v) => [{ sample, f1, f2 }, ...v])
+    setCounts((v) => ({
+      n: v.n + 1,
+      f2: v.f2 + (f2 ? 1 : 0),
+      f1: v.f1 + (f1 ? 1 : 0),
+    }))
+  }
+
+  return {
+    drawOne,
+    list,
+    count,
+  }
+}
+
+const title = 'Frag simuration'
+const PiLab = () => {
+  const { list, drawOne, count } = useSample()
+
+  return (
+    <Layout title={title}>
+      <Title>{title}</Title>
+      <p>
+        <a href="https://www.youtube.com/watch?v=cpwSGsb-rTs&t=13s">
+          この動画の検証
+        </a>
+      </p>
+      <Button onClick={drawOne}>1回シミュレーションする</Button>
+      <p>
+        F2: {count.f2}/{count.n} ({(count.f2 / count.n) * 100}%)
+      </p>
+      <p>
+        F1: {count.f1}/{count.n} ({(count.f1 / count.n) * 100}%)
+      </p>
+      <div>
+        <ul>
+          {list.map((c, i) => (
+            <li key={i}>{JSON.stringify(c.sample)}</li>
+          ))}
+        </ul>
+      </div>
+    </Layout>
+  )
+}
+
+const stopCount = Number.MAX_SAFE_INTEGER
+
+// pi : 4 = inCount : total
+// pi = inCount / total * 4
+
+export default PiLab

@@ -101,6 +101,11 @@ const routings: RoutingGroup[] = [
         label: 'Collatz graph',
         path: '/collatz-graph',
       },
+      {
+        icon: faCalculator,
+        label: 'Frag simuration',
+        path: '/math-frag-p',
+      },
     ],
   },
 

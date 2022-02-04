@@ -8,10 +8,15 @@ import { GlobalStyle, theme } from '../components/theme'
 const App = ({ Component, pageProps }: AppProps) => (
   <>
     <Head>
-      <meta
+      {/* <meta
         name="viewport"
         content="width=device-width, initial-scale=1, shrink-to-fit=no"
+      /> */}
+      <meta
+        name="viewport"
+        content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0"
       />
+
       {/* <link rel="shortcut icon" href="/images/icon.png" /> */}
       {/* <link rel="manifest" href="/manifest.json" /> */}
     </Head>
