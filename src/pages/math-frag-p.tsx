@@ -1,4 +1,4 @@
-import { Button } from '@mui/material'
+import { Alert, Button } from '@mui/material'
 import * as React from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
@@ -24,6 +24,7 @@ const genOkSample = () => {
     if (okSample(s)) return s
   }
 }
+const MANY = 10000
 
 type Case = { sample: Sample; f2: boolean; f1: boolean }
 
@@ -39,7 +40,7 @@ function useSample() {
     f2: 0,
   })
 
-  function drawMany(n = 1000) {
+  function drawMany(n = MANY) {
     for (let i = 0; i < n; i++) {
       drawOne()
     }
@@ -78,7 +79,7 @@ const FragLab = () => {
         </a>
       </p>
       <Button onClick={drawOne}>1回シミュレーションする</Button>
-      <Button onClick={() => drawMany()}>10回シミュレーションする</Button>
+      <Button onClick={() => drawMany()}>{MANY}回シミュレーションする</Button>
       <p>
         F2: {count.f2}/{count.n} ({(count.f2 / count.n) * 100}%)
       </p>
@@ -92,6 +93,11 @@ const FragLab = () => {
           ))}
         </ul>
       </div>
+      <Alert>
+        <p>male は鳴く</p>
+        <p>female は助かる</p>
+        <p>2匹の方は少なくとも1匹オスのケースのみ採用</p>
+      </Alert>
     </Layout>
   )
 }
