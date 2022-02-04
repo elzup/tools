@@ -39,12 +39,17 @@ function useSample() {
     f2: 0,
   })
 
+  function drawMany(n = 1000) {
+    for (let i = 0; i < n; i++) {
+      drawOne()
+    }
+  }
   function drawOne() {
     const sample = genOkSample()
     const f2 = sample[0].includes('f')
     const f1 = sample[1].includes('f')
 
-    setList((v) => [{ sample, f1, f2 }, ...v])
+    setList((v) => [{ sample, f1, f2 }, ...v].slice(0, 20))
     setCounts((v) => ({
       n: v.n + 1,
       f2: v.f2 + (f2 ? 1 : 0),
@@ -53,6 +58,7 @@ function useSample() {
   }
 
   return {
+    drawMany,
     drawOne,
     list,
     count,
@@ -60,8 +66,8 @@ function useSample() {
 }
 
 const title = 'Frag simuration'
-const PiLab = () => {
-  const { list, drawOne, count } = useSample()
+const FragLab = () => {
+  const { list, drawOne, drawMany, count } = useSample()
 
   return (
     <Layout title={title}>
@@ -72,6 +78,7 @@ const PiLab = () => {
         </a>
       </p>
       <Button onClick={drawOne}>1回シミュレーションする</Button>
+      <Button onClick={() => drawMany()}>10回シミュレーションする</Button>
       <p>
         F2: {count.f2}/{count.n} ({(count.f2 / count.n) * 100}%)
       </p>
@@ -89,9 +96,4 @@ const PiLab = () => {
   )
 }
 
-const stopCount = Number.MAX_SAFE_INTEGER
-
-// pi : 4 = inCount : total
-// pi = inCount / total * 4
-
-export default PiLab
+export default FragLab
