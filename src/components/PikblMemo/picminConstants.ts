@@ -31,7 +31,7 @@ type Pikmin = {
   name: string
   color: string
 }
-type Group = {
+export type Group = {
   id: string
   name: string
   short: string

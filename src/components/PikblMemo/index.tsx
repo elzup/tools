@@ -4,7 +4,7 @@ import { Box, FormControlLabel, Switch, Typography } from '@mui/material'
 import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
-import { groups, picmins } from './picminConstants'
+import { Group, groups, picmins } from './picminConstants'
 
 type MemoState = undefined | 'emp' | 'pre' | 'get'
 const memoList: MemoState[] = ['emp', 'pre', 'get']
@@ -45,6 +45,12 @@ function sort<T>(a: T[], comp: (v: T) => number): T[] {
 function count<T>(a: T[], func: (v: T) => boolean): number {
   return a.reduce((p, v) => p + (func(v) ? 1 : 0), 0)
 }
+const leastCount = (cmemo: Record<string, MemoState>, group: Group) => {
+  const total = group.only ? group.only.length : picmins.length
+  const memos = Object.values(cmemo || {})
+
+  return total - count(memos, (v) => v === 'get')
+}
 
 function PikblMemo() {
   const { memo, switchMemo, checkAll } = usePikminDb()
@@ -53,13 +59,8 @@ function PikblMemo() {
 
   const sortGroups = useMemo(() => {
     if (!comp) return groups
-    const compRate = (group: Record<string, MemoState>) => {
-      const memos = Object.values(group || {})
 
-      return -count(memos, (v) => v === 'get')
-    }
-
-    return sort(groups, (v) => compRate(memo[v.id]))
+    return sort(groups, (v) => leastCount(memo[v.id], v))
   }, [memo, comp])
 
   return (
