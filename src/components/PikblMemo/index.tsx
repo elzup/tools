@@ -114,6 +114,7 @@ function PikblMemo() {
               {picmins.map((p) => (
                 <td
                   data-memo={memo[g.id]?.[p.id] || 'emp'}
+                  data-disabled={g.only && !g.only?.includes(p.id)}
                   style={{ background: `${p.color}11` }}
                   key={p.id}
                   onClick={() => switchMemo(g.id, p.id)}
@@ -150,7 +151,7 @@ const Style = styled.div`
   }
 
   td {
-    height: 2rem;
+    height: 3.5rem;
     text-align: center;
     font-size: 1.5rem;
 
@@ -159,6 +160,10 @@ const Style = styled.div`
     }
     &[data-memo='get'] {
       background-color: #af0 !important;
+    }
+    &[data-disabled='true'] {
+      pointer-events: none;
+      background-color: #888 !important;
     }
   }
   .group-label {
@@ -172,7 +177,7 @@ const Style = styled.div`
   table[data-desc='false'] {
     td,
     th {
-      height: 1.2rem;
+      height: 1.5rem;
       font-size: 1rem !important;
     }
     .group-label {

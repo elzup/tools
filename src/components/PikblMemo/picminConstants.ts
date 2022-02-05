@@ -1,4 +1,4 @@
-import { IconDefinition } from '@fortawesome/free-regular-svg-icons'
+import { faStar, IconDefinition } from '@fortawesome/free-regular-svg-icons'
 import {
   faAppleAlt,
   faBreadSlice,
@@ -36,6 +36,7 @@ type Group = {
   name: string
   short: string
   icon: IconDefinition
+  only?: string[]
 }
 
 export const picmins: Pikmin[] = [
@@ -74,4 +75,11 @@ export const groups: Group[] = [
   { id: 'y', name: '公園', short: '公', icon: faCampground },
   { id: 'z', name: 'みちばた', short: 'み', icon: faRoad },
   { id: 'z1', name: 'みちばた(冬)', short: '冬', icon: faSnowflake },
+  {
+    id: '_b',
+    name: '旧正月',
+    short: '正',
+    icon: faStar,
+    only: ['re', 'yw', 'bu'],
+  },
 ]
