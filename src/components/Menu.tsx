@@ -104,7 +104,7 @@ const routings: RoutingGroup[] = [
       {
         icon: faCalculator,
         label: 'Frag simuration',
-        path: '/math-frag-p',
+        path: '/frag-problab',
       },
     ],
   },
