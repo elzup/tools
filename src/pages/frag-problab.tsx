@@ -66,8 +66,9 @@ function useSample() {
   }
 }
 
-const title = 'Frag simuration'
-const FragLab = () => {
+const title = 'Frog Prob LAB'
+
+const FragProbLab = () => {
   const { list, drawOne, drawMany, count } = useSample()
 
   return (
@@ -102,4 +103,4 @@ const FragLab = () => {
   )
 }
 
-export default FragLab
+export default FragProbLab
