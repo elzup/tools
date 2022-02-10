@@ -1,7 +1,8 @@
 import { faCheck, faLeaf } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Box, FormControlLabel, Switch, Typography } from '@mui/material'
-import React, { useMemo } from 'react'
+import { omit } from 'lodash'
+import React, { useEffect, useMemo } from 'react'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
 import { Group, groups, picmins } from './picminConstants'
@@ -13,9 +14,21 @@ const nextState = (current: MemoState) => {
 }
 
 function usePikminDb() {
+  const [ver, setVer] = useLocalStorage<number>('pikmin-version', 0)
   const [memo, setMemo] = useLocalStorage<
     Record<string, Record<string, MemoState>>
   >('pikmin', {})
+
+  useEffect(() => {
+    if (ver === 0) {
+      if (memo['k']) {
+        const f = Object.assign({}, memo['f'] || {}, memo['k'])
+
+        setMemo((v) => ({ ...omit(v, ['k']), f }))
+      }
+      setVer(1)
+    }
+  }, [])
 
   return {
     memo,
