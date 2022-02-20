@@ -1,8 +1,10 @@
 import {
+  LibChecker,
   WordleAnswerResult,
   wordleCheck,
   wordleTryable,
-  LibChecker,
+  answer,
+  createGame,
 } from '../utils/wordle'
 
 const readable = (res: WordleAnswerResult) =>
@@ -44,6 +46,17 @@ const lib: LibChecker = {
   せそ: true,
 }
 
+const sampleResult: WordleAnswerResult = {
+  allOk: true,
+  chars: [
+    { char: 'a', judge: 'hit' },
+    { char: 'a', judge: 'nea' },
+    { char: 'a', judge: 'nea' },
+    { char: 'a', judge: 'nea' },
+    { char: 'a', judge: 'nea' },
+  ],
+}
+
 describe('wordleTryable', () => {
   it('match 5', () => {
     expect(wordleTryable('あいうえお', lib)).toBe(true)
@@ -61,5 +74,73 @@ describe('wordleTryable', () => {
     expect(wordleTryable('たちつてと', lib)).toBe(false)
     expect(wordleTryable('えおあいう', lib)).toBe(false)
     expect(wordleTryable('さしすけこ', lib)).toBe(false)
+  })
+})
+
+const game = createGame('abcde')
+
+describe('answer', () => {
+  it('continue', () => {
+    expect(answer(game, 'fghij')).toMatchInlineSnapshot(`
+      Object {
+        "answerResults": Array [
+          Object {
+            "allOk": false,
+            "chars": Array [
+              Object {
+                "char": "f",
+                "judge": "non",
+              },
+              Object {
+                "char": "g",
+                "judge": "non",
+              },
+              Object {
+                "char": "h",
+                "judge": "non",
+              },
+              Object {
+                "char": "i",
+                "judge": "non",
+              },
+              Object {
+                "char": "j",
+                "judge": "non",
+              },
+            ],
+          },
+        ],
+        "step": "start",
+        "target": "abcde",
+      }
+    `)
+  })
+  it('clear', () => {
+    const game2 = {
+      ...game,
+      answerResults: [{ chars: [], allOk: false }],
+    }
+
+    const res = answer(game2, 'abcde')
+
+    expect(res.answerResults.length).toMatchInlineSnapshot(`2`)
+    expect(res.step).toMatchInlineSnapshot(`"clear"`)
+  })
+  it('failed', () => {
+    const game2 = {
+      ...game,
+      answerResults: [
+        sampleResult,
+        sampleResult,
+        sampleResult,
+        sampleResult,
+        sampleResult,
+      ],
+    }
+
+    const res = answer(game2, 'aaaaa')
+
+    expect(res.answerResults.length).toMatchInlineSnapshot(`6`)
+    expect(res.step).toMatchInlineSnapshot(`"failed"`)
   })
 })
