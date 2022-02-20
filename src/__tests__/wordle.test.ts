@@ -1,7 +1,7 @@
 import { WordleAnswerResult, wordleCheck } from '../utils/wordle'
 
 const readable = (res: WordleAnswerResult) =>
-  res.chars.map(({ char, result }) => `${char} (${result})`).join(' ')
+  res.chars.map(({ char, judge: result }) => `${char} (${result})`).join(' ')
 
 describe('wordle', () => {
   it('allOk', () => {

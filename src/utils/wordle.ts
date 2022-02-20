@@ -1,31 +1,36 @@
 const resultTypes = ['non', 'nea', 'hit'] as const
 
-export type WordleResultType = typeof resultTypes[number]
-export type WordleResult = {
+export type CharJudge = typeof resultTypes[number]
+export type CharResult = {
   char: string
-  result: WordleResultType
+  judge: CharJudge
 }
 export type WordleAnswerResult = {
-  chars: WordleResult[]
+  chars: CharResult[]
   allOk: boolean
+}
+
+const charJudge = (tar: string, ans: string, tars: string[]): CharJudge => {
+  if (ans === tar) return 'hit'
+  if (tars.includes(ans)) return 'nea'
+  return 'non'
 }
 
 export const wordleCheck = (
   target: string,
   answer: string
 ): WordleAnswerResult => {
-  const tChars = target.split('')
-  const aChars = answer.split('')
+  const tars = target.split('')
+  const anss = answer.split('')
 
-  const chars = aChars.map(
-    (char, i): WordleResult => ({
+  const chars = anss.map(
+    (char, i): CharResult => ({
       char,
-      result:
-        char === tChars[i] ? 'hit' : tChars.includes(char) ? 'nea' : 'non',
+      judge: charJudge(tars[i], char, tars),
     })
   )
 
-  return { chars, allOk: chars.every(({ result }) => result === 'hit') }
+  return { chars, allOk: chars.every(({ judge }) => judge === 'hit') }
 }
 
 // export const wordleTryable = (answer: string) => {}
