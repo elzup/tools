@@ -6,7 +6,7 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "lib": ["dom", "es2017"],
+    "lib": ["dom", "es2017", "ES2015"],
     "module": "esnext",
     "moduleResolution": "node",
     "noEmit": true,
@@ -16,6 +16,28 @@
     "strict": true,
     "target": "esnext",
     "incremental": true
+  },
+  "ts-node": {
+    "compilerOptions": {
+      "allowJs": true,
+      "skipLibCheck": true,
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
+      "strict": true,
+      "forceConsistentCasingInFileNames": true,
+      "moduleResolution": "node",
+      "resolveJsonModule": true,
+      "isolatedModules": true,
+      "noEmit": true,
+      "noImplicitAny": false,
+      "jsx": "preserve",
+
+      "target": "es5",
+      "lib": ["es7", "dom"],
+      "module": "commonjs",
+      "outDir": "out",
+      "sourceMap": true
+    }
   },
   "exclude": ["node_modules"],
   "include": ["**/*.ts", "**/*.tsx", "src/pages/_app.ts"]
