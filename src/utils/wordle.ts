@@ -1,3 +1,5 @@
+import { groupBy } from 'lodash'
+import seedrandom from 'seedrandom'
 import { Dict } from '../types'
 
 export const TRY_LIMIT = 6
@@ -39,7 +41,7 @@ export const wordleCheck = (
 
 export type LibWord = {
   text: string
-  raeding: string
+  reading: string
 }
 
 export type LibChecker = Dict<true>
@@ -80,4 +82,36 @@ export function answer(game: WordleGame, answer: string): WordleGame {
   const step = answerResults.length < TRY_LIMIT ? 'start' : 'failed'
 
   return { ...game, answerResults, step }
+}
+
+const ymd = (date: Date) =>
+  String(date.getFullYear()).padStart(4, '0') +
+  String(date.getMonth() + 1).padStart(2, '0') +
+  String(date.getDate()).padStart(2, '0')
+
+export const createTargetWordDaily = (lib: LibWordMap): LibWord =>
+  createTargetWord(ymd(new Date()), lib)
+
+export function createTargetWord(seed: string, lib: LibWordMap): LibWord {
+  const rng = seedrandom(seed)
+
+  const words = Object.values(lib)
+  const libByLen = groupBy(words, (v) => v.reading.length)
+
+  const r1 = rng()
+  const r2 = rng()
+  const r3 = rng()
+  const len = r1 < 0.5 ? '5' : r1 < 0.75 ? '23' : '32'
+
+  if (len === '5') {
+    return libByLen['5'][Math.floor(libByLen['5'].length * r2)]
+  }
+
+  const first = libByLen[len[0]][Math.floor(libByLen[len[0]].length * r2)]
+  const second = libByLen[len[1]][Math.floor(libByLen[len[1]].length * r3)]
+
+  return {
+    text: `${first.text}${second.text}`,
+    reading: `${first.reading},${second.reading}`,
+  }
 }
