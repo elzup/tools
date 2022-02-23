@@ -5,6 +5,7 @@ import {
   wordleTryable,
   answer,
   createGame,
+  createTargetWord,
 } from '../utils/wordle'
 
 const readable = (res: WordleAnswerResult) =>
@@ -143,4 +144,54 @@ describe('answer', () => {
     expect(res.answerResults.length).toMatchInlineSnapshot(`6`)
     expect(res.step).toMatchInlineSnapshot(`"failed"`)
   })
+})
+
+const wordLib = {
+  あいうえお: { reading: 'あいうえお', text: 'あいうえお' },
+  なにぬねの: { reading: 'なにぬねの', text: 'なにぬねの' },
+  かきく: { reading: 'かきく', text: 'かきく' },
+  さしす: { reading: 'さしす', text: 'さしす' },
+  たちつ: { reading: 'たちつ', text: 'たちつ' },
+  けこ: { reading: 'けこ', text: 'けこ' },
+  せそ: { reading: 'せそ', text: 'せそ' },
+  てと: { reading: 'てと', text: 'てと' },
+}
+
+test('createTargetWord', () => {
+  expect(createTargetWord('20220101', wordLib)).toMatchInlineSnapshot(`
+    Object {
+      "reading": "てと,かきく",
+      "text": "てとかきく",
+    }
+  `)
+  expect(createTargetWord('20220102', wordLib)).toMatchInlineSnapshot(`
+    Object {
+      "reading": "さしす,てと",
+      "text": "さしすてと",
+    }
+  `)
+  expect(createTargetWord('20220103', wordLib)).toMatchInlineSnapshot(`
+    Object {
+      "reading": "てと,かきく",
+      "text": "てとかきく",
+    }
+  `)
+  expect(createTargetWord('20220104', wordLib)).toMatchInlineSnapshot(`
+    Object {
+      "reading": "なにぬねの",
+      "text": "なにぬねの",
+    }
+  `)
+  expect(createTargetWord('20220105', wordLib)).toMatchInlineSnapshot(`
+    Object {
+      "reading": "かきく,せそ",
+      "text": "かきくせそ",
+    }
+  `)
+  expect(createTargetWord('20220106', wordLib)).toMatchInlineSnapshot(`
+    Object {
+      "reading": "あいうえお",
+      "text": "あいうえお",
+    }
+  `)
 })
