@@ -8417,10 +8417,10 @@ tempy@^0.6.0:
     type-fest "^0.16.0"
     unique-string "^2.0.0"
 
-tequery@^0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/tequery/-/tequery-0.5.0.tgz#a0fcf8dce46fb2d4adb5fa871e05c5c4d5c8ce98"
-  integrity sha512-ukwvScW4m1qUn7EqB3N2qYXynouu4vGNj5q/8hF6JxKsTtWMPBh72wSGfCB3uGzepMvgQ2KU9rBiG8dfgHt58w==
+tequery@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/tequery/-/tequery-0.6.0.tgz#f9426df1404614c3c0f80a6ddaef0cb517e025eb"
+  integrity sha512-1ctoeCd0Vw7I032GDrQUH3+LQZJyMsy4SZxyA4PXasX1sTo3S6aBgr5+5+1eet4PAMb/rBqXNGLPJVB93rZJ2Q==
 
 terminal-link@^2.0.0:
   version "2.1.1"
