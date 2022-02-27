@@ -1,4 +1,4 @@
-import { Box, TextField, Typography } from '@mui/material'
+import { Box, Link, TextField, Typography } from '@mui/material'
 import React from 'react'
 import styled from 'styled-components'
 import { useClipsh } from './useClipsh'
@@ -15,10 +15,16 @@ function ClipshContent() {
           label="Query"
           onChange={(e) => clipsh.setQuery(e.target.value)}
         />
-        <Typography>{clipsh.teq.status}</Typography>
-        <code>
-          <pre>{clipsh.teq.evalQuery}</pre>
-        </code>
+        <Typography>
+          Query using{' '}
+          <Link href="https://github.com/elzup/tequery">tequery</Link>
+        </Typography>
+        <div style={{ display: 'flex' }}>
+          <Typography>compile: {clipsh.teq.status}</Typography>
+          <code>
+            <pre>{clipsh.teq.evalQuery}</pre>
+          </code>
+        </div>
         <code>
           <pre>{clipsh.teq.errorText}</pre>
         </code>
