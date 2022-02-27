@@ -24,8 +24,6 @@ const migrate = (config: Config) => {
 }
 
 export const ConfigProvider: React.FC = ({ children }) => {
-  // import { useSessionStorage } from 'react-use'
-  //   const [config, setConfig] = useSessionStorage<Config>('my-config',
   const [config, setConfig] = useState<Config>(defaultConfig)
 
   useEffect(() => {
@@ -51,5 +49,5 @@ export const useSomeConfig = <Key extends keyof Config>(key: Key) => {
   ] as const
 }
 
-export const useShowList = () => useSomeConfig('showList')
-export const useMode = () => useSomeConfig('mode')
+// export const useShowList = () => useSomeConfig('showList')
+// export const useMode = () => useSomeConfig('mode')

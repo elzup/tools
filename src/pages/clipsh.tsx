@@ -4,6 +4,7 @@ import { createGlobalStyle } from 'styled-components'
 import ClipshContent from '../components/Clipsh'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
+import { useClipsh } from '../components/Clipsh/useClipsh'
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -22,6 +23,8 @@ const description = 'Clipboard text transform tool'
 const url = 'https://tools.anozon.me/clipsh'
 const imgUrl = `https://tools.anozon.me/pikbl-ss.png`
 const ClipshPage = () => {
+  const _clipsh = useClipsh()
+
   return (
     <Layout title={title} fullWidth>
       <GlobalStyle />
