@@ -4,11 +4,10 @@ import { createGlobalStyle } from 'styled-components'
 import ClipshContent from '../components/Clipsh'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
-import { useClipsh } from '../components/Clipsh/useClipsh'
 
 const GlobalStyle = createGlobalStyle`
+  --app-color: #99BD93;
   body {
-    background: #99BD93 !important;
   }
   h1 {
     margin-left: 16px !important;
@@ -23,8 +22,6 @@ const description = 'Clipboard text transform tool'
 const url = 'https://tools.anozon.me/clipsh'
 const imgUrl = `https://tools.anozon.me/pikbl-ss.png`
 const ClipshPage = () => {
-  const _clipsh = useClipsh()
-
   return (
     <Layout title={title} fullWidth>
       <GlobalStyle />
@@ -68,9 +65,7 @@ const ClipshPage = () => {
         <meta property="og:image" content={imgUrl} />
       </Head>
       <Title>
-        <div style={{ margin: '0 8px 8px', fontSize: '2rem', color: 'white' }}>
-          {title}
-        </div>
+        <div style={{ margin: '0 8px 8px', fontSize: '2rem' }}>{title}</div>
       </Title>
       <ClipshContent />
     </Layout>

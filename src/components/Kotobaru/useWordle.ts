@@ -1,7 +1,6 @@
-import { useEffect } from 'react'
+import { useState } from 'react'
 import useSWR from 'swr'
-
-type WordleGame = {}
+import { initGame, WordleGame } from '../../utils/wordle'
 
 type Word = {
   full: string
@@ -21,7 +20,8 @@ const fetcher = (url: string) =>
     .then(wordParse)
 
 export function useWordle() {
-  const { data: words, error } = useSWR('/wordles.nohead.csv', fetcher)
+  const { data: words } = useSWR('/wordles.nohead.csv', fetcher)
+  const [game, setGame] = useState<WordleGame>(initGame)
 
   return words
 }
