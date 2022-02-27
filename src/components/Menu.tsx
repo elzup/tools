@@ -23,6 +23,7 @@ import {
   faWindowMinimize,
   faWindowRestore,
   IconDefinition,
+  faClipboard,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Typography } from '@mui/material'
@@ -43,7 +44,7 @@ type RoutingGroup = {
 
 const routings: RoutingGroup[] = [
   {
-    label: 'Tool',
+    label: 'Tool/Game',
     routings: [
       { icon: faHome, label: 'Top', path: '/' },
       {
@@ -55,11 +56,6 @@ const routings: RoutingGroup[] = [
         icon: faListOl,
         label: '文字カウント',
         path: '/char-counter',
-      },
-      {
-        icon: faGlobe,
-        label: 'Global Public IP',
-        path: '/global-ip',
       },
       {
         icon: faLightbulb,
@@ -80,6 +76,16 @@ const routings: RoutingGroup[] = [
         icon: faStopCircle,
         label: '1px image data url',
         path: '/1px',
+      },
+      {
+        icon: faClipboard,
+        label: 'Clipsh',
+        path: '/clipsh',
+      },
+      {
+        icon: faGlobe,
+        label: 'Global Public IP',
+        path: '/global-ip',
       },
     ],
   },
