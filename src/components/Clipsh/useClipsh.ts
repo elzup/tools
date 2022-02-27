@@ -16,6 +16,7 @@ export const useClipsh = () => {
     setQuery,
     teq,
     base,
+    setBase,
     saveText: () => {
       writeClipboard(teq.result)
     },
