@@ -21,7 +21,8 @@ const fetcher = (url: string) =>
 
 export function useWordle() {
   const { data: words } = useSWR('/wordles.nohead.csv', fetcher)
-  const [game, setGame] = useState<WordleGame>(initGame)
+
+  const [_game, _setGame] = useState<WordleGame>(initGame)
 
   return words
 }
