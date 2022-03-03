@@ -1,3 +1,5 @@
+import { faCopy } from '@fortawesome/free-regular-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Box, Button, Grid, Link, TextField, Typography } from '@mui/material'
 import React from 'react'
 import styled from 'styled-components'
@@ -81,7 +83,12 @@ function ClipshContent() {
         </Grid>
         <Grid item xs={12} sm={12} md={6}>
           <Box m={'0.5rem'} className="output">
-            <Typography>output</Typography>
+            <Typography>
+              output
+              <Button onClick={() => clipsh.saveText()}>
+                <FontAwesomeIcon icon={faCopy} />
+              </Button>
+            </Typography>
             <code>
               <pre>{clipsh.teq.result}</pre>
             </code>
