@@ -22,7 +22,6 @@
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
     "@fortawesome/react-fontawesome": "^0.1.17",
     "@inlet/react-pixi": "^6.6.5",
-    "@material-ui/styles": "^4.11.4",
     "@mui/material": "^5.4.0",
     "@mui/styled-engine-sc": "^5.3.0",
     "babel-plugin-styled-components": "^2.0.2",
@@ -50,6 +49,7 @@
     "through": "^2.3.8"
   },
   "devDependencies": {
+    "@emotion/server": "^11.4.0",
     "@types/debug": "^4.1.7",
     "@types/dom-mediacapture-record": "^1.0.11",
     "@types/jest": "^27.4.0",

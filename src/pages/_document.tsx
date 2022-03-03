@@ -1,44 +1,9 @@
-import { ServerStyleSheets as MaterialUiServerStyleSheets } from '@material-ui/styles'
-import NextDocument, {
-  DocumentContext,
-  Head,
-  Html,
-  Main,
-  NextScript,
-} from 'next/document'
+import createEmotionServer from '@emotion/server/create-instance'
+import NextDocument, { Head, Html, Main, NextScript } from 'next/document'
 import React from 'react'
-import { ServerStyleSheet as StyledComponentSheets } from 'styled-components'
+import createEmotionCache from '../utils/createEmotionCache'
 
 class Document extends NextDocument {
-  static async getInitialProps(ctx: DocumentContext) {
-    const styledComponentSheets = new StyledComponentSheets()
-    const materialUiSheets = new MaterialUiServerStyleSheets()
-    const originalRenderPage = ctx.renderPage
-
-    try {
-      ctx.renderPage = () =>
-        originalRenderPage({
-          enhanceApp: (App) => (props) =>
-            styledComponentSheets.collectStyles(
-              materialUiSheets.collect(<App {...props} />)
-            ),
-        })
-
-      const initialProps = await NextDocument.getInitialProps(ctx)
-
-      return {
-        ...initialProps,
-        styles: [
-          ...React.Children.toArray(initialProps.styles),
-          materialUiSheets.getStyleElement(),
-          styledComponentSheets.getStyleElement(),
-        ],
-      }
-    } finally {
-      styledComponentSheets.seal()
-    }
-  }
-
   render() {
     return (
       <Html lang={'ja'}>
@@ -49,6 +14,38 @@ class Document extends NextDocument {
         </body>
       </Html>
     )
+  }
+}
+
+Document.getInitialProps = async (ctx) => {
+  const originalRenderPage = ctx.renderPage
+
+  const cache = createEmotionCache()
+  const { extractCriticalToChunks } = createEmotionServer(cache)
+
+  ctx.renderPage = () =>
+    originalRenderPage({
+      enhanceApp: (App) => (props) => <App {...props} />,
+    })
+
+  const initialProps = await NextDocument.getInitialProps(ctx)
+
+  const emotionStyles = extractCriticalToChunks(initialProps.html)
+  const emotionStyleTags = emotionStyles.styles.map((style) => (
+    <style
+      data-emotion={`${style.key} ${style.ids.join(' ')}`}
+      key={style.key}
+      // eslint-disable-next-line react/no-danger
+      dangerouslySetInnerHTML={{ __html: style.css }}
+    />
+  ))
+
+  return {
+    ...initialProps,
+    styles: [
+      ...React.Children.toArray(initialProps.styles),
+      ...emotionStyleTags,
+    ],
   }
 }
 
