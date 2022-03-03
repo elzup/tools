@@ -1,4 +1,4 @@
-import { Box, Link, TextField, Typography } from '@mui/material'
+import { Box, Grid, Link, TextField, Typography } from '@mui/material'
 import React from 'react'
 import styled from 'styled-components'
 import { useClipsh } from './useClipsh'
@@ -29,27 +29,25 @@ function ClipshContent() {
           <pre>{clipsh.teq.errorText}</pre>
         </code>
       </Box>
-      <Box
-        style={{
-          marginLeft: '8px',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-        }}
-      >
-        <Box>
-          <TextField
-            value={clipsh.base}
-            multiline
-            fullWidth
-            onChange={(e) => clipsh.setBase(e.target.value)}
-          />
-        </Box>
-        <Box style={{ marginLeft: '8px' }}>
-          <code>
-            <pre>{clipsh.teq.result}</pre>
-          </code>
-        </Box>
-      </Box>
+      <Grid container spacing={2} alignItems="center">
+        <Grid item xs={12} sm={12} md={6}>
+          <Box m={'0.5rem'} style={{ fontSize: '.8rem' }}>
+            <TextField
+              value={clipsh.base}
+              multiline
+              fullWidth
+              onChange={(e) => clipsh.setBase(e.target.value)}
+            />
+          </Box>
+        </Grid>
+        <Grid item xs={12} sm={12} md={6}>
+          <Box m={'0.5rem'} style={{ overflow: 'scroll' }}>
+            <code>
+              <pre>{clipsh.teq.result}</pre>
+            </code>
+          </Box>
+        </Grid>
+      </Grid>
     </Style>
   )
 }
