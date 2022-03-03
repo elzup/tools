@@ -20,13 +20,13 @@ const GlobalStyle = createGlobalStyle`
 const title = 'Clipsh'
 const description = 'Clipboard text transform tool'
 const url = 'https://tools.anozon.me/clipsh'
-const imgUrl = `https://tools.anozon.me/pikbl-ss.png`
+// const imgUrl = `https://tools.anozon.me/pikbl-ss.png`
 const ClipshPage = () => {
   return (
     <Layout title={title} fullWidth>
       <GlobalStyle />
       <Head>
-        <link rel="manifest" href="clipsh/manifest.json" />
+        <link rel="manifest" href="res-clipsh/manifest.json" />
         <meta name="application-name" content={title} />
 
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -38,16 +38,16 @@ const ClipshPage = () => {
         <meta name="msapplication-tap-highlight" content="no" />
         <meta name="theme-color" content="#99BD93" />
 
-        <link rel="apple-touch-icon" href="decopikmin-memo.png" />
+        <link rel="apple-touch-icon" href="/res-clipsh/clipsh.png" />
         <link
           rel="apple-touch-icon"
           sizes="512x512"
-          href="/decopikmin-memo-512.png"
+          href="/res-clipsh/clipsh-512.png"
         />
         <link
           rel="apple-touch-icon"
           sizes="192x192"
-          href="/decopikmin-memo-192.png"
+          href="/res-clipsh/clipsh-192.png"
         />
         {/* <link rel="shortcut icon" href="/favicon.ico" /> */}
 
@@ -55,14 +55,14 @@ const ClipshPage = () => {
         <meta name="twitter:url" content={url} />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
-        <meta name="twitter:image" content={imgUrl} />
+        {/* <meta name="twitter:image" content={imgUrl} /> */}
         <meta name="twitter:creator" content="@anozon" />
         <meta property="og:type" content="website" />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:site_name" content={title} />
         <meta property="og:url" content={url} />
-        <meta property="og:image" content={imgUrl} />
+        {/* <meta property="og:image" content={imgUrl} /> */}
       </Head>
       <Title>
         <div style={{ margin: '0 8px 8px', fontSize: '2rem' }}>{title}</div>
