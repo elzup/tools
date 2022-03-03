@@ -1,6 +1,7 @@
-import { Box, Grid, Link, TextField, Typography } from '@mui/material'
+import { Box, Button, Grid, Link, TextField, Typography } from '@mui/material'
 import React from 'react'
 import styled from 'styled-components'
+import { descriptions } from './tequery-consts'
 import { useClipsh } from './useClipsh'
 
 function ClipshContent() {
@@ -32,6 +33,38 @@ function ClipshContent() {
             <pre className="eval-code">{clipsh.teq.evalQuery}</pre>
           </code>
         </div>
+      </Box>
+      <Box style={{ display: 'flex' }}>
+        <Box style={{ display: 'grid' }}>
+          {descriptions.vars.map(({ code, desc }) => (
+            <div key={code}>
+              <Button
+                size={'small'}
+                onClick={() => {
+                  clipsh.setQuery((v) => v + code)
+                }}
+              >
+                {code}
+              </Button>
+              {desc}
+            </div>
+          ))}
+        </Box>
+        <Box style={{ display: 'grid' }}>
+          {descriptions.funcs.map(({ code, desc }) => (
+            <div key={code}>
+              <Button
+                size={'small'}
+                onClick={() => {
+                  clipsh.setQuery((v) => v + code)
+                }}
+              >
+                {code}
+              </Button>
+              {desc}
+            </div>
+          ))}
+        </Box>
       </Box>
       <Grid container>
         <Grid item xs={12} sm={12} md={6}>
