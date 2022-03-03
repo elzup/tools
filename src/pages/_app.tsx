@@ -2,11 +2,18 @@ import '@fortawesome/fontawesome-svg-core/styles.css'
 import { AppProps } from 'next/app'
 import Head from 'next/head'
 import { CssBaseline } from '@mui/material'
-import { ThemeProvider } from '@emotion/react'
+import { CacheProvider, EmotionCache, ThemeProvider } from '@emotion/react'
 import { GlobalStyle, theme } from '../components/theme'
+import createEmotionCache from '../utils/createEmotionCache'
 
-const App = ({ Component, pageProps }: AppProps) => (
-  <>
+const clientSideEmotionCache = createEmotionCache()
+
+const App = ({
+  Component,
+  pageProps,
+  emotionCache = clientSideEmotionCache,
+}: AppProps & { emotionCache?: EmotionCache }) => (
+  <CacheProvider value={emotionCache}>
     <Head>
       {/* <meta
         name="viewport"
@@ -25,7 +32,7 @@ const App = ({ Component, pageProps }: AppProps) => (
       <GlobalStyle />
       <Component {...pageProps} />
     </ThemeProvider>
-  </>
+  </CacheProvider>
 )
 
 export default App
