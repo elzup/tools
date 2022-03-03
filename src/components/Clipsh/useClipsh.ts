@@ -17,6 +17,8 @@ export const useClipsh = () => {
     teq,
     base,
     setBase,
+    beforeLn: base.split('\n').length,
+    afterLn: teq.result.length,
     saveText: () => {
       writeClipboard(teq.result)
     },
