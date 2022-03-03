@@ -36,37 +36,23 @@ function ClipshContent() {
           </code>
         </div>
       </Box>
-      <Box style={{ display: 'flex' }}>
-        <Box style={{ display: 'grid' }}>
-          {descriptions.vars.map(({ code, desc }) => (
-            <div key={code}>
-              <Button
-                size={'small'}
-                onClick={() => {
-                  clipsh.setQuery((v) => v + code)
-                }}
-              >
-                {code}
-              </Button>
-              {desc}
-            </div>
-          ))}
-        </Box>
-        <Box style={{ display: 'grid' }}>
-          {descriptions.funcs.map(({ code, desc }) => (
-            <div key={code}>
-              <Button
-                size={'small'}
-                onClick={() => {
-                  clipsh.setQuery((v) => v + code)
-                }}
-              >
-                {code}
-              </Button>
-              {desc}
-            </div>
-          ))}
-        </Box>
+      <Box p={'.5rem'} style={{ display: 'flex' }}>
+        {[descriptions.vars, descriptions.funcs].map((descs, k) => (
+          <Box key={k}>
+            {descs.map(({ code, desc }) => (
+              <div key={code} data-kb={k}>
+                <Button
+                  variant="outlined"
+                  size={'small'}
+                  onClick={() => clipsh.setQuery((v) => v + code)}
+                >
+                  {code}
+                </Button>
+                <Typography variant="caption">{desc}</Typography>
+              </div>
+            ))}
+          </Box>
+        ))}
       </Box>
       <Grid container>
         <Grid item xs={12} sm={12} md={6}>
@@ -116,6 +102,11 @@ const Style = styled.div`
       background: #99be94;
       border-radius: 4px;
     }
+  }
+  [data-kb] {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 4px;
   }
 `
 
