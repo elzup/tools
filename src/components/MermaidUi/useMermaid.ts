@@ -2,7 +2,6 @@ import mermaid from 'mermaid'
 // eslint-disable-next-line import/no-unresolved
 import mermaidAPI from 'mermaid/mermaidAPI'
 import { useEffect, useState } from 'react'
-import { convert, Elem } from './convertMermaidToFlow'
 
 export const useMermaid = (
   id: string,
@@ -20,7 +19,7 @@ export const useMermaid = (
   return svg
 }
 
-export type Vertex = {
+export type MmdVertex = {
   id: string
   text: string
   type: string
@@ -33,26 +32,15 @@ export type MmdEdge = {
   text: string
 }
 
-export const useMmdGraph = (mmd: string) => {
-  const [graph, setGraph] = useState<{
-    vertices: Vertex[]
-    edges: MmdEdge[]
-    flows: Elem[]
-  }>({ vertices: [], edges: [], flows: [] })
+export const parseMarmaid = (mmd: string) => {
+  const {
+    parser: { yy },
+  } = mermaid.mermaidAPI.parse(mmd)
 
-  useEffect(() => {
-    const {
-      parser: { yy },
-    } = mermaid.mermaidAPI.parse(mmd)
+  console.log(yy)
 
-    console.log(yy)
+  const vertices = Object.values(yy.getVertices() as Record<string, MmdVertex>)
+  const edges = yy.getEdges() as MmdEdge[]
 
-    const vertices = Object.values(yy.getVertices() as Record<string, Vertex>)
-    const edges = yy.getEdges() as MmdEdge[]
-
-    convert(vertices, edges).then((flows) => {
-      setGraph({ vertices, edges, flows })
-    })
-  }, [mmd])
-  return graph
+  return { vertices, edges }
 }
