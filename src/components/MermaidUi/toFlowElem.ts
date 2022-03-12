@@ -1,39 +1,13 @@
-// eslint-disable-next-line import/extensions
-import ELK from 'elkjs/lib/elk.bundled.js'
 import { keyBy } from 'lodash'
-import { Edge, Node } from 'react-flow-renderer'
-import { MmdEdge, Vertex } from './useMermaid'
+import { MmdEdge, MmdVertex } from './useMermaid'
 
-const elkOption = {}
-const elk = new ELK(elkOption)
-
-export type Elem = Node<Vertex & { label: string }> | Edge
-
-export async function convert(
-  vertices: Vertex[],
-  edges: MmdEdge[]
-): Promise<Elem[]> {
-  if (!vertices || !edges) return []
-  const { children = [] } = (await elk.layout({
-    id: 'root',
-    // layoutOptions: { 'elk.algorithm': 'layered' },
-    children: vertices.map((v) => ({
-      id: v.id,
-      width: 200,
-      height: 50,
-    })),
-    edges: edges.map((e, i) => ({
-      id: `e${e.start}-${e.end}`,
-      sources: [e.start],
-      targets: [e.end],
-    })),
-  })) as { children: { x: number; y: number; id: string }[] }
+export function toFlowElem(vertices: MmdVertex[], edges: MmdEdge[]) {
   const positionsById = keyBy(children, (e) => e.id)
 
   console.log(positionsById)
 
   return [
-    ...vertices.map((node): Node<Vertex & { label: string }> => {
+    ...vertices.map((node): Node<MmdVertex & { label: string }> => {
       const classes = [].filter(Boolean)
 
       return {
