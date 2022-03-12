@@ -1,7 +1,6 @@
 import { keyBy } from 'lodash'
 import { Edge, Node } from 'react-flow-renderer'
-import { Position } from './calcLayoutElk'
-import { MmdEdge, MmdVertex } from './useMermaid'
+import { MmdEdge, MmdVertex, Position } from './types'
 
 export function toFlowElem(
   vertices: MmdVertex[],
@@ -12,8 +11,8 @@ export function toFlowElem(
 
   console.log(positionsById)
 
-  return [
-    ...vertices.map((node): Node<MmdVertex & { label: string }> => {
+  const nodeElems = vertices.map(
+    (node): Node<MmdVertex & { label: string }> => {
       const classes = [].filter(Boolean)
 
       return {
@@ -31,23 +30,25 @@ export function toFlowElem(
           // borderWidth: 2,
         },
       }
-    }),
-    ...edges.map((e, i): Edge => {
-      const arrowType = e.type === 'arrow_point' ? 'arrowclosed' : 'arrowopen'
+    }
+  )
+  const edgeElems = edges.map((e, i): Edge => {
+    const arrowType = e.type === 'arrow_point' ? 'arrowclosed' : 'arrowopen'
 
-      return {
-        id: `e${e.start}-${e.end}-${i}`,
-        source: e.start,
-        target: e.end,
-        // targetPosition: 'bottom',
-        // sourcePosition: 'top',
-        type: arrowType,
-        // arrowHeadType: arrowType,
-        style: {
-          // borderWidth: 2,
-        },
-        animated: true,
-      }
-    }),
-  ]
+    return {
+      id: `e${e.start}-${e.end}-${i}`,
+      source: e.start,
+      target: e.end,
+      // targetPosition: 'bottom',
+      // sourcePosition: 'top',
+      type: arrowType,
+      // arrowHeadType: arrowType,
+      style: {
+        // borderWidth: 2,
+      },
+      animated: true,
+    }
+  })
+
+  return [...nodeElems, ...edgeElems]
 }
