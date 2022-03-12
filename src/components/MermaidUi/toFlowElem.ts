@@ -1,8 +1,14 @@
 import { keyBy } from 'lodash'
+import { Edge, Node } from 'react-flow-renderer'
+import { Position } from './calcLayoutElk'
 import { MmdEdge, MmdVertex } from './useMermaid'
 
-export function toFlowElem(vertices: MmdVertex[], edges: MmdEdge[]) {
-  const positionsById = keyBy(children, (e) => e.id)
+export function toFlowElem(
+  vertices: MmdVertex[],
+  edges: MmdEdge[],
+  positions: Position[]
+) {
+  const positionsById = keyBy(positions, (e) => e.id)
 
   console.log(positionsById)
 
