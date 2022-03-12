@@ -1,3 +1,4 @@
+import { faNode } from '@fortawesome/free-brands-svg-icons'
 import {
   faIdBadge,
   faLightbulb,
@@ -7,6 +8,7 @@ import {
   faBowlingBall,
   faCalculator,
   faChartLine,
+  faClipboard,
   faGlobe,
   faHome,
   faKeyboard,
@@ -23,7 +25,6 @@ import {
   faWindowMinimize,
   faWindowRestore,
   IconDefinition,
-  faClipboard,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Typography } from '@mui/material'
@@ -157,6 +158,11 @@ const routings: RoutingGroup[] = [
         icon: faSpider,
         label: 'Diginima',
         path: '/diginima',
+      },
+      {
+        icon: faNode,
+        label: 'mermaid UI',
+        path: '/mermaid-ui',
       },
     ],
   },
