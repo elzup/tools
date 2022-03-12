@@ -1,13 +1,9 @@
 // eslint-disable-next-line import/extensions
 import ELK from 'elkjs/lib/elk.bundled.js'
-import { Edge, Node } from 'react-flow-renderer'
-import { MmdEdge, MmdVertex } from './useMermaid'
+import { MmdEdge, MmdVertex, Position } from './types'
 
 const elkOption = {}
 const elk = new ELK(elkOption)
-
-export type Elem = Node<MmdVertex & { label: string }> | Edge
-type Position = { x: number; y: number; id: string }
 
 export async function calkLayoutElk(
   vertices: MmdVertex[],
