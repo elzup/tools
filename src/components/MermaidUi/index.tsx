@@ -1,7 +1,8 @@
 import React from 'react'
 import ReactFlow, { Background, Controls } from 'react-flow-renderer'
 import { useEffectOnce } from 'react-use'
-import { useMermaid, useMmdGraph } from './useMermaid'
+import { useFlowGraph } from './useFlowGraph'
+import { useMermaid } from './useMermaid'
 
 const mmd = `
 flowchart LR
@@ -41,7 +42,7 @@ function dartiyFuncForMmd() {
 function MurmaidUi() {
   const svg = useMermaid('emp', mmd, config)
 
-  const { flows } = useMmdGraph(mmd)
+  const { flows } = useFlowGraph(mmd)
 
   useEffectOnce(dartiyFuncForMmd)
   console.log(flows)
