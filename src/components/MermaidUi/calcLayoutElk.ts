@@ -12,7 +12,9 @@ export async function calkLayoutElk(
   if (!vertices || !edges) return []
   const { children = [] } = (await elk.layout({
     id: 'root',
-    // layoutOptions: { 'elk.algorithm': 'layered' },
+    layoutOptions: {
+      'org.eclipse.elk.direction': 'DOWN',
+    },
     children: vertices.map((v) => ({
       id: v.id,
       width: 200,

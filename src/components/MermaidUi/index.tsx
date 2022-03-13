@@ -1,6 +1,6 @@
 import { TextField } from '@mui/material'
 import React, { useState } from 'react'
-import ReactFlow, { Background, Controls } from 'react-flow-renderer'
+import ReactFlow, { Background, Controls, MiniMap } from 'react-flow-renderer'
 import styled from 'styled-components'
 import { useFetch } from './useFetch'
 import { useFlowGraph } from './useFlowGraph'
@@ -51,6 +51,7 @@ function Graph({ url }: { url: string }) {
         >
           <Controls />
           <Background />
+          <MiniMap />
         </ReactFlow>
       </Frame>
     </div>
