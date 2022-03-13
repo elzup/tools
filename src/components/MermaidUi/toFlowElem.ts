@@ -26,6 +26,7 @@ export function toFlowElem(
         },
         data: { ...node, label: node.text },
         className: classes.join(' '),
+        draggable: false,
         style: {
           borderWidth: 2,
         },
