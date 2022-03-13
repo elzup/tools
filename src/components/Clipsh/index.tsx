@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Box, Button, Grid, Link, TextField, Typography } from '@mui/material'
 import React from 'react'
 import styled from 'styled-components'
-import { descriptions } from './tequery-consts'
+import { dictionaries } from 'tequery/dist/dictionary'
 import { useClipsh } from './useClipsh'
 
 function ClipshContent() {
@@ -37,7 +37,7 @@ function ClipshContent() {
         </div>
       </Box>
       <Box p={'.5rem'} style={{ display: 'flex' }}>
-        {[descriptions.vars, descriptions.funcs].map((descs, k) => (
+        {[dictionaries.funcs, dictionaries.vars].map((descs, k) => (
           <Box key={k}>
             {descs.map(({ code, desc }) => (
               <div key={code} data-kb={k}>

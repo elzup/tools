@@ -16,13 +16,19 @@ const App = ({
   <CacheProvider value={emotionCache}>
     <Head>
       {/* <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1, shrink-to-fit=no"
-      /> */}
+              name="viewport"
+              content="width=device-width, initial-scale=1, shrink-to-fit=no"
+            /> */}
       <meta
         name="viewport"
         content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0"
       />
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap"
+        rel="stylesheet"
+      ></link>
 
       {/* <link rel="shortcut icon" href="/images/icon.png" /> */}
       {/* <link rel="manifest" href="/manifest.json" /> */}

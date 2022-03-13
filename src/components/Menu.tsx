@@ -1,3 +1,4 @@
+import { faNode } from '@fortawesome/free-brands-svg-icons'
 import {
   faIdBadge,
   faLightbulb,
@@ -7,6 +8,7 @@ import {
   faBowlingBall,
   faCalculator,
   faChartLine,
+  faClipboard,
   faGlobe,
   faHome,
   faKeyboard,
@@ -19,11 +21,9 @@ import {
   faShieldAlt,
   faShieldVirus,
   faSpider,
-  faTextWidth,
   faWindowMinimize,
   faWindowRestore,
   IconDefinition,
-  faClipboard,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Typography } from '@mui/material'
@@ -66,6 +66,11 @@ const routings: RoutingGroup[] = [
         icon: faPortrait,
         label: 'Mirror Camera',
         path: '/mirror',
+      },
+      {
+        icon: faKeyboard,
+        label: '苦手タイピング',
+        path: '/nigate-typing',
       },
     ],
   },
@@ -158,16 +163,16 @@ const routings: RoutingGroup[] = [
         label: 'Diginima',
         path: '/diginima',
       },
+      {
+        icon: faNode,
+        label: 'mermaid UI',
+        path: '/mermaid-ui',
+      },
     ],
   },
   {
     label: 'ProtoType',
     routings: [
-      {
-        icon: faTextWidth,
-        label: 'Text transformer',
-        path: '/textmaster',
-      },
       {
         icon: faPuzzlePiece,
         label: 'word search',

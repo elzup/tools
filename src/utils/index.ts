@@ -63,3 +63,5 @@ export function getComponentHtmlCode(component: React.ReactElement) {
     })
   })
 }
+
+export const asciify = (s: string) => s.replace(/[^\x20-\x7e\n]*/g, '')
