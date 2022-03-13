@@ -13,7 +13,7 @@
     "type-check": "tsc"
   },
   "dependencies": {
-    "@elzup/kit": "^1.5.1",
+    "@elzup/kit": "^2.1.0",
     "@emotion/react": "^11.8.1",
     "@emotion/styled": "^11.8.1",
     "@fortawesome/fontawesome-svg-core": "^1.3.0",

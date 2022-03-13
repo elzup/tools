@@ -1468,10 +1468,10 @@
   resolved "https://registry.yarnpkg.com/@braintree/sanitize-url/-/sanitize-url-3.1.0.tgz#8ff71d51053cd5ee4981e5a501d80a536244f7fd"
   integrity sha512-GcIY79elgB+azP74j8vqkiXz8xLFfIzbQJdlwOPisgbKT00tviJQuEghOXSMVxJ00HoYJbGswr4kcllUc4xCcg==
 
-"@elzup/kit@^1.5.1":
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/@elzup/kit/-/kit-1.5.1.tgz#6c5e36edfc88bf4aa4e01d2006b1b8d3ce8f2615"
-  integrity sha512-y91ttWuF2ggUl5/xdEwRhoXlZFvbOC9QymJKZ55xi0JGrZd5AdFFeM/Z8Pa2sRVN0GgeVxCdy6vaPLM5bqd2Dg==
+"@elzup/kit@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@elzup/kit/-/kit-2.1.0.tgz#5f01abba4d83eb54e0da6c94b3e9f4b5fb3cddff"
+  integrity sha512-JjSDFs0RUyRZZp2VeKnY0s8cOQdrAOWgc4MFG5XaaQ6IamGhIegsAnWN2twK4hHjYtiCgsY9V4HYNsZ2Z0gQJQ==
 
 "@emotion/babel-plugin@^11.7.1":
   version "11.7.2"
