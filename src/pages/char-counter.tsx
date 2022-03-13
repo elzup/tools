@@ -1,8 +1,10 @@
 import punycode from 'punycode'
-import { Button, TextField } from '@mui/material'
-import React, { useState } from 'react'
+import { Box, TextField, Typography } from '@mui/material'
+import React, { useMemo, useState } from 'react'
+import styled from 'styled-components'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
+import { sum } from '../utils'
 
 type Count = { char: string; count: number }
 
@@ -46,69 +48,82 @@ function visibleEscapes(text: string) {
 const title = '文字頻度カウント(絵文字対応)'
 const CharCounter = () => {
   const [text, setText] = useState<string>('Hello!!! 😎')
-  const [counts, setCount] = useState<Count[]>([])
+  const counts = useMemo(() => analyzeCount(text), [text])
+  const total = counts.map((v) => v.count).reduce(sum, 0)
 
   return (
     <Layout title={title}>
       <Title>{title}</Title>
-
-      <div>
+      <Box mt={1}>
         <TextField
           multiline
+          fullWidth
+          defaultValue={text}
           rows={8}
           onChange={(e) => setText(String(e.target.value || ''))}
         />
-      </div>
-      <Button
-        color="primary"
-        onClick={() => {
-          setCount(analyzeCount(text))
-        }}
-      >
-        カウントする
-      </Button>
-      <p>結果</p>
-      <table>
-        <thead>
-          <tr>
-            <th>文字</th>
-            <th>数</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {counts.map(({ char, count }) => (
-            <tr key={char}>
-              <td>{char}</td>
-              <td>{count}</td>
+      </Box>
+      <Typography variant="h5">全体: {total}文字</Typography>
+      <Style>
+        <table>
+          <thead>
+            <tr>
+              <th>文字</th>
+              <th>数</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      <p>詳細</p>
-      <table>
-        <thead>
-          <tr>
-            <th>文字</th>
-            <th>Raw</th>
-            <th>Escape</th>
-            <th>数</th>
-          </tr>
-        </thead>
+          </thead>
 
-        <tbody>
-          {counts.map(({ char, count }) => (
-            <tr key={char}>
-              <td>{char}</td>
-              <td>{visibleEscapes(char)}</td>
-              <td>{escape(char)}</td>
-              <td>{count}</td>
+          <tbody>
+            {counts.map(({ char, count }) => (
+              <tr key={char}>
+                <td>{char}</td>
+                <td>{count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p>詳細</p>
+        <table>
+          <thead>
+            <tr>
+              <th>文字</th>
+              <th>Raw</th>
+              <th>Escape</th>
+              <th>数</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {counts.map(({ char, count }) => (
+              <tr key={char}>
+                <td>{char}</td>
+                <td>{visibleEscapes(char)}</td>
+                <td>{escape(char)}</td>
+                <td>{count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Style>
     </Layout>
   )
 }
+const Style = styled.div`
+  table {
+    border-collapse: collapse;
+    th,
+    td {
+      border-top: 1px solid #aaa;
+      border-bottom: 1px solid #aaa;
+      border-left: 1px solid #ccc;
+      border-right: 1px solid #ccc;
+      background: #ddd;
+      padding: 0 0.5rem;
+    }
+    td {
+      background: #fff;
+    }
+  }
+`
 
 export default CharCounter

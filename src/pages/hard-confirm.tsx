@@ -1,3 +1,4 @@
+import { Typography } from '@mui/material'
 import React from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
@@ -15,6 +16,7 @@ const HardConfirm = () => {
       <Title>{title}</Title>
 
       <button onClick={() => handleClick('送信')}>送信</button>
+      <Typography>終了する場合はタブを閉じてください</Typography>
     </Layout>
   )
 }

@@ -1,4 +1,3 @@
-import { faNode } from '@fortawesome/free-brands-svg-icons'
 import {
   faIdBadge,
   faLightbulb,
@@ -9,6 +8,7 @@ import {
   faCalculator,
   faChartLine,
   faClipboard,
+  faExchangeAlt,
   faGlobe,
   faHome,
   faKeyboard,
@@ -24,7 +24,6 @@ import {
   faWindowMinimize,
   faWindowRestore,
   IconDefinition,
-  faExchangeAlt,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Typography } from '@mui/material'

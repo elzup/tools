@@ -14,7 +14,9 @@ import { useFetch } from './useFetch'
 // }
 
 function MurmaidUi() {
-  const [url, setUrl] = useState<string>('')
+  const [url, setUrl] = useState<string>(
+    'https://raw.githubusercontent.com/elzup/story-plots/main/sample/min-flow.mmd'
+  )
   const { data, error: _error } = useFetch(url)
   const mmd = data?.split('\n').slice(0, 1000).join('\n')
 
@@ -23,6 +25,8 @@ function MurmaidUi() {
       <TextField
         label="url"
         multiline
+        fullWidth
+        defaultValue={url}
         onChange={(e) => {
           setUrl(e.currentTarget.value)
         }}
