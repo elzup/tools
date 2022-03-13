@@ -1,3 +1,4 @@
+import { Container } from '@mui/material'
 import dynamic from 'next/dynamic'
 import Head from 'next/head'
 import * as React from 'react'
@@ -71,9 +72,11 @@ const NigateTyingPage = () => {
         <meta property="og:url" content={url} />
         {/* <meta property="og:image" content={imgUrl} /> */}
       </Head>
-      <Title>
-        <div style={{ margin: '0 8px 8px', fontSize: '2rem' }}>{title}</div>
-      </Title>
+      <Container>
+        <Title>
+          <div style={{ margin: '0 8px 8px', fontSize: '2rem' }}>{title}</div>
+        </Title>
+      </Container>
       <NigateTyping />
     </Layout>
   )

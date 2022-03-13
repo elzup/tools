@@ -2,7 +2,7 @@ import { faNode } from '@fortawesome/free-brands-svg-icons'
 import {
   faIdBadge,
   faLightbulb,
-  faStopCircle
+  faStopCircle,
 } from '@fortawesome/free-regular-svg-icons'
 import {
   faBowlingBall,
@@ -20,9 +20,10 @@ import {
   faShapes,
   faShieldAlt,
   faShieldVirus,
-  faSpider, faWindowMinimize,
+  faSpider,
+  faWindowMinimize,
   faWindowRestore,
-  IconDefinition
+  IconDefinition,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Typography } from '@mui/material'
