@@ -24,6 +24,7 @@ import {
   faWindowMinimize,
   faWindowRestore,
   IconDefinition,
+  faExchangeAlt,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Typography } from '@mui/material'
@@ -58,19 +59,14 @@ const routings: RoutingGroup[] = [
         path: '/char-counter',
       },
       {
-        icon: faLightbulb,
-        label: 'DivergenceMeter',
-        path: '/divergence-meter',
-      },
-      {
-        icon: faPortrait,
-        label: 'Mirror Camera',
-        path: '/mirror',
-      },
-      {
         icon: faKeyboard,
         label: '苦手タイピング',
         path: '/nigate-typing',
+      },
+      {
+        icon: faClipboard,
+        label: 'Clipsh',
+        path: '/clipsh',
       },
     ],
   },
@@ -81,11 +77,6 @@ const routings: RoutingGroup[] = [
         icon: faStopCircle,
         label: '1px image data url',
         path: '/1px',
-      },
-      {
-        icon: faClipboard,
-        label: 'Clipsh',
-        path: '/clipsh',
       },
       {
         icon: faGlobe,
@@ -125,12 +116,12 @@ const routings: RoutingGroup[] = [
     routings: [
       {
         icon: faShieldAlt,
-        label: 'noopener Attack Demo',
+        label: 'noopener Demo',
         path: '/noopener',
       },
       {
         icon: faShieldVirus,
-        label: 'XSS Attack Demo',
+        label: 'XSS Demo',
         path: '/xss',
       },
       {
@@ -145,7 +136,7 @@ const routings: RoutingGroup[] = [
     routings: [
       {
         icon: faWindowRestore,
-        label: 'Sub window demo',
+        label: 'SubWindowDump',
         path: '/sub-window-ex',
       },
       {
@@ -154,19 +145,24 @@ const routings: RoutingGroup[] = [
         path: '/key-event-master',
       },
       {
+        icon: faExchangeAlt,
+        label: 'mermaid UI',
+        path: '/mermaid-ui',
+      },
+    ],
+  },
+  {
+    label: 'Art',
+    routings: [
+      {
         icon: faShapes,
         label: 'SVG Playground',
         path: '/svg-play',
       },
       {
-        icon: faSpider,
-        label: 'Diginima',
-        path: '/diginima',
-      },
-      {
-        icon: faNode,
-        label: 'mermaid UI',
-        path: '/mermaid-ui',
+        icon: faLightbulb,
+        label: 'DivergenceMeter',
+        path: '/divergence-meter',
       },
     ],
   },
@@ -185,14 +181,24 @@ const routings: RoutingGroup[] = [
       },
       {
         icon: faChartLine,
-        label: 'Cryptowat chart three',
+        label: 'Cch',
         path: '/cryptowat-chart',
+      },
+      {
+        icon: faSpider,
+        label: 'Diginima',
+        path: '/diginima',
       },
     ],
   },
   {
     label: 'Closed',
     routings: [
+      {
+        icon: faPortrait,
+        label: 'Mirror Camera',
+        path: '/mirror',
+      },
       {
         icon: faIdBadge,
         label: 'GHA BadgeMaker',
