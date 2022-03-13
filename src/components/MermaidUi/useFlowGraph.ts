@@ -13,7 +13,8 @@ export const useFlowGraph = (mmd: string) => {
   })
 
   useAsync(async () => {
-    const { vertices, edges } = parseMarmaid(mmd)
+    const text = mmd.split('\n').slice(0, 100).join('\n')
+    const { vertices, edges } = parseMarmaid(text)
     const positions = await calkLayoutElk(vertices, edges)
 
     const flows = toFlowElem(vertices, edges, positions)

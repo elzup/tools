@@ -1,5 +1,5 @@
 import { keyBy } from 'lodash'
-import { Edge, Node } from 'react-flow-renderer'
+import { Edge, Node, Position as RfPosition } from 'react-flow-renderer'
 import { MmdEdge, MmdVertex, Position } from './types'
 
 export function toFlowElem(
@@ -17,8 +17,8 @@ export function toFlowElem(
 
       return {
         id: node.id,
-        // targetPosition: 'bottom',
-        // sourcePosition: 'top',
+        targetPosition: RfPosition.Bottom,
+        sourcePosition: RfPosition.Top,
         type: 'default',
         position: {
           x: positionsById[node.id].x || 0,
@@ -27,7 +27,7 @@ export function toFlowElem(
         data: { ...node, label: node.text },
         className: classes.join(' '),
         style: {
-          // borderWidth: 2,
+          borderWidth: 2,
         },
       }
     }
@@ -39,8 +39,6 @@ export function toFlowElem(
       id: `e${e.start}-${e.end}-${i}`,
       source: e.start,
       target: e.end,
-      // targetPosition: 'bottom',
-      // sourcePosition: 'top',
       type: arrowType,
       // arrowHeadType: arrowType,
       style: {

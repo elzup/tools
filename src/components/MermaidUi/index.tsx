@@ -1,10 +1,11 @@
-import React from 'react'
+import { TextField } from '@mui/material'
+import React, { useState } from 'react'
 import ReactFlow, { Background, Controls } from 'react-flow-renderer'
-import { useEffectOnce } from 'react-use'
+import styled from 'styled-components'
+import { useFetch } from './useFetch'
 import { useFlowGraph } from './useFlowGraph'
-import { useMermaid } from './useMermaid'
 
-const mmd = `
+const initMmd = `
 flowchart LR
 A-->B
 A==>B
@@ -22,35 +23,28 @@ click B "http://www.github.com" "This is a link"
 click D href "http://www.github.com" "This is a link"
 `
 
-const config = {
-  startOnLoad: true,
-  flowchart: {
-    useMaxWidth: true,
-    htmlLabels: true,
-    curve: 'cardinal',
-  },
-  securityLevel: '',
-}
+// const config = {
+//   startOnLoad: true,
+//   flowchart: {
+//     useMaxWidth: true,
+//     htmlLabels: true,
+//     curve: 'cardinal',
+//   },
+//   securityLevel: 'loose',
+// }
 
-function dartiyFuncForMmd() {
-  // @ts-ignore
-  window.helloCallback = () => {
-    alert('hello event')
-  }
-}
+function Graph({ url }: { url: string }) {
+  const { data, error } = useFetch(url)
 
-function MurmaidUi() {
-  const svg = useMermaid('emp', mmd, config)
+  const mmd = (!error && data) || initMmd
 
+  // const svg = useMermaid('emp', mmd, config)
   const { flows } = useFlowGraph(mmd)
-
-  useEffectOnce(dartiyFuncForMmd)
-  console.log(flows)
 
   return (
     <div>
-      <div>{svg && <div dangerouslySetInnerHTML={{ __html: svg }} />}</div>
-      <div style={{ width: '100%', height: '500px' }}>
+      {/* <div>{svg && <div dangerouslySetInnerHTML={{ __html: svg }} />}</div> */}
+      <Frame>
         <ReactFlow
           elements={flows}
           // onLoad={setRfInstance}
@@ -58,8 +52,31 @@ function MurmaidUi() {
           <Controls />
           <Background />
         </ReactFlow>
-      </div>
+      </Frame>
     </div>
   )
 }
+
+function MurmaidUi() {
+  const [url, setUrl] = useState<string>('')
+
+  return (
+    <div>
+      <TextField
+        label="url"
+        multiline
+        onChange={(e) => setUrl(e.currentTarget.value)}
+      />
+      <Graph url={url} />
+      <div className="mermaid"></div>
+    </div>
+  )
+}
+
+const Frame = styled.div`
+  width: 100%;
+  height: 500px;
+  border: solid 1px #ccc;
+`
+
 export default MurmaidUi

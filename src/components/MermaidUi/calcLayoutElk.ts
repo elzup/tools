@@ -16,7 +16,7 @@ export async function calkLayoutElk(
     children: vertices.map((v) => ({
       id: v.id,
       width: 200,
-      height: 50,
+      height: 100,
     })),
     edges: edges.map((e) => ({
       id: `e${e.start}-${e.end}`,
