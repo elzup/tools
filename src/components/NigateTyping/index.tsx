@@ -20,7 +20,7 @@ function NigateTyping() {
       <Container>
         <Box m={1}>
           <Typography>
-            半角文字のみです。改行区切りです。保存されます。スコアなどはありません。
+            リストは保存されます。スコアなどはないので気軽に使ってください。
           </Typography>
         </Box>
         <Box
@@ -34,6 +34,7 @@ function NigateTyping() {
             <TextField
               label="練習リスト"
               multiline
+              helperText="半角文字のみ,改行区切り"
               onChange={(e) => {
                 setWords(asciify(e.currentTarget.value))
               }}
