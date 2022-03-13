@@ -13,7 +13,7 @@ function ClipshContent() {
     <Style>
       <Box m={'1rem'}>
         <Typography>
-          Query using{' '}
+          clipboard text convert quickly. Query using{' '}
           <Link href="https://github.com/elzup/tequery" target="_blank">
             tequery
           </Link>

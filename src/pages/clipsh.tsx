@@ -7,13 +7,8 @@ import { Title } from '../components/Title'
 
 const GlobalStyle = createGlobalStyle`
   --app-color: #99BD93;
-  body {
-  }
   h1 {
     margin-left: 16px !important;
-  }
-  svg {
-    min-width: 1.4rem;
   }
 `
 
@@ -64,9 +59,7 @@ const ClipshPage = () => {
         <meta property="og:url" content={url} />
         {/* <meta property="og:image" content={imgUrl} /> */}
       </Head>
-      <Title>
-        <div style={{ margin: '0 8px 8px', fontSize: '2rem' }}>{title}</div>
-      </Title>
+      <Title>{title}</Title>
       <ClipshContent />
     </Layout>
   )
