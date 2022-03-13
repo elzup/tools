@@ -17,8 +17,8 @@ export function toFlowElem(
 
       return {
         id: node.id,
-        targetPosition: RfPosition.Bottom,
-        sourcePosition: RfPosition.Top,
+        targetPosition: RfPosition.Top,
+        sourcePosition: RfPosition.Bottom,
         type: 'default',
         position: {
           x: positionsById[node.id].x || 0,
@@ -33,14 +33,15 @@ export function toFlowElem(
     }
   )
   const edgeElems = edges.map((e, i): Edge => {
-    const arrowType = e.type === 'arrow_point' ? 'arrowclosed' : 'arrowopen'
+    const arrowType = e.type === 'arrow_point' ? 'arrowclosed' : 'arrow'
 
     return {
       id: `e${e.start}-${e.end}-${i}`,
       source: e.start,
       target: e.end,
       type: arrowType,
-      // arrowHeadType: arrowType,
+      // @ts-ignore
+      arrowHeadType: arrowType,
       style: {
         // borderWidth: 2,
       },
