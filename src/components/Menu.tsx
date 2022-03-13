@@ -170,11 +170,6 @@ const routings: RoutingGroup[] = [
     label: 'ProtoType',
     routings: [
       {
-        icon: faTextWidth,
-        label: 'Text transformer',
-        path: '/textmaster',
-      },
-      {
         icon: faPuzzlePiece,
         label: 'word search',
         path: '/word-search',
