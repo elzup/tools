@@ -1,10 +1,14 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import ReactFlow, { Background, Controls, MiniMap } from 'react-flow-renderer'
 import styled from 'styled-components'
 import { useFlowGraph } from './MermaidUi/useFlowGraph'
 
 function MmdGraph({ mmd }: { mmd: string }) {
   const { flows } = useFlowGraph(mmd)
+
+  useEffect(() => {
+    console.log(mmd)
+  }, [])
 
   return (
     <div>
