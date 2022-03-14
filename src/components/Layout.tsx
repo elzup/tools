@@ -15,17 +15,23 @@ const Layout: React.FC<Props & { currentPath: string }> = ({
   title = 'mini web tools by anozon',
   fullWidth,
   currentPath,
-}) => (
-  <Wrap data-test={`page-${currentPath.replace(/\//g, '')}`}>
-    <Head>
-      <title>{title}</title>
-      <meta charSet="utf-8" />
-      <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-    </Head>
-    <Box>{fullWidth ? children : <Container>{children}</Container>}</Box>
-    <Footer {...{ currentPath }} />
-  </Wrap>
-)
+}) => {
+  const contentsBody = <>{children}</>
+
+  return (
+    <Wrap data-test={`page-${currentPath.replace(/\//g, '')}`}>
+      <Head>
+        <title>{title}</title>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+      </Head>
+      <Box>
+        {fullWidth ? contentsBody : <Container>{contentsBody}</Container>}
+      </Box>
+      <Footer {...{ currentPath }} />
+    </Wrap>
+  )
+}
 
 const Wrap = styled.div`
   padding: 2rem 0;
