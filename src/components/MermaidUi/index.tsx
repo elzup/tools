@@ -30,9 +30,7 @@ function useBlocks(text?: string): GraphBlock[] {
         return { blocks, lines: [...lines, line] }
       },
       {
-        blocks: [
-          { title: 'sample', mmd: 'flowchart LR;\n\tA->B\n\tB->C\n' },
-        ] as GraphBlock[],
+        blocks: [] as GraphBlock[],
         lines: [] as string[],
       }
     )
@@ -62,7 +60,6 @@ function MurmaidUi() {
       {blocks.map((block, i) => (
         <div key={`${i}_${block.title}`}>
           <Typography variant="h5">{block.title}</Typography>
-
           <MmdGraph mmd={block.mmd} />
         </div>
       ))}

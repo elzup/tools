@@ -1,19 +1,23 @@
-import React, { useEffect } from 'react'
-import ReactFlow, { Background, Controls, MiniMap } from 'react-flow-renderer'
+import React from 'react'
+import ReactFlow, {
+  Background,
+  Controls,
+  MiniMap,
+  ReactFlowProvider,
+} from 'react-flow-renderer'
 import styled from 'styled-components'
 import { useFlowGraph } from './MermaidUi/useFlowGraph'
 
 function MmdGraph({ mmd }: { mmd: string }) {
   const { flows } = useFlowGraph(mmd)
 
-  useEffect(() => {
-    console.log(mmd)
-  }, [])
+  if (flows.length === 0) return null
 
   return (
-    <div>
-      <Frame>
+    <Frame>
+      <ReactFlowProvider>
         <ReactFlow
+          id={mmd.split('')[1]}
           elements={flows}
           // onLoad={setRfInstance}
           panOnScroll={false}
@@ -22,8 +26,8 @@ function MmdGraph({ mmd }: { mmd: string }) {
           <Background />
           <MiniMap />
         </ReactFlow>
-      </Frame>
-    </div>
+      </ReactFlowProvider>
+    </Frame>
   )
 }
 const Frame = styled.div`
