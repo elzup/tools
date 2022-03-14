@@ -1,4 +1,3 @@
-import { Container } from '@mui/material'
 import dynamic from 'next/dynamic'
 import Head from 'next/head'
 import * as React from 'react'
@@ -15,12 +14,6 @@ const GlobalStyle = createGlobalStyle`
   body {
     background: ${themeColor} !important;
   }
-  h1 {
-    margin-left: 16px !important;
-  }
-  svg {
-    min-width: 1.4rem;
-  }
 `
 
 const title = '苦手タイパー nigate typing'
@@ -29,7 +22,7 @@ const url = 'https://tools.anozon.me/nigate-typing'
 // const imgUrl = `https://tools.anozon.me/pikbl-ss.png`
 const NigateTyingPage = () => {
   return (
-    <Layout title={title} fullWidth>
+    <Layout title={title}>
       <GlobalStyle />
       <Head>
         {/* <link rel="manifest" href="decopik.manifest.json" /> */}
@@ -46,17 +39,6 @@ const NigateTyingPage = () => {
         <meta name="msapplication-tap-highlight" content="no" />
         <meta name="theme-color" content={themeColor} />
 
-        <link rel="apple-touch-icon" href="decopikmin-memo.png" />
-        <link
-          rel="apple-touch-icon"
-          sizes="512x512"
-          href="/decopikmin-memo-512.png"
-        />
-        <link
-          rel="apple-touch-icon"
-          sizes="192x192"
-          href="/decopikmin-memo-192.png"
-        />
         {/* <link rel="shortcut icon" href="/favicon.ico" /> */}
 
         <meta name="twitter:card" content="summary" />
@@ -72,11 +54,7 @@ const NigateTyingPage = () => {
         <meta property="og:url" content={url} />
         {/* <meta property="og:image" content={imgUrl} /> */}
       </Head>
-      <Container>
-        <Title>
-          <div style={{ margin: '0 8px 8px', fontSize: '2rem' }}>{title}</div>
-        </Title>
-      </Container>
+      <Title>{title}</Title>
       <NigateTyping />
     </Layout>
   )

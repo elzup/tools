@@ -13,6 +13,8 @@ body {
 export const defaultTheme = createTheme({})
 const { pxToRem } = defaultTheme.typography
 
+const headStyle = { paddingTop: '.6rem', paddingBottom: '.4rem' }
+
 export const theme = createTheme({
   palette: {
     primary: {
@@ -48,11 +50,11 @@ export const theme = createTheme({
     fontWeightMedium: 700, // Roboto Condensed
 
     h1: { fontSize: pxToRem(60) },
-    h2: { fontSize: pxToRem(48) },
-    h3: { fontSize: pxToRem(42) },
-    h4: { fontSize: pxToRem(36) },
-    h5: { fontSize: pxToRem(20) },
-    h6: { fontSize: pxToRem(18) },
+    h2: { fontSize: pxToRem(48), ...headStyle },
+    h3: { fontSize: pxToRem(42), ...headStyle },
+    h4: { fontSize: pxToRem(36), ...headStyle },
+    h5: { fontSize: pxToRem(20), ...headStyle },
+    h6: { fontSize: pxToRem(18), ...headStyle },
     subtitle1: { fontSize: pxToRem(18) },
     body1: { fontSize: pxToRem(16) },
     button: { textTransform: 'none' },

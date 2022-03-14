@@ -1,4 +1,4 @@
-import { Button, TextField } from '@mui/material'
+import { Button, TextField, Typography } from '@mui/material'
 import prettier from 'prettier'
 import parserHtml from 'prettier/parser-html'
 import * as React from 'react'
@@ -25,7 +25,7 @@ const NoOpener = () => {
   return (
     <Layout title={title}>
       <Title>{title}</Title>
-      <p>指定された名前を生のHTMLでレンダリングします。</p>
+      <Typography>指定された名前を生のHTMLでレンダリングします。</Typography>
       <div style={{ display: 'flex', gap: '1rem' }}>
         <TextField
           value={preName}

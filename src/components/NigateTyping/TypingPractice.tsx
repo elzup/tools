@@ -20,7 +20,7 @@ function TypingPractice({ word }: Props) {
 
   return (
     <Style>
-      <div className="answer">
+      <div className="result">
         {ans.split('').map((c, i) => (
           <span
             key={i}
@@ -46,7 +46,7 @@ const Style = styled.div`
   border: solid 1px #ccc;
   border-radius: 4px;
   padding: 0.4rem 0.2rem;
-  .answer {
+  .result {
     margin-left: 4px;
     span {
       color: gray;
@@ -68,7 +68,7 @@ const Style = styled.div`
     width: 100%;
   }
 
-  .answer span,
+  .result span,
   .in input {
     font-family: 'Roboto Mono', monospace;
     font-size: 100%;
