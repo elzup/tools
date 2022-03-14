@@ -9,8 +9,6 @@ export function toFlowElem(
 ) {
   const positionsById = keyBy(positions, (e) => e.id)
 
-  console.log(positionsById)
-
   const nodeElems = vertices.map(
     (node): Node<MmdVertex & { label: string }> => {
       const classes = [].filter(Boolean)

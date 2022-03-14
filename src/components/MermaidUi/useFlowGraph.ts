@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { useAsync } from 'react-use'
+import { useEffect, useState } from 'react'
 import { calkLayoutElk } from './calcLayoutElk'
 import { toFlowElem } from './toFlowElem'
 import { Graph } from './types'
@@ -12,17 +11,17 @@ export const useFlowGraph = (mmd: string) => {
     flows: [],
   })
 
-  useAsync(async () => {
+  useEffect(() => {
     const lines = mmd.split('\n')
     const text = lines.join('\n')
     const { vertices, edges } = parseMarmaid(text)
-    const positions = await calkLayoutElk(vertices, edges)
 
-    console.log(lines[1])
+    ;(async () => {
+      const positions = await calkLayoutElk(vertices, edges)
+      const flows = toFlowElem(vertices, edges, positions)
 
-    const flows = toFlowElem(vertices, edges, positions)
-
-    setGraph({ vertices, edges, flows })
+      setGraph({ vertices, edges, flows })
+    })()
   }, [mmd])
   return graph
 }
