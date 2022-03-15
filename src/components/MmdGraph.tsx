@@ -8,13 +8,13 @@ import ReactFlow, {
 import styled from 'styled-components'
 import { useFlowGraph } from './MermaidUi/useFlowGraph'
 
-function MmdGraph({ mmd }: { mmd: string }) {
+function MmdGraph({ mmd, height = '90vh' }: { mmd: string; height?: string }) {
   const { flows } = useFlowGraph(mmd)
 
   if (flows.nodes.length === 0) return null
 
   return (
-    <Frame>
+    <Frame style={{ height }}>
       <ReactFlowProvider>
         <ReactFlow
           id={mmd.split('')[1]}
@@ -35,9 +35,9 @@ function MmdGraph({ mmd }: { mmd: string }) {
     </Frame>
   )
 }
+
 const Frame = styled.div`
   width: 100%;
-  height: 500px;
   border: solid 1px #ccc;
 `
 
