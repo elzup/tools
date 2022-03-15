@@ -48,5 +48,5 @@ export function toFlowElem(
     }
   })
 
-  return [...nodeElems, ...edgeElems]
+  return { nodes: nodeElems, edges: edgeElems }
 }

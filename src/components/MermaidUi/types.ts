@@ -13,11 +13,10 @@ export type MmdEdge = {
   text: string
 }
 
-export type Elem = Node<MmdVertex & { label: string }> | Edge
 export type Position = { x: number; y: number; id: string }
 
 export type Graph = {
   vertices: MmdVertex[]
   edges: MmdEdge[]
-  flows: Elem[]
+  flows: { nodes: Node<MmdVertex & { label: string }>[]; edges: Edge[] }
 }
