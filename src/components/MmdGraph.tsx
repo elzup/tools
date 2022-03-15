@@ -20,7 +20,7 @@ function MmdGraph({ mmd }: { mmd: string }) {
           id={mmd.split('')[1]}
           nodes={flows.nodes}
           edges={flows.edges}
-          minZoom={0.1}
+          minZoom={0.04}
           defaultZoom={0.5}
           // onLoad={setRfInstance}
           panOnScroll={false}
