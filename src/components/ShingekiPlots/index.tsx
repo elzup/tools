@@ -40,12 +40,12 @@ function useBlocks(text?: string): GraphBlock[] {
     return blocks
   }, [text])
 }
+const plotUrl =
+  'https://raw.githubusercontent.com/elzup/story-plots/main/ShingekiNoKyojin.mmd'
 
 function MurmaidUi() {
-  const [url, setUrl] = useState<string>(
-    'https://raw.githubusercontent.com/elzup/story-plots/main/sample/min-flow.mmd'
-  )
-  const { data, error: _error } = useFetchText(url)
+  const [url, setUrl] = useState<string>()
+  const { data, error: _error } = useFetchText(plotUrl)
   const blocks = useBlocks(data)
   const _all = { title: 'all', mmd: data || '' }
 
