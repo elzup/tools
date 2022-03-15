@@ -45,6 +45,7 @@ function MurmaidUi() {
   )
   const { data, error: _error } = useFetch(url)
   const blocks = useBlocks(data)
+  const _all = { title: 'all', mmd: data || '' }
 
   return (
     <div>
