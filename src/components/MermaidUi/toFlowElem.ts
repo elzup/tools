@@ -24,7 +24,6 @@ export function toFlowElem(
         },
         data: { ...node, label: node.text },
         className: classes.join(' '),
-        draggable: false,
         style: {
           borderWidth: 2,
         },
@@ -38,13 +37,9 @@ export function toFlowElem(
       id: `e${e.start}-${e.end}-${i}`,
       source: e.start,
       target: e.end,
-      type: arrowType,
-      // @ts-ignore
-      arrowHeadType: arrowType,
-      style: {
-        // borderWidth: 2,
-      },
-      animated: true,
+      markerEnd: arrowType,
+      // type: 's'
+      style: { stroke: 'black', strokeWidth: 2 },
     }
   })
 

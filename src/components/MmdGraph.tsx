@@ -18,14 +18,16 @@ function MmdGraph({ mmd }: { mmd: string }) {
       <ReactFlowProvider>
         <ReactFlow
           id={mmd.split('')[1]}
-          nodes={flows.nodes}
-          edges={flows.edges}
+          defaultNodes={flows.nodes}
+          defaultEdges={flows.edges}
           minZoom={0.04}
           defaultZoom={0.5}
           // onLoad={setRfInstance}
           panOnScroll={false}
+          nodesDraggable
+          nodesConnectable={false}
         >
-          <Controls />
+          <Controls defaultChecked />
           <Background />
           <MiniMap />
         </ReactFlow>
