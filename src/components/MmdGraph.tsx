@@ -11,14 +11,17 @@ import { useFlowGraph } from './MermaidUi/useFlowGraph'
 function MmdGraph({ mmd }: { mmd: string }) {
   const { flows } = useFlowGraph(mmd)
 
-  if (flows.length === 0) return null
+  if (flows.nodes.length === 0) return null
 
   return (
     <Frame>
       <ReactFlowProvider>
         <ReactFlow
           id={mmd.split('')[1]}
-          elements={flows}
+          nodes={flows.nodes}
+          edges={flows.edges}
+          minZoom={0.1}
+          defaultZoom={0.5}
           // onLoad={setRfInstance}
           panOnScroll={false}
         >

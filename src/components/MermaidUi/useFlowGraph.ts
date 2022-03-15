@@ -8,7 +8,7 @@ export const useFlowGraph = (mmd: string) => {
   const [graph, setGraph] = useState<Graph>({
     vertices: [],
     edges: [],
-    flows: [],
+    flows: { nodes: [], edges: [] },
   })
 
   useEffect(() => {
