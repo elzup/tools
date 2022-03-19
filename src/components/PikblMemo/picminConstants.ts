@@ -1,44 +1,48 @@
+import { ComponentType } from 'react'
 import {
-  faClover,
-  faAppleAlt,
-  faBreadSlice,
-  faBug,
-  faCampground,
-  faCapsules,
-  faCoffee,
-  faCut,
-  faEnvelope,
-  faFilm,
-  faHamburger,
-  faIceCream,
-  faLandmark,
-  faPaw,
-  faPlane,
-  faRoad,
-  faShoppingCart,
-  faSnowflake,
-  faStore,
-  faTrain,
-  faTree,
-  faTshirt,
-  faUmbrellaBeach,
-  faUtensils,
-  faWater,
-} from '@fortawesome/free-solid-svg-icons'
-import { faStar, IconDefinition } from '@fortawesome/free-regular-svg-icons'
+  FaBreadSlice,
+  FaBug,
+  FaCampground,
+  FaCapsules,
+  FaCoffee,
+  FaCut,
+  FaEnvelope,
+  FaFilm,
+  FaHamburger,
+  FaIceCream,
+  FaLandmark,
+  FaPaw,
+  FaPlane,
+  FaRoad,
+  FaShoppingCart,
+  FaSnowflake,
+  FaStar,
+  FaStore,
+  FaTrain,
+  FaTree,
+  FaTshirt,
+  FaUmbrellaBeach,
+  FaUtensils,
+  FaWater,
+} from 'react-icons/fa'
+import { GiAcorn, GiBananaBunch, GiClover, GiMushroom } from 'react-icons/gi'
 
 type Pikmin = {
   id: string
   name: string
   color: string
 }
-export type Group = {
+export type GroupBase = {
   id: string
   name: string
   short: string
-  icon: IconDefinition
+  icon: ComponentType
+  subIcon?: ComponentType
   only?: string[]
   sp?: true
+}
+export type Group = GroupBase & {
+  sp: boolean
 }
 
 export const picmins: Pikmin[] = [
@@ -51,39 +55,74 @@ export const picmins: Pikmin[] = [
   { id: 'gr', name: '岩', color: '#808080' },
 ]
 
-export const groups: Group[] = [
-  { id: 'a', name: 'レストラン', short: 'レ', icon: faUtensils },
-  { id: 'b', name: 'カフェ', short: 'カ', icon: faCoffee },
-  { id: 'c', name: 'デザート', short: 'デ', icon: faIceCream },
-  { id: 'd', name: '映画館', short: '映', icon: faFilm },
-  { id: 'e', name: '薬局', short: '薬', icon: faCapsules },
-  { id: 'f', name: '動物園', short: '動', icon: faPaw },
-  // { id: 'k', name: '動物園', short: '動', icon: faPaw },
-  { id: 'g2', name: '森-クワガタ', short: '森', icon: faBug },
-  { id: 'g1', name: '森-どんぐり', short: '森', icon: faTree },
-  { id: 'h', name: '水辺', short: '水', icon: faWater },
-  { id: 'i', name: '郵便局', short: '郵', icon: faEnvelope },
-  { id: 'j', name: '美術館', short: '美', icon: faLandmark },
-  { id: 'l', name: '空港', short: '空', icon: faPlane },
-  { id: 'm', name: '駅', short: '駅', icon: faTrain },
-  { id: 'n', name: '砂浜', short: '砂', icon: faUmbrellaBeach },
-  { id: 'o', name: 'バーガー', short: 'バ', icon: faHamburger },
-  { id: 'p', name: 'コンビニ', short: 'コ', icon: faStore },
-  { id: 'q1', name: '店-キノコ', short: 'ス', icon: faShoppingCart },
-  { id: 'q2', name: '店-バナナ', short: 'ス', icon: faAppleAlt },
-  { id: 'v', name: 'ベーカリー', short: 'ベ', icon: faBreadSlice },
-  { id: 'w', name: '美容院', short: '美', icon: faCut },
-  { id: 'x', name: 'ファッション', short: 'ファ', icon: faTshirt },
-  { id: 'y', name: '公園', short: '公', icon: faCampground },
-  { id: 'y2', name: '四つ葉', short: '四', icon: faClover },
-  { id: 'z', name: 'みちばた', short: 'み', icon: faRoad },
-  { id: 'z1', name: 'みちばた-冬', short: '冬', icon: faSnowflake, sp: true },
+const groupsBases: GroupBase[] = [
+  { id: 'a', name: 'レストラン', short: 'レ', icon: FaUtensils },
+  { id: 'b', name: 'カフェ', short: 'カ', icon: FaCoffee },
+  { id: 'c', name: 'デザート', short: 'デ', icon: FaIceCream },
+  { id: 'd', name: '映画館', short: '映', icon: FaFilm },
+  { id: 'e', name: '薬局', short: '薬', icon: FaCapsules },
+  { id: 'f', name: '動物園', short: '動', icon: FaPaw },
+  // { id: 'k', name: '動物園', short: '動', icon: FaPaw },
+  { id: 'g2', name: '森-クワガタ', short: '森', icon: FaTree, subIcon: FaBug },
+  {
+    id: 'g1',
+    name: '森-どんぐり',
+    short: '森',
+    icon: FaTree,
+    subIcon: GiAcorn,
+  },
+  { id: 'h', name: '水辺', short: '水', icon: FaWater },
+  { id: 'i', name: '郵便局', short: '郵', icon: FaEnvelope },
+  { id: 'j', name: '美術館', short: '美', icon: FaLandmark },
+  { id: 'l', name: '空港', short: '空', icon: FaPlane },
+  { id: 'm', name: '駅', short: '駅', icon: FaTrain },
+  { id: 'n', name: '砂浜', short: '砂', icon: FaUmbrellaBeach },
+  { id: 'o', name: 'バーガー', short: 'バ', icon: FaHamburger },
+  { id: 'p', name: 'コンビニ', short: 'コ', icon: FaStore },
+  {
+    id: 'q1',
+    name: '店-キノコ',
+    short: 'ス',
+    icon: FaShoppingCart,
+    subIcon: GiMushroom,
+  },
+  {
+    id: 'q2',
+    name: '店-バナナ',
+    short: 'ス',
+    icon: FaShoppingCart,
+    subIcon: GiBananaBunch,
+  },
+  { id: 'v', name: 'ベーカリー', short: 'ベ', icon: FaBreadSlice },
+  { id: 'w', name: '美容院', short: '美', icon: FaCut },
+  { id: 'x', name: 'ファッション', short: 'ファ', icon: FaTshirt },
+  { id: 'y', name: '公園', short: '公', icon: FaCampground },
+  { id: 'y2', name: '四つ葉', short: '四', icon: GiClover },
+  { id: 'z', name: 'みちばた', short: 'み', icon: FaRoad },
+  {
+    id: 'z1',
+    name: 'みちばた-冬',
+    short: '冬',
+    icon: FaRoad,
+    subIcon: FaSnowflake,
+    sp: true,
+  },
   {
     id: '_b',
     name: '旧正月',
     short: '正',
-    icon: faStar,
+    icon: FaStar,
     sp: true,
     only: ['re', 'yw', 'bu'],
   },
 ]
+
+// const isFaIconDef = (v: unknown): v is IconDefinition => {
+//   return !!v['icon']
+// }
+
+export const groups: Group[] = groupsBases.map((g) => ({
+  ...g,
+  sp: g.sp || false,
+  // icon: isFaIconDef(g.icon) ? <FontAwesomeIcon icon={g.icon} /> : FaStar,
+}))

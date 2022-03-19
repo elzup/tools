@@ -119,9 +119,7 @@ function PikblMemo() {
                 }}
               >
                 <div className="group-label">
-                  <div>
-                    <FontAwesomeIcon icon={g.icon} />
-                  </div>
+                  <div>{<g.icon></g.icon>}</div>
                   <Typography variant="caption">{g.name}</Typography>
                 </div>
               </th>
@@ -183,15 +181,22 @@ const Style = styled.div`
   .group-label {
     display: grid;
     justify-content: center;
+    align-items: center;
+    height: 2rem;
     > * {
       text-align: center;
+    }
+    > div {
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
   }
 
   table[data-desc='false'] {
     td,
     th {
-      height: 1.5rem;
+      height: 1.7rem;
       font-size: 1rem !important;
     }
     .group-label {
