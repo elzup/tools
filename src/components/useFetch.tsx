@@ -1,6 +1,6 @@
 import useSWR from 'swr'
 
-const fetcher = async (url: string) => {
+const textFetcher = async (url: string) => {
   const res = await fetch(url)
 
   if (!res.ok) {
@@ -12,4 +12,4 @@ const fetcher = async (url: string) => {
   return res.text()
 }
 
-export const useFetch = (url: string) => useSWR(url, fetcher)
+export const useFetchText = (url: string) => useSWR(url, textFetcher)

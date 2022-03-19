@@ -1,30 +1,43 @@
 import React from 'react'
-import ReactFlow, { Background, Controls, MiniMap } from 'react-flow-renderer'
+import ReactFlow, {
+  Background,
+  Controls,
+  MiniMap,
+  ReactFlowProvider,
+} from 'react-flow-renderer'
 import styled from 'styled-components'
 import { useFlowGraph } from './MermaidUi/useFlowGraph'
 
-function MmdGraph({ mmd }: { mmd: string }) {
+function MmdGraph({ mmd, height = '90vh' }: { mmd: string; height?: string }) {
   const { flows } = useFlowGraph(mmd)
 
+  if (flows.nodes.length === 0) return null
+
   return (
-    <div>
-      <Frame>
+    <Frame style={{ height }}>
+      <ReactFlowProvider>
         <ReactFlow
-          elements={flows}
+          id={mmd.split('')[1]}
+          defaultNodes={flows.nodes}
+          defaultEdges={flows.edges}
+          minZoom={0.04}
+          defaultZoom={0.5}
           // onLoad={setRfInstance}
           panOnScroll={false}
+          nodesDraggable={false}
+          nodesConnectable={false}
         >
-          <Controls />
+          <Controls defaultChecked />
           <Background />
           <MiniMap />
         </ReactFlow>
-      </Frame>
-    </div>
+      </ReactFlowProvider>
+    </Frame>
   )
 }
+
 const Frame = styled.div`
   width: 100%;
-  height: 500px;
   border: solid 1px #ccc;
 `
 
