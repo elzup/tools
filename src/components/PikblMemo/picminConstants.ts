@@ -2,22 +2,19 @@ import { ComponentType } from 'react'
 import {
   FaBreadSlice,
   FaBug,
-  FaCampground,
   FaCapsules,
   FaCoffee,
   FaCut,
   FaEnvelope,
   FaFilm,
   FaHamburger,
-  FaIceCream,
   FaLandmark,
+  FaMapMarkerAlt,
   FaPaw,
   FaPlane,
-  FaRoad,
   FaShoppingCart,
   FaSnowflake,
   FaStar,
-  FaStore,
   FaTrain,
   FaTree,
   FaTshirt,
@@ -25,7 +22,15 @@ import {
   FaUtensils,
   FaWater,
 } from 'react-icons/fa'
-import { GiAcorn, GiBananaBunch, GiClover, GiMushroom } from 'react-icons/gi'
+import {
+  GiAcorn,
+  GiBananaBunch,
+  GiClover,
+  GiMonsteraLeaf,
+  GiMushroom,
+  GiParkBench,
+} from 'react-icons/gi'
+import { RiCake3Line, RiStore3Fill } from 'react-icons/ri'
 
 type Pikmin = {
   id: string
@@ -41,7 +46,7 @@ export type GroupBase = {
   only?: string[]
   sp?: true
 }
-export type Group = GroupBase & {
+export type Group = Omit<GroupBase, 'sp'> & {
   sp: boolean
 }
 
@@ -58,7 +63,7 @@ export const picmins: Pikmin[] = [
 const groupsBases: GroupBase[] = [
   { id: 'a', name: 'レストラン', short: 'レ', icon: FaUtensils },
   { id: 'b', name: 'カフェ', short: 'カ', icon: FaCoffee },
-  { id: 'c', name: 'デザート', short: 'デ', icon: FaIceCream },
+  { id: 'c', name: 'デザート', short: 'デ', icon: RiCake3Line },
   { id: 'd', name: '映画館', short: '映', icon: FaFilm },
   { id: 'e', name: '薬局', short: '薬', icon: FaCapsules },
   { id: 'f', name: '動物園', short: '動', icon: FaPaw },
@@ -78,7 +83,7 @@ const groupsBases: GroupBase[] = [
   { id: 'm', name: '駅', short: '駅', icon: FaTrain },
   { id: 'n', name: '砂浜', short: '砂', icon: FaUmbrellaBeach },
   { id: 'o', name: 'バーガー', short: 'バ', icon: FaHamburger },
-  { id: 'p', name: 'コンビニ', short: 'コ', icon: FaStore },
+  { id: 'p', name: 'コンビニ', short: 'コ', icon: RiStore3Fill },
   {
     id: 'q1',
     name: '店-キノコ',
@@ -96,14 +101,26 @@ const groupsBases: GroupBase[] = [
   { id: 'v', name: 'ベーカリー', short: 'ベ', icon: FaBreadSlice },
   { id: 'w', name: '美容院', short: '美', icon: FaCut },
   { id: 'x', name: 'ファッション', short: 'ファ', icon: FaTshirt },
-  { id: 'y', name: '公園', short: '公', icon: FaCampground },
-  { id: 'y2', name: '四つ葉', short: '四', icon: GiClover },
-  { id: 'z', name: 'みちばた', short: 'み', icon: FaRoad },
+  {
+    id: 'y',
+    name: '公園-三つ葉',
+    short: '公',
+    icon: GiParkBench,
+    subIcon: GiMonsteraLeaf,
+  },
+  {
+    id: 'y2',
+    name: '公園-四つ葉',
+    short: '四',
+    icon: GiParkBench,
+    subIcon: GiClover,
+  },
+  { id: 'z', name: 'みちばた', short: 'み', icon: FaMapMarkerAlt },
   {
     id: 'z1',
     name: 'みちばた-冬',
     short: '冬',
-    icon: FaRoad,
+    icon: FaMapMarkerAlt,
     subIcon: FaSnowflake,
     sp: true,
   },
