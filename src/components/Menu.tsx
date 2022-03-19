@@ -24,6 +24,7 @@ import {
   faWindowMinimize,
   faWindowRestore,
   IconDefinition,
+  faFeatherAlt,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Typography } from '@mui/material'
@@ -162,6 +163,11 @@ const routings: RoutingGroup[] = [
         icon: faLightbulb,
         label: 'DivergenceMeter',
         path: '/divergence-meter',
+      },
+      {
+        icon: faFeatherAlt,
+        label: '進撃プロット',
+        path: '/shingeki',
       },
     ],
   },

@@ -9,8 +9,6 @@ export function toFlowElem(
 ) {
   const positionsById = keyBy(positions, (e) => e.id)
 
-  console.log(positionsById)
-
   const nodeElems = vertices.map(
     (node): Node<MmdVertex & { label: string }> => {
       const classes = [].filter(Boolean)
@@ -26,7 +24,6 @@ export function toFlowElem(
         },
         data: { ...node, label: node.text },
         className: classes.join(' '),
-        draggable: false,
         style: {
           borderWidth: 2,
         },
@@ -40,15 +37,11 @@ export function toFlowElem(
       id: `e${e.start}-${e.end}-${i}`,
       source: e.start,
       target: e.end,
-      type: arrowType,
-      // @ts-ignore
-      arrowHeadType: arrowType,
-      style: {
-        // borderWidth: 2,
-      },
-      animated: true,
+      markerEnd: arrowType,
+      // type: 's'
+      style: { stroke: 'black', strokeWidth: 2 },
     }
   })
 
-  return [...nodeElems, ...edgeElems]
+  return { nodes: nodeElems, edges: edgeElems }
 }

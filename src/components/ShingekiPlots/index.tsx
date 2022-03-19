@@ -1,6 +1,6 @@
-import { TextField, Typography } from '@mui/material'
+import { TextField } from '@mui/material'
 import React, { useMemo, useState } from 'react'
-import MmdGraph from '../MmdGraph'
+import StoryMmdGraph from '../StoryMmdGraphSample'
 import { useFetchText } from '../useFetch'
 
 type GraphBlock = {
@@ -40,18 +40,19 @@ function useBlocks(text?: string): GraphBlock[] {
     return blocks
   }, [text])
 }
+const plotUrl =
+  'https://raw.githubusercontent.com/elzup/story-plots/main/ShingekiNoKyojin.mmd'
 
-function MermaidUi() {
-  const [url, setUrl] = useState<string>(
-    'https://raw.githubusercontent.com/elzup/story-plots/main/sample/min-flow.mmd'
-  )
-  const { data, error: _error } = useFetchText(url)
+function Shingeki() {
+  const [url, setUrl] = useState<string>()
+  const { data, error: _error } = useFetchText(plotUrl)
   const blocks = useBlocks(data)
   const _all = { title: 'all', mmd: data || '' }
 
   return (
     <div>
       <TextField
+        style={{ display: 'none' }}
         label="url"
         multiline
         fullWidth
@@ -60,14 +61,15 @@ function MermaidUi() {
           setUrl(e.currentTarget.value)
         }}
       />
+      <StoryMmdGraph />
       {blocks.map((block, i) => (
         <div key={`${i}_${block.title}`}>
-          <Typography variant="h5">{block.title}</Typography>
-          <MmdGraph mmd={block.mmd} />
+          {/* <Typography variant="h5">{block.title}</Typography>
+          <MmdGraph mmd={block.mmd} /> */}
         </div>
       ))}
     </div>
   )
 }
 
-export default MermaidUi
+export default Shingeki
