@@ -1,5 +1,5 @@
-import { faStar, IconDefinition } from '@fortawesome/free-regular-svg-icons'
 import {
+  faClover,
   faAppleAlt,
   faBreadSlice,
   faBug,
@@ -25,6 +25,7 @@ import {
   faUtensils,
   faWater,
 } from '@fortawesome/free-solid-svg-icons'
+import { faStar, IconDefinition } from '@fortawesome/free-regular-svg-icons'
 
 type Pikmin = {
   id: string
@@ -37,6 +38,7 @@ export type Group = {
   short: string
   icon: IconDefinition
   only?: string[]
+  sp?: true
 }
 
 export const picmins: Pikmin[] = [
@@ -73,13 +75,15 @@ export const groups: Group[] = [
   { id: 'w', name: '美容院', short: '美', icon: faCut },
   { id: 'x', name: 'ファッション', short: 'ファ', icon: faTshirt },
   { id: 'y', name: '公園', short: '公', icon: faCampground },
+  { id: 'y2', name: '四つ葉', short: '四', icon: faClover },
   { id: 'z', name: 'みちばた', short: 'み', icon: faRoad },
-  { id: 'z1', name: 'みちばた-冬', short: '冬', icon: faSnowflake },
+  { id: 'z1', name: 'みちばた-冬', short: '冬', icon: faSnowflake, sp: true },
   {
     id: '_b',
     name: '旧正月',
     short: '正',
     icon: faStar,
+    sp: true,
     only: ['re', 'yw', 'bu'],
   },
 ]
