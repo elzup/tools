@@ -24,7 +24,7 @@ function MmdGraph({ mmd, height = '90vh' }: { mmd: string; height?: string }) {
           defaultZoom={0.5}
           // onLoad={setRfInstance}
           panOnScroll={false}
-          nodesDraggable
+          nodesDraggable={false}
           nodesConnectable={false}
         >
           <Controls defaultChecked />

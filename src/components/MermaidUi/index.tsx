@@ -41,7 +41,7 @@ function useBlocks(text?: string): GraphBlock[] {
   }, [text])
 }
 
-function MurmaidUi() {
+function MermaidUi() {
   const [url, setUrl] = useState<string>(
     'https://raw.githubusercontent.com/elzup/story-plots/main/sample/min-flow.mmd'
   )
@@ -70,4 +70,4 @@ function MurmaidUi() {
   )
 }
 
-export default MurmaidUi
+export default MermaidUi
