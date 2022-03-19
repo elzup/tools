@@ -119,7 +119,12 @@ function PikblMemo() {
                 }}
               >
                 <div className="group-label">
-                  <div>{<g.icon></g.icon>}</div>
+                  <div data-has-sub={!!g.subIcon}>
+                    <div className="main-icon">{<g.icon></g.icon>}</div>
+                    {g.subIcon && (
+                      <div className="sub-icon">{<g.subIcon></g.subIcon>}</div>
+                    )}
+                  </div>
                   <Typography variant="caption">{g.name}</Typography>
                 </div>
               </th>
@@ -182,7 +187,8 @@ const Style = styled.div`
     display: grid;
     justify-content: center;
     align-items: center;
-    height: 2rem;
+    height: 3rem;
+
     > * {
       text-align: center;
     }
@@ -190,6 +196,18 @@ const Style = styled.div`
       display: flex;
       justify-content: center;
       align-items: center;
+      font-size: 1.2rem;
+      &[data-has-sub='true'] {
+        .main-icon {
+          position: relative;
+          font-size: 0.9rem;
+          top: -6px;
+        }
+        .sub-icon {
+          position: relative;
+          left: -10px;
+        }
+      }
     }
   }
 
@@ -198,11 +216,13 @@ const Style = styled.div`
     th {
       height: 1.7rem;
       font-size: 1rem !important;
+      line-height: 1rem;
     }
     .group-label {
       > *:last-child {
         display: none;
       }
+      height: 1.4rem;
     }
     th {
       width: calc(100vw / 8);
