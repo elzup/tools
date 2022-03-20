@@ -14,6 +14,8 @@ type Props = {
   zoom?: number
   nodeSize?: { h: number; w: number }
   dire: 'LR' | 'TD'
+  hideMap?: boolean
+  hideCtl?: boolean
 }
 function MmdGraph({
   mmd,
@@ -21,6 +23,8 @@ function MmdGraph({
   zoom = 0.5,
   nodeSize = { h: 100, w: 200 },
   dire = 'TD',
+  hideMap = false,
+  hideCtl = false,
 }: Props) {
   const { flows } = useFlowGraph(mmd, nodeSize, dire)
 
@@ -31,6 +35,7 @@ function MmdGraph({
       <ReactFlowProvider>
         <ReactFlow
           id={mmd.split('')[1]}
+          style={{ background: 'white' }}
           defaultNodes={flows.nodes}
           defaultEdges={flows.edges}
           minZoom={0.04}
@@ -40,9 +45,9 @@ function MmdGraph({
           nodesDraggable={false}
           nodesConnectable={false}
         >
-          <Controls defaultChecked />
+          {!hideCtl && <Controls defaultChecked />}
           <Background />
-          <MiniMap />
+          {!hideMap && <MiniMap />}
         </ReactFlow>
       </ReactFlowProvider>
     </Frame>

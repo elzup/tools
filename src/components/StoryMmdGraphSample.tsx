@@ -13,13 +13,17 @@ G[原因]  x--x H[対比,オマージュ]
 
 function StoryMmdGraph() {
   return (
-    <MmdGraph
-      mmd={storyMmd}
-      height={'300px'}
-      zoom={1}
-      nodeSize={{ w: 180, h: 40 }}
-      dire={'LR'}
-    />
+    <div style={{ width: '500px' }}>
+      <MmdGraph
+        mmd={storyMmd}
+        height={'300px'}
+        zoom={1}
+        nodeSize={{ w: 180, h: 40 }}
+        hideMap
+        hideCtl
+        dire={'LR'}
+      />
+    </div>
   )
 }
 
