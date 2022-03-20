@@ -1,5 +1,10 @@
 import { keyBy } from 'lodash'
-import { Edge, Node, Position as RfPosition } from 'react-flow-renderer'
+import {
+  Edge,
+  MarkerType,
+  Node,
+  Position as RfPosition,
+} from 'react-flow-renderer'
 import { MmdEdge, MmdVertex, Position } from './types'
 
 export function toFlowElem(
@@ -36,13 +41,19 @@ export function toFlowElem(
     }
   )
   const edgeElems = edges.map((e, i): Edge => {
-    const arrowType = e.type === 'arrow_point' ? 'arrowclosed' : 'arrow'
+    console.log(e)
+
+    const markerEnd =
+      e.type === 'arrow_point'
+        ? { type: MarkerType.ArrowClosed }
+        : { type: MarkerType.Arrow }
 
     return {
       id: `e${e.start}-${e.end}-${i}`,
       source: e.start,
       target: e.end,
-      markerEnd: arrowType,
+      markerEnd,
+      ...(e.text ? { label: e.text } : {}),
       // type: 's'
       style: { stroke: 'black', strokeWidth: 2 },
     }
