@@ -5,9 +5,14 @@ import { MmdEdge, MmdVertex, Position } from './types'
 export function toFlowElem(
   vertices: MmdVertex[],
   edges: MmdEdge[],
-  positions: Position[]
+  positions: Position[],
+  dire: 'TD' | 'LR' = 'TD'
 ) {
   const positionsById = keyBy(positions, (e) => e.id)
+  const [targetPosition, sourcePosition] = {
+    TD: [RfPosition.Top, RfPosition.Bottom],
+    LR: [RfPosition.Left, RfPosition.Right],
+  }[dire]
 
   const nodeElems = vertices.map(
     (node): Node<MmdVertex & { label: string }> => {
@@ -15,8 +20,8 @@ export function toFlowElem(
 
       return {
         id: node.id,
-        targetPosition: RfPosition.Top,
-        sourcePosition: RfPosition.Bottom,
+        targetPosition,
+        sourcePosition,
         type: 'default',
         position: {
           x: positionsById[node.id].x || 0,

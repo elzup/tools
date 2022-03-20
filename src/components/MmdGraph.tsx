@@ -8,8 +8,21 @@ import ReactFlow, {
 import styled from 'styled-components'
 import { useFlowGraph } from './MermaidUi/useFlowGraph'
 
-function MmdGraph({ mmd, height = '90vh' }: { mmd: string; height?: string }) {
-  const { flows } = useFlowGraph(mmd)
+type Props = {
+  mmd: string
+  height?: string
+  zoom?: number
+  nodeSize?: { h: number; w: number }
+  dire: 'LR' | 'TD'
+}
+function MmdGraph({
+  mmd,
+  height = '90vh',
+  zoom = 0.5,
+  nodeSize = { h: 100, w: 200 },
+  dire = 'TD',
+}: Props) {
+  const { flows } = useFlowGraph(mmd, nodeSize, dire)
 
   if (flows.nodes.length === 0) return null
 
@@ -21,7 +34,7 @@ function MmdGraph({ mmd, height = '90vh' }: { mmd: string; height?: string }) {
           defaultNodes={flows.nodes}
           defaultEdges={flows.edges}
           minZoom={0.04}
-          defaultZoom={0.5}
+          defaultZoom={zoom}
           // onLoad={setRfInstance}
           panOnScroll={false}
           nodesDraggable={false}
