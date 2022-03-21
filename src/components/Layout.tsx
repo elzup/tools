@@ -8,6 +8,7 @@ import Footer from './Footer'
 type Props = {
   title?: string
   fullWidth?: boolean
+  top?: boolean
 }
 
 const Layout: React.FC<Props & { currentPath: string }> = ({
@@ -15,6 +16,7 @@ const Layout: React.FC<Props & { currentPath: string }> = ({
   title = 'mini web tools by anozon',
   fullWidth,
   currentPath,
+  top = false,
 }) => {
   const contentsBody = <>{children}</>
 
@@ -25,7 +27,7 @@ const Layout: React.FC<Props & { currentPath: string }> = ({
         <meta charSet="utf-8" />
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
-      <Box>
+      <Box sx={top ? {} : { minHeight: '100vh' }}>
         {fullWidth ? contentsBody : <Container>{contentsBody}</Container>}
       </Box>
       <Footer {...{ currentPath }} />
