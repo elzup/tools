@@ -95,8 +95,6 @@ function PikblMemo() {
   }, [memo])
   const tableViewGroups = comp ? sortGroups : groups
 
-  console.log(sortGroups)
-
   return (
     <Style>
       <Box style={{ marginLeft: '8px' }}>
