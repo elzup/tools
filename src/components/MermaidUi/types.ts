@@ -9,7 +9,7 @@ export type MmdEdge = {
   start: string
   end: string
   stroke: 'normal' | 'thick' | 'dotted'
-  type: 'arrow_point' | 'arrow_open'
+  type: 'arrow_point' | 'arrow_open' | 'double_arrow_cross' | 'arrow_circle'
   text: string
 }
 

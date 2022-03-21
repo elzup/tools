@@ -43,20 +43,38 @@ export function toFlowElem(
   const edgeElems = edges.map((e, i): Edge => {
     console.log(e)
 
-    const markerEnd =
-      e.type === 'arrow_point'
-        ? { type: MarkerType.ArrowClosed }
-        : { type: MarkerType.Arrow }
-
-    return {
+    const options = {
       id: `e${e.start}-${e.end}-${i}`,
       source: e.start,
       target: e.end,
-      markerEnd,
-      ...(e.text ? { label: e.text } : {}),
       // type: 's'
       style: { stroke: 'black', strokeWidth: 2 },
+    } as Edge
+
+    if (e.stroke !== 'normal') {
+      options.style = {
+        ...options.style,
+        strokeDasharray: '10',
+        stroke: 'gray',
+      }
     }
+    if (e.type === 'arrow_point') {
+      options.markerEnd = { type: MarkerType.ArrowClosed, color: 'black' }
+      options.style = { ...options.style, stroke: 'black' }
+    } else if (e.type === 'arrow_circle') {
+      options.markerEnd = { type: MarkerType.ArrowClosed, color: 'green' }
+      options.style = {
+        ...options.style,
+        strokeDasharray: '10',
+        stroke: 'green',
+      }
+    } else if (e.type === 'double_arrow_cross') {
+      options.style = { ...options.style, strokeDasharray: '5' }
+    }
+
+    if (e.text) options.label = e.text
+
+    return options
   })
 
   return { nodes: nodeElems, edges: edgeElems }
