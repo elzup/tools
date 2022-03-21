@@ -8,8 +8,25 @@ import ReactFlow, {
 import styled from 'styled-components'
 import { useFlowGraph } from './MermaidUi/useFlowGraph'
 
-function MmdGraph({ mmd, height = '90vh' }: { mmd: string; height?: string }) {
-  const { flows } = useFlowGraph(mmd)
+type Props = {
+  mmd: string
+  height?: string
+  zoom?: number
+  nodeSize?: { h: number; w: number }
+  dire: 'LR' | 'TD'
+  hideMap?: boolean
+  hideCtl?: boolean
+}
+function MmdGraph({
+  mmd,
+  height = '90vh',
+  zoom = 0.5,
+  nodeSize = { h: 100, w: 200 },
+  dire = 'TD',
+  hideMap = false,
+  hideCtl = false,
+}: Props) {
+  const { flows } = useFlowGraph(mmd, nodeSize, dire)
 
   if (flows.nodes.length === 0) return null
 
@@ -18,18 +35,19 @@ function MmdGraph({ mmd, height = '90vh' }: { mmd: string; height?: string }) {
       <ReactFlowProvider>
         <ReactFlow
           id={mmd.split('')[1]}
+          style={{ background: 'white' }}
           defaultNodes={flows.nodes}
           defaultEdges={flows.edges}
           minZoom={0.04}
-          defaultZoom={0.5}
+          defaultZoom={zoom}
           // onLoad={setRfInstance}
           panOnScroll={false}
           nodesDraggable={false}
           nodesConnectable={false}
         >
-          <Controls defaultChecked />
+          {!hideCtl && <Controls defaultChecked />}
           <Background />
-          <MiniMap />
+          {!hideMap && <MiniMap />}
         </ReactFlow>
       </ReactFlowProvider>
     </Frame>

@@ -1,8 +1,15 @@
 import { faCheck, faLeaf } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { Box, FormControlLabel, Switch, Typography } from '@mui/material'
+import {
+  Box,
+  Container,
+  FormControlLabel,
+  Switch,
+  Typography,
+} from '@mui/material'
 import { omit } from 'lodash'
 import React, { useEffect, useMemo } from 'react'
+import { RiPlantLine } from 'react-icons/ri'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
 import { Group, groups, picmins } from './picminConstants'
@@ -61,8 +68,11 @@ function count<T>(a: T[], func: (v: T) => boolean): number {
 const leastCount = (cmemo: Record<string, MemoState>, group: Group) => {
   const total = group.only ? group.only.length : picmins.length
   const memos = Object.values(cmemo || {})
+  const get = count(memos, (v) => v === 'get')
+  const pre = count(memos, (v) => v === 'pre')
+  const emp = total - get - pre
 
-  return total - count(memos, (v) => v === 'get')
+  return { least: total - get, get, emp, pre }
 }
 
 function PikblMemo() {
@@ -70,11 +80,22 @@ function PikblMemo() {
   const [desc, setDesc] = useLocalStorage<boolean>('pkbl-desk-mode', false)
   const [comp, setComp] = useLocalStorage<boolean>('pkbl-smart-mode', false)
 
-  const sortGroups = useMemo(() => {
-    if (!comp) return groups
+  const { sortGroups } = useMemo(() => {
+    const groupsWithCount = groups.map((v) => ({
+      ...v,
+      count: leastCount(memo[v.id], v),
+    }))
 
-    return sort(groups, (v) => leastCount(memo[v.id], v))
-  }, [memo, comp])
+    const sortGroups = sort(
+      groupsWithCount,
+      (v) => v.count.least - v.count.pre * 0.9
+    )
+
+    return { sortGroups }
+  }, [memo])
+  const tableViewGroups = comp ? sortGroups : groups
+
+  console.log(sortGroups)
 
   return (
     <Style>
@@ -110,7 +131,7 @@ function PikblMemo() {
               </th>
             ))}
           </tr>
-          {sortGroups.map((g) => (
+          {tableViewGroups.map((g) => (
             <tr key={g.id}>
               <th
                 onClick={() => {
@@ -148,6 +169,49 @@ function PikblMemo() {
           ))}
         </tbody>
       </table>
+      <Container>
+        <Typography>リーチ</Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+          {sortGroups.filter(({ count: { emp: v } }) => 1 <= v && v <= 2)
+            .length === 0 && <div>なし</div>}
+          {sortGroups
+            .filter(({ count: { emp: v } }) => 1 <= v && v <= 2)
+            .map((g) => (
+              <Box
+                p={1}
+                key={g.id}
+                sx={{ border: 'solid 1px', borderRadius: '4px' }}
+              >
+                <div className="label">
+                  <Typography>{g.name}</Typography>
+                  <g.icon></g.icon>
+                </div>
+                <Box key={g.id} sx={{ display: 'flex' }}>
+                  {(g.only
+                    ? picmins.filter((p) => g.only?.find((v) => v === p.id))
+                    : picmins
+                  )
+                    .filter((p) => p !== undefined)
+                    .filter(
+                      (p) =>
+                        memo[g.id]?.[p.id] === 'emp' ||
+                        memo[g.id]?.[p.id] === undefined
+                    )
+                    .map((p) => (
+                      <div
+                        className="least"
+                        key={p.id}
+                        style={{ background: p.color }}
+                      >
+                        <RiPlantLine></RiPlantLine>
+                        <p>{p.name}</p>
+                      </div>
+                    ))}
+                </Box>
+              </Box>
+            ))}
+        </Box>
+      </Container>
     </Style>
   )
 }
@@ -226,6 +290,23 @@ const Style = styled.div`
     }
     th {
       width: calc(100vw / 8);
+    }
+  }
+  .label {
+    display: flex;
+  }
+  .least {
+    display: flex;
+    text-align: center;
+    border-radius: 4px;
+    padding: 4px;
+    margin: 4px;
+    svg {
+      margin-top: 4px;
+    }
+    p {
+      padding: 0;
+      margin: 0;
     }
   }
 `
