@@ -7,7 +7,7 @@ import Layout from '../components/Layout'
 
 const IndexPage: NextPage = () => {
   return (
-    <Layout title="Home | Next.js + TypeScript Example">
+    <Layout title="Home | Next.js + TypeScript Example" top>
       <Box sx={{ textAlign: 'center', m: 3 }}>
         <Typography variant="h1">
           <div>
