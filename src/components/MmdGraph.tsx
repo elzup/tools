@@ -13,7 +13,7 @@ type Props = {
   height?: string
   zoom?: number
   nodeSize?: { h: number; w: number }
-  dire: 'LR' | 'TD'
+  dire?: 'LR' | 'TD'
   hideMap?: boolean
   hideCtl?: boolean
 }
