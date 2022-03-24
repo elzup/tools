@@ -17,4 +17,5 @@ function Kotobaru() {
     </div>
   )
 }
+
 export default Kotobaru

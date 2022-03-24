@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "name": "Kotobaru",
+  "short_name": "Kotobaru",
+  "start_url": "/kotobaru",
+  "display": "standalone",
+  "background_color": "#fff",
+  "description": "日本語 Wordle パズル",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
