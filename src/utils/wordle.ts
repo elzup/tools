@@ -62,12 +62,14 @@ export type WordleGame = {
   target: string
   step: 'start' | 'failed' | 'clear'
   answerResults: WordleAnswerResult[]
+  used: Record<string, undefined | 'hit' | 'blow'>
 }
 
 export const initGame: WordleGame = {
   target: '',
   step: 'start',
   answerResults: [],
+  used: {},
 }
 
 export const createGame = (target: string) => ({ ...initGame, target })
