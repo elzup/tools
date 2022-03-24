@@ -168,8 +168,8 @@ function PikblMemo() {
         </tbody>
       </table>
       <Container>
-        <Typography>リーチ</Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+        <Typography variant="h5">リーチ</Typography>
+        <Box pb={1} sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
           {sortGroups.filter(({ count: { emp: v } }) => 1 <= v && v <= 2)
             .length === 0 && <div>なし</div>}
           {sortGroups

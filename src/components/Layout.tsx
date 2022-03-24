@@ -27,7 +27,7 @@ const Layout: React.FC<Props & { currentPath: string }> = ({
         <meta charSet="utf-8" />
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
-      <Box sx={top ? {} : { minHeight: '100vh' }}>
+      <Box sx={top ? {} : { minHeight: '100vh', height: 'max-content' }}>
         {fullWidth ? contentsBody : <Container>{contentsBody}</Container>}
       </Box>
       <Footer {...{ currentPath }} />
