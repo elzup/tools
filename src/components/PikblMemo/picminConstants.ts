@@ -29,6 +29,7 @@ import {
   GiMonsteraLeaf,
   GiMushroom,
   GiParkBench,
+  GiSushis,
 } from 'react-icons/gi'
 import { RiCake3Line, RiStore3Fill } from 'react-icons/ri'
 
@@ -131,6 +132,14 @@ const groupsBases: GroupBase[] = [
     name: '旧正月',
     short: '正',
     icon: FaStar,
+    sp: true,
+    only: ['re', 'yw', 'bu'],
+  },
+  {
+    id: 'aa',
+    name: 'お寿司屋さん',
+    short: '寿',
+    icon: GiSushis,
     sp: true,
     only: ['re', 'yw', 'bu'],
   },
