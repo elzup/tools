@@ -47,10 +47,10 @@ function usePikminDb() {
         },
       }))
     },
-    checkAll: (groupId: string) => {
+    checkAll: (groupId: string, pids = picmins.map((p) => p.id)) => {
       setMemo((prev) => ({
         ...prev,
-        [groupId]: picmins.reduce((acc, p) => ({ ...acc, [p.id]: 'get' }), {}),
+        [groupId]: pids.reduce((acc, p) => ({ ...acc, [p]: 'get' }), {}),
       }))
     },
   }
@@ -137,7 +137,7 @@ function PikblMemo() {
               <th
                 onClick={() => {
                   if (confirm(`"${g.name}"をすべてチェックしますか?`))
-                    checkAll(g.id)
+                    checkAll(g.id, g.only)
                 }}
               >
                 <div className="group-label">
