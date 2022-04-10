@@ -46,6 +46,8 @@ export type GroupBase = {
   only?: string[]
   sp?: true
 }
+
+export type MemoState = undefined | 'emp' | 'pre' | 'get'
 export type Group = Omit<GroupBase, 'sp'> & {
   sp: boolean
 }

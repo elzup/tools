@@ -9,12 +9,11 @@ import {
 } from '@mui/material'
 import { omit } from 'lodash'
 import React, { useEffect, useMemo } from 'react'
-import { RiPlantLine } from 'react-icons/ri'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
-import { Group, groups, picmins } from './picminConstants'
+import { Group, groups, MemoState, picmins } from './picminConstants'
+import ReachItem from './ReachItem'
 
-type MemoState = undefined | 'emp' | 'pre' | 'get'
 const memoList: MemoState[] = ['emp', 'pre', 'get']
 const nextState = (current: MemoState) => {
   return memoList[(memoList.indexOf(current || 'emp') + 1) % memoList.length]
@@ -97,6 +96,7 @@ function PikblMemo() {
   const reachGroups = sortGroups.filter(
     ({ count: { emp: v } }) => 1 <= v && v <= 2
   )
+  const compGroups = sortGroups.filter(({ count: { emp: v } }) => v === 0)
 
   return (
     <Style>
@@ -175,36 +175,14 @@ function PikblMemo() {
         <Box sx={{ pb: 1, display: 'grid', gap: '4px' }}>
           {reachGroups.length === 0 && <div>なし</div>}
           {reachGroups.map((g) => (
-            <Box className="reach-item" key={g.id} sx={{}}>
-              <div className="label">
-                <Typography>{g.name}</Typography>
-                <div>
-                  <g.icon></g.icon>
-                </div>
-              </div>
-              <Box key={g.id} sx={{ display: 'flex' }}>
-                {(g.only
-                  ? picmins.filter((p) => g.only?.find((v) => v === p.id))
-                  : picmins
-                )
-                  .filter((p) => p !== undefined)
-                  .filter(
-                    (p) =>
-                      memo[g.id]?.[p.id] === 'emp' ||
-                      memo[g.id]?.[p.id] === undefined
-                  )
-                  .map((p) => (
-                    <div
-                      className="least"
-                      key={p.id}
-                      style={{ background: p.color }}
-                    >
-                      <RiPlantLine></RiPlantLine>
-                      <p>{p.name}</p>
-                    </div>
-                  ))}
-              </Box>
-            </Box>
+            <ReachItem key={g.id} group={g} memo={memo[g.id]} />
+          ))}
+        </Box>
+        <Typography variant="h5">コンプ</Typography>
+        <Box sx={{ pb: 1, display: 'grid', gap: '4px' }}>
+          {compGroups.length === 0 && <div>なし</div>}
+          {compGroups.map((g) => (
+            <Box key={g.id}></Box>
           ))}
         </Box>
       </Container>
@@ -300,18 +278,6 @@ const Style = styled.div`
     p {
       padding: 0;
       margin: 0;
-    }
-  }
-  .reach-item {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 140px 1fr;
-    .label {
-      padding-top: 8px;
-      display: flex;
-      > div {
-        padding-top: 2px;
-      }
     }
   }
 `
