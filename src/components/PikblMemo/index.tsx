@@ -179,10 +179,20 @@ function PikblMemo() {
           ))}
         </Box>
         <Typography variant="h5">コンプ</Typography>
-        <Box sx={{ pb: 1, display: 'grid', gap: '4px' }}>
-          {compGroups.length === 0 && <div>なし</div>}
+        {compGroups.length === 0 && <div>なし</div>}
+        <Box sx={{ pb: 1, display: 'flex', gap: '4px' }}>
           {compGroups.map((g) => (
-            <Box key={g.id}></Box>
+            <Box key={g.id} p={1} m={1} className="comp-wrap">
+              <div className="group-label">
+                <div data-has-sub={!!g.subIcon}>
+                  <div className="main-icon">{<g.icon></g.icon>}</div>
+                  {g.subIcon && (
+                    <div className="sub-icon">{<g.subIcon></g.subIcon>}</div>
+                  )}
+                </div>
+                <Typography variant="caption">{g.name}</Typography>
+              </div>
+            </Box>
           ))}
         </Box>
       </Container>
@@ -279,6 +289,16 @@ const Style = styled.div`
       padding: 0;
       margin: 0;
     }
+  }
+  .comp-wrap {
+    width: 100px;
+    height: 100px;
+    border: 4px solid #fffbd6;
+    box-shadow: 0 0 4px #888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
   }
 `
 
