@@ -94,6 +94,9 @@ function PikblMemo() {
     return { sortGroups }
   }, [memo])
   const tableViewGroups = comp ? sortGroups : groups
+  const reachGroups = sortGroups.filter(
+    ({ count: { emp: v } }) => 1 <= v && v <= 2
+  )
 
   return (
     <Style>
@@ -169,45 +172,40 @@ function PikblMemo() {
       </table>
       <Container>
         <Typography variant="h5">リーチ</Typography>
-        <Box pb={1} sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-          {sortGroups.filter(({ count: { emp: v } }) => 1 <= v && v <= 2)
-            .length === 0 && <div>なし</div>}
-          {sortGroups
-            .filter(({ count: { emp: v } }) => 1 <= v && v <= 2)
-            .map((g) => (
-              <Box
-                p={1}
-                key={g.id}
-                sx={{ border: 'solid 1px', borderRadius: '4px' }}
-              >
-                <div className="label">
-                  <Typography>{g.name}</Typography>
+        <Box sx={{ pb: 1, display: 'grid', gap: '4px' }}>
+          {reachGroups.length === 0 && <div>なし</div>}
+          {reachGroups.map((g) => (
+            <Box className="reach-item" key={g.id} sx={{}}>
+              <div className="label">
+                <Typography>{g.name}</Typography>
+                <div>
                   <g.icon></g.icon>
                 </div>
-                <Box key={g.id} sx={{ display: 'flex' }}>
-                  {(g.only
-                    ? picmins.filter((p) => g.only?.find((v) => v === p.id))
-                    : picmins
+              </div>
+              <Box key={g.id} sx={{ display: 'flex' }}>
+                {(g.only
+                  ? picmins.filter((p) => g.only?.find((v) => v === p.id))
+                  : picmins
+                )
+                  .filter((p) => p !== undefined)
+                  .filter(
+                    (p) =>
+                      memo[g.id]?.[p.id] === 'emp' ||
+                      memo[g.id]?.[p.id] === undefined
                   )
-                    .filter((p) => p !== undefined)
-                    .filter(
-                      (p) =>
-                        memo[g.id]?.[p.id] === 'emp' ||
-                        memo[g.id]?.[p.id] === undefined
-                    )
-                    .map((p) => (
-                      <div
-                        className="least"
-                        key={p.id}
-                        style={{ background: p.color }}
-                      >
-                        <RiPlantLine></RiPlantLine>
-                        <p>{p.name}</p>
-                      </div>
-                    ))}
-                </Box>
+                  .map((p) => (
+                    <div
+                      className="least"
+                      key={p.id}
+                      style={{ background: p.color }}
+                    >
+                      <RiPlantLine></RiPlantLine>
+                      <p>{p.name}</p>
+                    </div>
+                  ))}
               </Box>
-            ))}
+            </Box>
+          ))}
         </Box>
       </Container>
     </Style>
@@ -290,9 +288,6 @@ const Style = styled.div`
       width: calc(100vw / 8);
     }
   }
-  .label {
-    display: flex;
-  }
   .least {
     display: flex;
     text-align: center;
@@ -305,6 +300,18 @@ const Style = styled.div`
     p {
       padding: 0;
       margin: 0;
+    }
+  }
+  .reach-item {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    .label {
+      padding-top: 8px;
+      display: flex;
+      > div {
+        padding-top: 2px;
+      }
     }
   }
 `
