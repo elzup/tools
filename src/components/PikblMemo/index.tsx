@@ -180,9 +180,9 @@ function PikblMemo() {
         </Box>
         <Typography variant="h5">コンプ</Typography>
         {compGroups.length === 0 && <div>なし</div>}
-        <Box sx={{ pb: 1, display: 'flex', gap: '4px' }}>
+        <Box sx={{ pb: 1, display: 'flex', flexWrap: 'wrap' }}>
           {compGroups.map((g) => (
-            <Box key={g.id} p={1} m={1} className="comp-wrap">
+            <Box key={g.id} p={1} m={'6px'} className="comp-wrap">
               <div className="group-label">
                 <div data-has-sub={!!g.subIcon}>
                   <div className="main-icon">{<g.icon></g.icon>}</div>
