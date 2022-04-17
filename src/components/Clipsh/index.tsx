@@ -86,6 +86,9 @@ function ClipshContent() {
 }
 
 const Style = styled.div`
+  code {
+    overflow: scroll;
+  }
   .eval-code {
     font-size: 0.8rem;
     background: #bbb;
