@@ -5,6 +5,7 @@ type Config = {
   showList: boolean
   showName: boolean
   mode: 'a' | 'b'
+  showDict: boolean
 }
 
 const defaultConfig: Config = {
@@ -12,11 +13,13 @@ const defaultConfig: Config = {
   showList: true,
   showName: false,
   mode: 'a',
+  showDict: true,
 } as const
 
+const noop = () => {}
 const ConfigContext = createContext<[Config, (config: Config) => void]>([
   defaultConfig,
-  () => {},
+  noop,
 ])
 
 const migrate = (config: Config) => {
@@ -25,6 +28,8 @@ const migrate = (config: Config) => {
 
 export const ConfigProvider: React.FC = ({ children }) => {
   const [config, setConfig] = useState<Config>(defaultConfig)
+
+  console.log(config)
 
   useEffect(() => {
     if (config.version === defaultConfig.version) return
@@ -45,9 +50,16 @@ export const useSomeConfig = <Key extends keyof Config>(key: Key) => {
 
   return [
     config[key],
-    (v: Config[Key]) => setConfig({ ...config, [key]: v }),
+    (v: Config[Key]) => {
+      console.log({ v, config, key })
+      setConfig({ ...config, [key]: v })
+    },
   ] as const
 }
 
 // export const useShowList = () => useSomeConfig('showList')
-// export const useMode = () => useSomeConfig('mode')
+export const useShowDict = () => {
+  const [showDict, setShowDict] = useSomeConfig('showDict')
+
+  return { showDict, setShowDict, toggleShowDict: () => setShowDict(!showDict) }
+}

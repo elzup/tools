@@ -3,6 +3,7 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import styled from 'styled-components'
+import { ConfigProvider } from '../store'
 import Footer from './Footer'
 
 type Props = {
@@ -28,7 +29,9 @@ const Layout: React.FC<Props & { currentPath: string }> = ({
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <Box sx={top ? {} : { minHeight: '100vh', height: 'max-content' }}>
-        {fullWidth ? contentsBody : <Container>{contentsBody}</Container>}
+        <ConfigProvider>
+          {fullWidth ? contentsBody : <Container>{contentsBody}</Container>}
+        </ConfigProvider>
       </Box>
       <Footer {...{ currentPath }} />
     </Wrap>
