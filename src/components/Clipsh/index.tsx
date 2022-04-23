@@ -9,6 +9,8 @@ import { useClipsh } from './useClipsh'
 function ClipshContent() {
   const clipsh = useClipsh()
 
+  console.log(dictionaries)
+
   return (
     <Style>
       <Box m={'1rem'}>
@@ -37,18 +39,25 @@ function ClipshContent() {
         </div>
       </Box>
       <Box p={'.5rem'} style={{ display: 'flex' }}>
-        {[dictionaries.funcs, dictionaries.vars].map((descs, k) => (
+        {[
+          dictionaries.funcs.map((v) => ({ ...v, category: 'func' })),
+          dictionaries.vars.map((v) => ({ ...v, category: 'var' })),
+        ].map((descs, k) => (
           <Box key={k}>
-            {descs.map(({ code, desc }) => (
-              <div key={code} data-kb={k}>
+            {descs.map((des) => (
+              <div key={des.code} data-kb={k}>
                 <Button
                   variant="outlined"
                   size={'small'}
-                  onClick={() => clipsh.setQuery((v) => v + code)}
+                  data-category={des.category}
+                  onClick={() => clipsh.setQuery((v) => v + des.code)}
                 >
-                  {code}
+                  {des.code}
                 </Button>
-                <Typography variant="caption">{desc}</Typography>
+                <Box sx={{ display: 'grid' }}>
+                  <Typography variant="caption">{des.desc}</Typography>
+                  <Typography variant="caption">{des.docCode}</Typography>
+                </Box>
               </div>
             ))}
           </Box>
@@ -110,6 +119,14 @@ const Style = styled.div`
     display: flex;
     gap: 4px;
     margin-bottom: 4px;
+  }
+  button {
+    &[data-category='func'] {
+      background: #f0faaa;
+    }
+    &[data-category='var'] {
+      background: #aaf0f0;
+    }
   }
 `
 

@@ -50,7 +50,7 @@
     "seedrandom": "^3.0.5",
     "styled-components": "^5.3.3",
     "swr": "^1.2.2",
-    "tequery": "^2.1.0",
+    "tequery": "^2.3.1",
     "through": "^2.3.8"
   },
   "devDependencies": {
