@@ -13,6 +13,7 @@
     "type-check": "tsc"
   },
   "dependencies": {
+    "@elzup/kindof": "^0.4.6",
     "@elzup/kit": "^2.1.0",
     "@emotion/react": "^11.8.1",
     "@emotion/styled": "^11.8.1",
