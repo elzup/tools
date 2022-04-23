@@ -8,6 +8,20 @@ import { dictionaries } from 'tequery/dist/dictionary'
 import { useShowDict } from '../../store'
 import { useClipsh } from './useClipsh'
 
+const makePreviewPre = (resultRaw: unknown): string => {
+  switch (typeof resultRaw) {
+    case 'object':
+      return (
+        JSON.stringify(Array.isArray(resultRaw) ? resultRaw[0] : resultRaw) ||
+        ''
+      )
+    default:
+      return String(resultRaw)
+  }
+}
+const makePreview = (resultRaw: unknown): string =>
+  makePreviewPre(resultRaw).split('\n')[0].slice(0, 20)
+
 function ClipshContent() {
   const clipsh = useClipsh()
   const { showDict, toggleShowDict } = useShowDict()
@@ -21,7 +35,7 @@ function ClipshContent() {
       : `${returnType}(${returnKind})`
   })()
 
-  console.log({ showDict })
+  const resultPreview = makePreview(clipsh.teq.resultRaw)
 
   return (
     <Style>
@@ -47,11 +61,16 @@ function ClipshContent() {
         />
         <div style={{ display: 'flex' }}>
           <code className="eval-code">
+            <pre style={{ background: '#ded' }}>{'builded'}</pre>
             <pre>{clipsh.teq.evalQuery || ' '}</pre>
           </code>
-          <code className="eval-code" style={{ display: 'flex' }}>
-            <pre style={{ background: '#ded' }}>{'=>'}</pre>
+          <code className="eval-code">
+            <pre style={{ background: '#dde' }}>{'=> type'}</pre>
             <pre>{typeLabel}</pre>
+          </code>
+          <code className="eval-code">
+            <pre style={{ background: '#dde' }}>{'=> raw'}</pre>
+            <pre>{resultPreview}</pre>
           </code>
         </div>
       </Box>
@@ -118,6 +137,7 @@ const Style = styled.div`
     overflow: scroll;
   }
   .eval-code {
+    display: flex;
     font-size: 0.8rem;
     margin: 4px;
     padding: 0px 8px 4px;
