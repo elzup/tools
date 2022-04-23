@@ -8,8 +8,8 @@ export const useTequeryMeta = (base: string, query: string) => {
   const teq = useTequery(base, query)
   const meta = useMemo(() => {
     return {
-      len: tequery(base, 'len'),
-      lineNum: tequery(base, 'lineNum'),
+      len: tequery(base, 'len').result,
+      lineNum: tequery(base, 'lineNum').result,
     }
   }, [base])
 
