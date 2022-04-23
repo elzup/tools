@@ -1,5 +1,5 @@
 import { kindof } from '@elzup/kindof'
-import { faCopy } from '@fortawesome/free-regular-svg-icons'
+import { faCopy, faPaste } from '@fortawesome/free-regular-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Box, Button, Grid, Link, TextField, Typography } from '@mui/material'
 import React from 'react'
@@ -103,7 +103,12 @@ function ClipshContent() {
       <Grid container>
         <Grid item xs={12} sm={12} md={6}>
           <Box m={'0.5rem'} className="input">
-            <Typography>clipboard</Typography>
+            <Typography>
+              input
+              <Button onClick={() => clipsh.syncClipboard()}>
+                <FontAwesomeIcon icon={faPaste} />
+              </Button>
+            </Typography>
             <TextField
               value={clipsh.base}
               multiline
