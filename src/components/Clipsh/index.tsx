@@ -90,6 +90,7 @@ function ClipshContent() {
             <code>
               <pre>{clipsh.teq.result}</pre>
             </code>
+            {JSON.stringify(clipsh.meta)}
           </Box>
         </Grid>
       </Grid>
