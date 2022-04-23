@@ -8,8 +8,10 @@ export const useClipsh = () => {
   const [base, setBase] = useState<string>('')
   const [history, pushHistory] = useLocalStorage<string[]>('clipsh-history', [])
 
+  const syncClipboard = () => readClipboard().then(setBase)
+
   useEffect(() => {
-    readClipboard().then(setBase)
+    syncClipboard()
   }, [])
 
   const { teq, meta } = useTequeryMeta(base, query)
@@ -30,5 +32,6 @@ export const useClipsh = () => {
     saveText: () => {
       writeClipboard(teq.result)
     },
+    syncClipboard,
   }
 }
