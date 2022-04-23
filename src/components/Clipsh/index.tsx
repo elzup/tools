@@ -1,3 +1,4 @@
+import { kindof } from '@elzup/kindof'
 import { faCopy } from '@fortawesome/free-regular-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Box, Button, Grid, Link, TextField, Typography } from '@mui/material'
@@ -10,6 +11,15 @@ import { useClipsh } from './useClipsh'
 function ClipshContent() {
   const clipsh = useClipsh()
   const { showDict, toggleShowDict } = useShowDict()
+
+  const typeLabel = (() => {
+    const returnKind = kindof(clipsh.teq.resultRaw)
+    const { returnType } = clipsh.teq
+
+    return returnKind === returnType
+      ? returnKind
+      : `${returnType}(${returnKind})`
+  })()
 
   console.log({ showDict })
 
@@ -29,14 +39,19 @@ function ClipshContent() {
           label="Query"
           error={clipsh.teq.status === 'ng'}
           helperText={
-            clipsh.teq.status === 'ng' &&
-            clipsh.teq.errorText.replace('eval', 'calc')
+            (clipsh.teq.status === 'ng' &&
+              clipsh.teq.errorText.replace('eval', 'calc')) ||
+            ' '
           }
           onChange={(e) => clipsh.setQuery(e.target.value)}
         />
         <div style={{ display: 'flex' }}>
-          <code>
-            <pre className="eval-code">{clipsh.teq.evalQuery}</pre>
+          <code className="eval-code">
+            <pre>{clipsh.teq.evalQuery || ' '}</pre>
+          </code>
+          <code className="eval-code" style={{ display: 'flex' }}>
+            <pre style={{ background: '#ded' }}>{'=>'}</pre>
+            <pre>{typeLabel}</pre>
           </code>
         </div>
       </Box>
@@ -104,8 +119,13 @@ const Style = styled.div`
   }
   .eval-code {
     font-size: 0.8rem;
-    background: #bbb;
-    padding: 0 1rem;
+    margin: 4px;
+    padding: 0px 8px 4px;
+    pre {
+      margin: 0;
+      background: #bbb;
+      padding: 2px 4px 4px;
+    }
   }
   .input {
   }

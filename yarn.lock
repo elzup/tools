@@ -1468,6 +1468,11 @@
   resolved "https://registry.yarnpkg.com/@braintree/sanitize-url/-/sanitize-url-3.1.0.tgz#8ff71d51053cd5ee4981e5a501d80a536244f7fd"
   integrity sha512-GcIY79elgB+azP74j8vqkiXz8xLFfIzbQJdlwOPisgbKT00tviJQuEghOXSMVxJ00HoYJbGswr4kcllUc4xCcg==
 
+"@elzup/kindof@^0.4.6":
+  version "0.4.6"
+  resolved "https://registry.yarnpkg.com/@elzup/kindof/-/kindof-0.4.6.tgz#aa042d679052a7932422d79d97f85e5116734802"
+  integrity sha512-+cQ/ytzjCQkkXbsZVNUWzIrH6bm9EGwgY0MqbilhG3Ahgle2IMBPFrL+nw4H061cj3QkFCe3T5CJqd++xb4JTA==
+
 "@elzup/kit@^2.1.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@elzup/kit/-/kit-2.1.0.tgz#5f01abba4d83eb54e0da6c94b3e9f4b5fb3cddff"

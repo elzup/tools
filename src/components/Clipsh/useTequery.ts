@@ -6,6 +6,7 @@ export const useTequery = (base: string, query: string) =>
 
 export const useTequeryMeta = (base: string, query: string) => {
   const teq = useTequery(base, query)
+
   const meta = useMemo(() => {
     return {
       len: tequery(base, 'len').result,
