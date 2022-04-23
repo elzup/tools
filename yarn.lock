@@ -9052,10 +9052,10 @@ tempy@^0.6.0:
     type-fest "^0.16.0"
     unique-string "^2.0.0"
 
-tequery@^2.1.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/tequery/-/tequery-2.3.0.tgz#46e80acf19d30432363bf159221182feb455c70a"
-  integrity sha512-iKFJZ2pegfXo/68vab/T6MDu64+EZOyv9aDOEx4qVL55fvNGR4AR67HXxUkOrCmachEL5kP3XOLEW4fz8xVg6g==
+tequery@^2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/tequery/-/tequery-2.3.1.tgz#f7d4655783b893a67d7b0038228d5f87a3195341"
+  integrity sha512-+unOhECn2E2aKfwefRTM8fwQj1a4xxwD5L+sliqPL9mBzwi6r1tbERJQGJm4B53LpaRi9bDnZnpurYrMAnSjRw==
 
 terminal-link@^2.0.0:
   version "2.1.1"
