@@ -4,12 +4,14 @@ import { Box, Button, Grid, Link, TextField, Typography } from '@mui/material'
 import React from 'react'
 import styled from 'styled-components'
 import { dictionaries } from 'tequery/dist/dictionary'
+import { useShowDict } from '../../store'
 import { useClipsh } from './useClipsh'
 
 function ClipshContent() {
   const clipsh = useClipsh()
+  const { showDict, toggleShowDict } = useShowDict()
 
-  console.log(dictionaries)
+  console.log({ showDict })
 
   return (
     <Style>
@@ -38,7 +40,8 @@ function ClipshContent() {
           </code>
         </div>
       </Box>
-      <Box p={'.5rem'} style={{ display: 'flex' }}>
+      <Button onClick={toggleShowDict}>Dict{showDict ? '▼' : '▶'}</Button>
+      <Box p={'1rem'} style={{ display: showDict ? 'flex' : 'none' }}>
         {[
           dictionaries.funcs.map((v) => ({ ...v, category: 'func' })),
           dictionaries.vars.map((v) => ({ ...v, category: 'var' })),
