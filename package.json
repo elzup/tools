@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@elzup/kindof": "^0.4.6",
-    "@elzup/kit": "^2.1.0",
+    "@elzup/kit": "^3.0.0",
     "@emotion/react": "^11.8.1",
     "@emotion/styled": "^11.8.1",
     "@fortawesome/fontawesome-svg-core": "^1.3.0",
@@ -51,7 +51,7 @@
     "seedrandom": "^3.0.5",
     "styled-components": "^5.3.3",
     "swr": "^1.2.2",
-    "tequery": "^2.3.1",
+    "tequery": "^2.4.0",
     "through": "^2.3.8"
   },
   "devDependencies": {
