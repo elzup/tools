@@ -7,8 +7,8 @@ type Props = {
 }
 function TypingPractice({ word }: Props) {
   const ans = range(10)
-    .map(() => word)
-    .join(' ')
+    .map(() => word + ' ')
+    .join('')
   const [text, setText] = React.useState('')
   const onChange = (text: string) => {
     if (text === ans) {
