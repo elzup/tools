@@ -14,9 +14,7 @@ export const useClipsh = () => {
     syncClipboard()
   }, [])
 
-  const { teq, meta } = useTequeryMeta(base, query)
-
-  // const  = useTequery(base, query)
+  const { teq, meta, suggestions } = useTequeryMeta(base, query)
 
   return {
     query,
@@ -25,6 +23,7 @@ export const useClipsh = () => {
     meta,
     base,
     setBase,
+    suggestions,
     beforeLn: base.split('\n').length,
     afterLn: teq.result.length,
     history,
