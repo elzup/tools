@@ -113,6 +113,7 @@ describe('answer', () => {
         ],
         "step": "start",
         "target": "abcde",
+        "used": Object {},
       }
     `)
   })
