@@ -74,8 +74,7 @@ function ClipshContent() {
           </code>
         </div>
       </Box>
-      <Button onClick={toggleShowDict}>Dict{showDict ? '▼' : '▶'}</Button>
-      <Box p={'1rem'} style={{ display: 'flex' }}>
+      <Box p={'1rem'} className="suggestions">
         {clipsh.suggestions.map(({ dict }, k) => (
           <div key={dict.name} data-kb={k}>
             <Button
@@ -86,13 +85,10 @@ function ClipshContent() {
             >
               {dict.code}
             </Button>
-            <Box sx={{ display: 'grid' }}>
-              <Typography variant="caption">{dict.desc}</Typography>
-              <Typography variant="caption">{dict.docCode}</Typography>
-            </Box>
           </div>
         ))}
       </Box>
+      <Button onClick={toggleShowDict}>Dict{showDict ? '▼' : '▶'}</Button>
       <Box p={'1rem'} style={{ display: showDict ? 'flex' : 'none' }}>
         {[
           dictionaries.funcs.map((v) => ({ ...v, category: 'func' })),
@@ -193,6 +189,12 @@ const Style = styled.div`
     }
     &[data-category='var'] {
       background: #aaf0f0;
+    }
+  }
+  .suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    button {
     }
   }
 `
