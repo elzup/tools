@@ -1,5 +1,6 @@
 import { ComponentType } from 'react'
 import {
+  FaBook,
   FaBreadSlice,
   FaBug,
   FaCapsules,
@@ -142,6 +143,12 @@ const groupsBases: GroupBase[] = [
     icon: GiSushis,
     sp: true,
     only: ['re', 'yw', 'bu'],
+  },
+  {
+    id: 'ab',
+    name: '本屋',
+    short: '本',
+    icon: FaBook,
   },
 ]
 
