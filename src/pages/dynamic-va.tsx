@@ -1,5 +1,5 @@
 import { range } from '@elzup/kit'
-import { randGen } from '@elzup/kit/lib/rand'
+import { randRange } from '@elzup/kit/lib/rand'
 import {
   Box,
   FormControlLabel,
@@ -15,13 +15,6 @@ import { Title } from '../components/Title'
 
 const title = 'Dynamic Visual acuity 動体視力'
 
-const randBasic = Math.random
-const makeRand = () => {
-  const r = randGen()
-}
-const randOrigin = makeRand()
-const funcs = [randBasic, randOrigin]
-
 type Config = {
   n: number
   speedMs: number
@@ -33,18 +26,24 @@ const initConfig: Config = {
   color: false,
 }
 
-type Pos = { x: number; y: number }
+type Point = { x: number; y: number; v: number }
 const RandInspect = () => {
   const [config, setConfig] = useState<Config>(initConfig)
   const { speedMs, n, color } = config
-  const [markers, setMarkers] = useState<Pos[]>([])
+  const [markers, setMarkers] = useState<Point[]>([])
 
   const toggleColor = () => setConfig((v) => ({ ...v, color: !v.color }))
   const setSpeedMs = (speedMs: number) => setConfig((v) => ({ ...v, speedMs }))
   const setN = (n: number) => setConfig((v) => ({ ...v, n }))
 
   useInterval(() => {
-    setMarkers(range(n).map((i) => ({ x: Math.random(), y: Math.random() })))
+    setMarkers(
+      range(n).map((i) => ({
+        x: Math.random(),
+        y: Math.random(),
+        v: randRange(Math.random() * 10, 1, 9),
+      }))
+    )
   }, speedMs)
 
   return (
@@ -90,7 +89,7 @@ const RandInspect = () => {
                 className="point"
                 style={{ top: `${m.y * 100}%`, left: `${m.x * 100}%` }}
               >
-                a
+                {m.v}
               </div>
             ))}
           </div>
@@ -111,11 +110,12 @@ const Style = styled.div`
       position: absolute;
       background: white;
       border-radius: 100px;
-      width: 20px;
-      height: 20px;
+      width: 40px;
+      height: 40px;
       text-align: center;
-      line-height: 20px;
-      color: white;
+      line-height: 40px;
+      color: black;
+      font-weight: bold;
     }
   }
 `
