@@ -24,7 +24,7 @@ type Config = {
 type Pos = { x: number; y: number }
 const RandInspect = () => {
   const [{ speedMs, n }, setConfig] = React.useState<Config>({
-    speedMs: 1000,
+    speedMs: 400,
     n: 2,
   })
   const [markers, setMarkers] = React.useState<Pos[]>([])
@@ -66,12 +66,19 @@ const RandInspect = () => {
 const Style = styled.div`
   #screen {
     width: 100%;
-    background: #ddd;
-    aspect-ratio: 1;
+    background: #000;
+    height: 90vh;
     position: relative;
 
     .point {
       position: absolute;
+      background: white;
+      border-radius: 100px;
+      width: 20px;
+      height: 20px;
+      text-align: center;
+      line-height: 20px;
+      color: white;
     }
   }
 `
