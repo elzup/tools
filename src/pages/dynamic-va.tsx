@@ -1,10 +1,11 @@
 import { range } from '@elzup/kit'
 import { randGen } from '@elzup/kit/lib/rand'
 import {
+  Box,
   FormControlLabel,
   Slider,
   Switch,
-  toggleButtonClasses,
+  Typography,
 } from '@mui/material'
 import React, { useState } from 'react'
 import { useInterval } from 'react-use'
@@ -26,18 +27,21 @@ type Config = {
   speedMs: number
   color: boolean
 }
+const initConfig: Config = {
+  speedMs: 500,
+  n: 3,
+  color: false,
+}
 
 type Pos = { x: number; y: number }
 const RandInspect = () => {
-  const [{ speedMs, n, color }, setConfig] = useState<Config>({
-    speedMs: 400,
-    n: 2,
-    color: false,
-  })
+  const [config, setConfig] = useState<Config>(initConfig)
+  const { speedMs, n, color } = config
   const [markers, setMarkers] = useState<Pos[]>([])
 
   const toggleColor = () => setConfig((v) => ({ ...v, color: !v.color }))
   const setSpeedMs = (speedMs: number) => setConfig((v) => ({ ...v, speedMs }))
+  const setN = (n: number) => setConfig((v) => ({ ...v, n }))
 
   useInterval(() => {
     setMarkers(range(n).map((i) => ({ x: Math.random(), y: Math.random() })))
@@ -47,23 +51,36 @@ const RandInspect = () => {
     <Layout title={title}>
       <Style>
         <Title>{title}</Title>
-        <div>
+        <div style={{ display: 'flex' }}>
           <FormControlLabel
             control={<Switch onClick={toggleColor} />}
-            label="ソート"
+            label="色"
             labelPlacement="end"
             checked={color}
           />
-          <Slider
-            aria-label="speed(ms)"
-            defaultValue={speedMs}
-            valueLabelDisplay="auto"
-            onChangeCommitted={(e, v) => setSpeedMs(Number(v))}
-            step={100}
-            marks
-            min={200}
-            max={1000}
-          />
+          <Box style={{ width: 200 }}>
+            <Typography>speed(ms)</Typography>
+            <Slider
+              defaultValue={speedMs}
+              valueLabelDisplay="auto"
+              onChangeCommitted={(e, v) => setSpeedMs(Number(v))}
+              step={100}
+              marks
+              min={200}
+              max={1000}
+            />
+          </Box>
+          <Box style={{ width: 200 }}>
+            <Typography>num</Typography>
+            <Slider
+              defaultValue={n}
+              valueLabelDisplay="auto"
+              onChangeCommitted={(e, v) => setN(Number(v))}
+              marks
+              min={1}
+              max={5}
+            />
+          </Box>
         </div>
         <div>
           <div id="screen">
