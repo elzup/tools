@@ -1,7 +1,12 @@
 import { range } from '@elzup/kit'
 import { randGen } from '@elzup/kit/lib/rand'
-import { FormControlLabel, Switch } from '@mui/material'
-import * as React from 'react'
+import {
+  FormControlLabel,
+  Slider,
+  Switch,
+  toggleButtonClasses,
+} from '@mui/material'
+import React, { useState } from 'react'
 import { useInterval } from 'react-use'
 import styled from 'styled-components'
 import Layout from '../components/Layout'
@@ -19,15 +24,20 @@ const funcs = [randBasic, randOrigin]
 type Config = {
   n: number
   speedMs: number
+  color: boolean
 }
 
 type Pos = { x: number; y: number }
 const RandInspect = () => {
-  const [{ speedMs, n }, setConfig] = React.useState<Config>({
+  const [{ speedMs, n, color }, setConfig] = useState<Config>({
     speedMs: 400,
     n: 2,
+    color: false,
   })
-  const [markers, setMarkers] = React.useState<Pos[]>([])
+  const [markers, setMarkers] = useState<Pos[]>([])
+
+  const toggleColor = () => setConfig((v) => ({ ...v, color: !v.color }))
+  const setSpeedMs = (speedMs: number) => setConfig((v) => ({ ...v, speedMs }))
 
   useInterval(() => {
     setMarkers(range(n).map((i) => ({ x: Math.random(), y: Math.random() })))
@@ -38,12 +48,22 @@ const RandInspect = () => {
       <Style>
         <Title>{title}</Title>
         <div>
-          {/* <FormControlLabel
-          control={<Switch onClick={() => setComp(!comp)}></Switch>}
-          label="ソート"
-          labelPlacement="end"
-          checked={comp}
-        /> */}
+          <FormControlLabel
+            control={<Switch onClick={toggleColor} />}
+            label="ソート"
+            labelPlacement="end"
+            checked={color}
+          />
+          <Slider
+            aria-label="speed(ms)"
+            defaultValue={speedMs}
+            valueLabelDisplay="auto"
+            onChangeCommitted={(e, v) => setSpeedMs(Number(v))}
+            step={100}
+            marks
+            min={200}
+            max={1000}
+          />
         </div>
         <div>
           <div id="screen">
