@@ -2,6 +2,7 @@ import {
   faIdBadge,
   faLightbulb,
   faStopCircle,
+  faEye,
 } from '@fortawesome/free-regular-svg-icons'
 import {
   faBowlingBall,
@@ -67,6 +68,11 @@ const routings: RoutingGroup[] = [
         icon: faClipboard,
         label: 'Clipsh',
         path: '/clipsh',
+      },
+      {
+        icon: faEye,
+        label: '動体視力トレ',
+        path: '/dynamic-va',
       },
     ],
   },
