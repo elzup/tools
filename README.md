@@ -11,5 +11,4 @@ Collection of Minimum web tools.
 - Next.js
 - TypeScript
 - MUI
-- QA Wolf
 
