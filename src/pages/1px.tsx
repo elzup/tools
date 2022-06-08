@@ -17,7 +17,7 @@ function gen1pxDataUrl(rgb: RGBColor) {
   if (!ctx) return ''
 
   ctx.clearRect(0, 0, size, size)
-  ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${rgb.a || 0})`
+  ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${rgb.a ?? 0})`
   ctx.fillRect(0, 0, size, size)
 
   return canvasElem.toDataURL()
