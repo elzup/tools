@@ -104,17 +104,17 @@ export const useGraph = (
     })
 
     m5s.reduce((p1, p2) => {
-      if (!p1) return p2
+      if (!Boolean(p1)) return p2
       lines.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, weight: 1.5 })
       return p2
     }, m5s[0])
 
     const h1s: PlotRect[] = plots.map((p, i) => {
       const isLast = i === plots.length - 1
-      const w = (size.width / CB_SIZE_H) * (isLast ? 2 : 1) // last length x2
+      const w = (size.width / CB_SIZE_H) * (Boolean(isLast) ? 2 : 1) // last length x2
       const h = ((p.h - p.l) / yd) * size.height
       const xr = (+p.time - left) / xd
-      const x = xr * size.width - w * (isLast ? 1 / 2 : 1)
+      const x = xr * size.width - w * (Boolean(isLast) ? 1 / 2 : 1)
       const y = toY(p.h)
 
       if (i >= CB_SIZE_H) {
@@ -129,10 +129,13 @@ export const useGraph = (
         const mmax = max - md
         const mmin = min + md
 
-        lines.push({ x1: x, x2: x + w, y1: max, y2: max, color: 0x00ff00 })
-        lines.push({ x1: x, x2: x + w, y1: min, y2: min, color: 0xff0000 })
-        lines.push({ x1: x, x2: x + w, y1: mmax, y2: mmax, color: 0x76d275 })
-        lines.push({ x1: x, x2: x + w, y1: mmin, y2: mmin, color: 0xff6090 })
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+        const x2 = x + w
+
+        lines.push({ x1: x, x2, y1: max, y2: max, color: 0x00ff00 })
+        lines.push({ x1: x, x2, y1: min, y2: min, color: 0xff0000 })
+        lines.push({ x1: x, x2, y1: mmax, y2: mmax, color: 0x76d275 })
+        lines.push({ x1: x, x2, y1: mmin, y2: mmin, color: 0xff6090 })
       }
 
       return { x, y, w, h }
