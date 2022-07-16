@@ -42,7 +42,7 @@ function useBlocks(text?: string): GraphBlock[] {
 }
 const plotUrl =
   // 'https://raw.githubusercontent.com/elzup/story-plots/main/ShingekiNoKyojin.mmd'
-  '/Users/hiro/.ghq/github.com/elzup/story-plots/ShingekiNoKyojin.mmd'
+  'file:///Users/hiro/.ghq/github.com/elzup/story-plots/ShingekiNoKyojin.mmd'
 
 function Shingeki() {
   const [url, setUrl] = useState<string>()
