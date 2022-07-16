@@ -10,7 +10,7 @@ type GraphBlock = {
 
 function useBlocks(text?: string): GraphBlock[] {
   return useMemo(() => {
-    if (!text) return []
+    if (text === undefined) return []
 
     const allLines = text.split('\n')
     const l = allLines.length
@@ -20,12 +20,12 @@ function useBlocks(text?: string): GraphBlock[] {
         const isLast = i === l - 1
         const title = line.match(/%%%subgraph (.*?);?$/)?.[1]
 
-        if (isLast || !!title) {
+        if (isLast || title !== undefined) {
           if (isLast) lines.push(line)
           return {
             blocks: [...blocks, { title: prevTitle, mmd: lines.join('\n') }],
             lines: ['flowchart LR;'] as string[],
-            prevTitle: title || '',
+            prevTitle: title ?? '',
           }
         }
         return { blocks, lines: [...lines, line], prevTitle }
@@ -48,7 +48,7 @@ function Shingeki() {
   const [url, setUrl] = useState<string>()
   const { data, error: _error } = useFetchText(plotUrl)
   const blocks = useBlocks(data)
-  const _all = { title: 'all', mmd: data || '' }
+  const _all = { title: 'all', mmd: data ?? '' }
 
   return (
     <div>
