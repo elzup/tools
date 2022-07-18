@@ -2,7 +2,7 @@ import mermaid from 'mermaid'
 // eslint-disable-next-line import/no-unresolved
 import mermaidAPI from 'mermaid/mermaidAPI'
 import { useEffect, useState } from 'react'
-import { MmdEdge, MmdGroup, MmdVertex } from './types'
+import { MmdEdge, MmdGroup, MmdVertexRaw } from './types'
 
 export const useMermaid = (
   id: string,
@@ -24,8 +24,9 @@ export const parseMarmaid = (text: string): MmdGroup => {
   const {
     parser: { yy },
   } = mermaid.mermaidAPI.parse(text)
-
-  const vertices = Object.values(yy.getVertices() as Record<string, MmdVertex>)
+  const vertices = Object.values(
+    yy.getVertices() as Record<string, MmdVertexRaw>
+  ).map((v) => ({ ...v, outside: v.id === v.text }))
   const edges = yy.getEdges() as MmdEdge[]
 
   return { vertices, edges, text }

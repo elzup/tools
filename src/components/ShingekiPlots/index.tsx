@@ -1,6 +1,7 @@
 import { TextField, Typography } from '@mui/material'
 import React, { useMemo, useState } from 'react'
-import { MmdGroup, MmdVertex } from '../MermaidUi/types'
+import styled from 'styled-components'
+import { MmdEdge, MmdGroup, MmdVertex } from '../MermaidUi/types'
 import { parseMarmaid } from '../MermaidUi/useMermaid'
 import MmdGraph from '../MmdGraph'
 import StoryMmdGraph from '../StoryMmdGraphSample'
@@ -17,7 +18,9 @@ function useBlocks(text?: string): GraphBlock[] {
 
     const allLines = text.split('\n')
     const l = allLines.length
-    const vertexLocale: Record<string, string> = {}
+    const vertexBy: Record<string, MmdVertex> = {}
+    const edgeBy: { [vid: string]: { [bid: string]: { edges: MmdEdge[] } } } =
+      {}
 
     const { blocks } = allLines.reduce(
       ({ blocks, lines, prevTitle }, line, i) => {
@@ -31,8 +34,7 @@ function useBlocks(text?: string): GraphBlock[] {
           const mmd = parseMarmaid(mmdText)
 
           mmd.vertices.forEach((v) => {
-            if (v.id === v.text) return
-            vertexLocale[v.id] = v.text
+            vertexBy[v.id] = v
           })
 
           return {
@@ -50,12 +52,13 @@ function useBlocks(text?: string): GraphBlock[] {
       }
     )
 
-    console.log(vertexLocale)
     blocks.forEach(({ mmd: { vertices } }, i) => {
       vertices.forEach((v, j) => {
-        if (v.id !== v.text || vertexLocale[v.id] === undefined) return
+        if (v.id !== v.text || vertexBy[v.id] === undefined) return
 
-        blocks[i].mmd.vertices[j].text = vertexLocale[v.id]
+        blocks[i].mmd.vertices[j].text = vertexBy[v.id].text
+
+        // edge の反対側も紐付ける
       })
     })
 
@@ -86,18 +89,25 @@ function Shingeki() {
           setUrl(e.currentTarget.value)
         }}
       />
-      <StoryMmdGraph />
-      {blocks.map((block, i) => (
-        <div key={`${i}_${block.title}`}>
-          <Typography variant="h5">{block.title}</Typography>
-          <MmdGraph
-            mmd={block.mmd}
-            height={`${Math.min(block.mmd.vertices.length * 5, 90)}vh`}
-          />
-        </div>
-      ))}
+      <GraphStyle>
+        <StoryMmdGraph />
+        {blocks.map((block, i) => (
+          <div key={`${i}_${block.title}`}>
+            <Typography variant="h5">{block.title}</Typography>
+            <MmdGraph
+              mmd={block.mmd}
+              height={`${Math.min(block.mmd.vertices.length * 5, 90)}vh`}
+            />
+          </div>
+        ))}
+      </GraphStyle>
     </div>
   )
 }
+const GraphStyle = styled.div`
+  .react-flow__node.outside {
+    border-style: dashed;
+  }
+`
 
 export default Shingeki

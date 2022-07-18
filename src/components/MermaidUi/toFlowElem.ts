@@ -21,7 +21,7 @@ export function toFlowElem(
 
   const nodeElems = vertices.map(
     (node): Node<MmdVertex & { label: string }> => {
-      const classes = [].filter(Boolean)
+      const classes = [node.outside ? 'outside' : 'inside'].filter(Boolean)
 
       return {
         id: node.id,
