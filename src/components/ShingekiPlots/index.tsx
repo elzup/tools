@@ -1,3 +1,4 @@
+import { groupByFunc, keyBy } from '@elzup/kit'
 import { TextField, Typography } from '@mui/material'
 import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
@@ -18,9 +19,7 @@ function useBlocks(text?: string): GraphBlock[] {
 
     const allLines = text.split('\n')
     const l = allLines.length
-    const vertexBy: Record<string, MmdVertex> = {}
-    const edgeBy: { [vid: string]: { [bid: string]: { edges: MmdEdge[] } } } =
-      {}
+    const vertexes: MmdVertex[] = []
 
     const { blocks } = allLines.reduce(
       ({ blocks, lines, prevTitle }, line, i) => {
@@ -30,12 +29,7 @@ function useBlocks(text?: string): GraphBlock[] {
         if (isLast || title !== undefined) {
           if (isLast) lines.push(line)
           const mmdText = lines.join('\n')
-
           const mmd = parseMarmaid(mmdText)
-
-          mmd.vertices.forEach((v) => {
-            vertexBy[v.id] = v
-          })
 
           return {
             blocks: [...blocks, { title: prevTitle, mmd }],
@@ -52,13 +46,51 @@ function useBlocks(text?: string): GraphBlock[] {
       }
     )
 
-    blocks.forEach(({ mmd: { vertices } }, i) => {
-      vertices.forEach((v, j) => {
-        if (v.id !== v.text || vertexBy[v.id] === undefined) return
+    blocks.forEach(({ mmd: { vertices, edges } }, i) => {
+      vertices.forEach((v) => {
+        vertexes.push(v)
+      })
+      edges.forEach((e) => {
+        edges.push(e)
+      })
+    })
 
-        blocks[i].mmd.vertices[j].text = vertexBy[v.id].text
+    const vertexBy = keyBy(vertexes, (v) => v.id)
 
-        // edge の反対側も紐付ける
+    // edges.forEach((e) => {
+    //   if (!(e.start in edgeBy)) edgeByVertex[e.start] = []
+    //   if (!(e.end in edgeBy)) edgeByVertex[e.end] = []
+    // })
+
+    type InsertQuery = { v: MmdVertex; e: MmdEdge; vid: string }
+    const insertQueries: InsertQuery[] = []
+
+    blocks.forEach(({ mmd: { vertices: vs, edges: es } }, bi) => {
+      const vBy = keyBy(vs, (v) => v.id)
+
+      es.forEach((e) => {
+        if (vBy[e.start].outside)
+          insertQueries.push({ vid: e.start, e, v: vBy[e.end] })
+        if (vBy[e.end].outside)
+          insertQueries.push({ vid: e.end, e, v: vBy[e.start] })
+      })
+
+      vs.forEach((v, j) => {
+        if (v.outside && vertexBy[v.id] !== undefined)
+          blocks[bi].mmd.vertices[j].text = vertexBy[v.id].text
+      })
+    })
+    const queryByVid = groupByFunc(insertQueries, (q) => q.vid)
+
+    blocks.forEach(({ mmd: { vertices: vs } }, bi) => {
+      vs.filter((v) => !v.outside).forEach((v) => {
+        if (!queryByVid[v.id]) return
+        console.log(v.id)
+        console.log(queryByVid[v.id])
+        queryByVid[v.id].forEach((q) => {
+          blocks[bi].mmd.vertices.push({ ...q.v, outside: true })
+          blocks[bi].mmd.edges.push(q.e)
+        })
       })
     })
 
