@@ -38,6 +38,7 @@ function MmdGraph({
           id={mmd.text.split('')[1]}
           style={{ background: 'white' }}
           defaultNodes={flows.nodes}
+          fitView
           defaultEdges={flows.edges}
           minZoom={0.04}
           defaultZoom={zoom}
