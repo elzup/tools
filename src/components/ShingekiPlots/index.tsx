@@ -55,7 +55,10 @@ function useBlocks(text?: string): GraphBlock[] {
       })
     })
 
-    const vertexBy = keyBy(vertexes, (v) => v.id)
+    const vertexBy = keyBy(
+      vertexes.filter((v) => !v.outside),
+      (v) => v.id
+    )
 
     // edges.forEach((e) => {
     //   if (!(e.start in edgeBy)) edgeByVertex[e.start] = []
