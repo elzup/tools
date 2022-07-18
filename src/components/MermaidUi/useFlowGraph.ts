@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react'
 import { calkLayoutElk } from './calcLayoutElk'
 import { toFlowElem } from './toFlowElem'
-import { Graph } from './types'
-import { parseMarmaid } from './useMermaid'
+import { Graph, MmdGroup } from './types'
 
 export const useFlowGraph = (
-  mmd: string,
+  mmd: MmdGroup,
   nodeSize: { h: number; w: number } = { h: 100, w: 200 },
   dire: 'TD' | 'LR' = 'TD'
 ) => {
@@ -16,15 +15,13 @@ export const useFlowGraph = (
   })
 
   useEffect(() => {
-    const lines = mmd.split('\n')
-    const text = lines.join('\n')
-    const { vertices, edges } = parseMarmaid(text)
+    const { vertices, edges } = mmd
 
     ;(async () => {
       const positions = await calkLayoutElk(vertices, edges, nodeSize, dire)
       const flows = toFlowElem(vertices, edges, positions, dire)
 
-      setGraph({ vertices, edges, flows })
+      setGraph({ vertices: vertices, edges, flows })
     })()
   }, [mmd])
   return graph

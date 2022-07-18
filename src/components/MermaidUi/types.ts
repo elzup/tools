@@ -20,3 +20,9 @@ export type Graph = {
   edges: MmdEdge[]
   flows: { nodes: Node<MmdVertex & { label: string }>[]; edges: Edge[] }
 }
+
+export type MmdGroup = {
+  text: string
+  vertices: MmdVertex[]
+  edges: MmdEdge[]
+}
