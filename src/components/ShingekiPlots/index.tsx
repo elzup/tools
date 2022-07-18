@@ -1,6 +1,6 @@
 import { TextField, Typography } from '@mui/material'
 import React, { useMemo, useState } from 'react'
-import { MmdGroup } from '../MermaidUi/types'
+import { MmdGroup, MmdVertex } from '../MermaidUi/types'
 import { parseMarmaid } from '../MermaidUi/useMermaid'
 import MmdGraph from '../MmdGraph'
 import StoryMmdGraph from '../StoryMmdGraphSample'
@@ -17,6 +17,7 @@ function useBlocks(text?: string): GraphBlock[] {
 
     const allLines = text.split('\n')
     const l = allLines.length
+    const vertexLocale: Record<string, string> = {}
 
     const { blocks } = allLines.reduce(
       ({ blocks, lines, prevTitle }, line, i) => {
@@ -27,11 +28,15 @@ function useBlocks(text?: string): GraphBlock[] {
           if (isLast) lines.push(line)
           const mmdText = lines.join('\n')
 
+          const mmd = parseMarmaid(mmdText)
+
+          mmd.vertices.forEach((v) => {
+            if (v.id === v.text) return
+            vertexLocale[v.id] = v.text
+          })
+
           return {
-            blocks: [
-              ...blocks,
-              { title: prevTitle, mmd: parseMarmaid(mmdText) },
-            ],
+            blocks: [...blocks, { title: prevTitle, mmd }],
             lines: ['flowchart LR;'] as string[],
             prevTitle: title ?? '',
           }
@@ -44,6 +49,15 @@ function useBlocks(text?: string): GraphBlock[] {
         prevTitle: '',
       }
     )
+
+    console.log(vertexLocale)
+    blocks.forEach(({ mmd: { vertices } }, i) => {
+      vertices.forEach((v, j) => {
+        if (v.id !== v.text || vertexLocale[v.id] === undefined) return
+
+        blocks[i].mmd.vertices[j].text = vertexLocale[v.id]
+      })
+    })
 
     return blocks
   }, [text])
@@ -76,7 +90,10 @@ function Shingeki() {
       {blocks.map((block, i) => (
         <div key={`${i}_${block.title}`}>
           <Typography variant="h5">{block.title}</Typography>
-          <MmdGraph mmd={block.mmd} />
+          <MmdGraph
+            mmd={block.mmd}
+            height={`${Math.min(block.mmd.vertices.length * 5, 90)}vh`}
+          />
         </div>
       ))}
     </div>
