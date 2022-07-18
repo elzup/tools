@@ -40,8 +40,10 @@ function MmdGraph({
           defaultEdges={flows.edges}
           minZoom={0.04}
           defaultZoom={zoom}
+          preventScrolling={false}
           // onLoad={setRfInstance}
           panOnScroll={false}
+          zoomOnScroll={false}
           nodesDraggable={false}
           nodesConnectable={false}
         >
