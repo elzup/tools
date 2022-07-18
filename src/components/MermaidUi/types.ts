@@ -1,9 +1,12 @@
 import { Edge, Node } from 'react-flow-renderer'
 
-export type MmdVertex = {
+export type MmdVertexRaw = {
   id: string
   text: string
   type: string
+}
+export type MmdVertex = MmdVertexRaw & {
+  outside: boolean
 }
 export type MmdEdge = {
   start: string
