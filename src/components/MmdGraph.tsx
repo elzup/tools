@@ -6,10 +6,11 @@ import ReactFlow, {
   ReactFlowProvider,
 } from 'react-flow-renderer'
 import styled from 'styled-components'
+import { MmdGroup } from './MermaidUi/types'
 import { useFlowGraph } from './MermaidUi/useFlowGraph'
 
 type Props = {
-  mmd: string
+  mmd: MmdGroup
   height?: string
   zoom?: number
   nodeSize?: { h: number; w: number }
@@ -34,7 +35,7 @@ function MmdGraph({
     <Frame style={{ height }}>
       <ReactFlowProvider>
         <ReactFlow
-          id={mmd.split('')[1]}
+          id={mmd.text.split('')[1]}
           style={{ background: 'white' }}
           defaultNodes={flows.nodes}
           defaultEdges={flows.edges}

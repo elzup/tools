@@ -1,12 +1,14 @@
 import { TextField, Typography } from '@mui/material'
 import React, { useMemo, useState } from 'react'
+import { MmdGroup } from '../MermaidUi/types'
+import { parseMarmaid } from '../MermaidUi/useMermaid'
 import MmdGraph from '../MmdGraph'
 import StoryMmdGraph from '../StoryMmdGraphSample'
 import { useFetchText } from '../useFetch'
 
 type GraphBlock = {
   title: string
-  mmd: string
+  mmd: MmdGroup
 }
 
 function useBlocks(text?: string): GraphBlock[] {
@@ -23,8 +25,13 @@ function useBlocks(text?: string): GraphBlock[] {
 
         if (isLast || title !== undefined) {
           if (isLast) lines.push(line)
+          const mmdText = lines.join('\n')
+
           return {
-            blocks: [...blocks, { title: prevTitle, mmd: lines.join('\n') }],
+            blocks: [
+              ...blocks,
+              { title: prevTitle, mmd: parseMarmaid(mmdText) },
+            ],
             lines: ['flowchart LR;'] as string[],
             prevTitle: title ?? '',
           }
