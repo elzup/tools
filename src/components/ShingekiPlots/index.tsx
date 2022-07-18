@@ -1,5 +1,6 @@
-import { TextField } from '@mui/material'
+import { TextField, Typography } from '@mui/material'
 import React, { useMemo, useState } from 'react'
+import MmdGraph from '../MmdGraph'
 import StoryMmdGraph from '../StoryMmdGraphSample'
 import { useFetchText } from '../useFetch'
 
@@ -40,9 +41,11 @@ function useBlocks(text?: string): GraphBlock[] {
     return blocks
   }, [text])
 }
-const plotUrl =
-  // 'https://raw.githubusercontent.com/elzup/story-plots/main/ShingekiNoKyojin.mmd'
-  'file:///Users/hiro/.ghq/github.com/elzup/story-plots/ShingekiNoKyojin.mmd'
+const isDev = process.env.NODE_ENV === 'development'
+
+const plotUrl = isDev
+  ? 'http://localhost:3001/ShingekiNoKyojin.mmd'
+  : 'https://raw.githubusercontent.com/elzup/story-plots/main/ShingekiNoKyojin.mmd'
 
 function Shingeki() {
   const [url, setUrl] = useState<string>()
@@ -65,8 +68,8 @@ function Shingeki() {
       <StoryMmdGraph />
       {blocks.map((block, i) => (
         <div key={`${i}_${block.title}`}>
-          {/* <Typography variant="h5">{block.title}</Typography>
-          <MmdGraph mmd={block.mmd} /> */}
+          <Typography variant="h5">{block.title}</Typography>
+          <MmdGraph mmd={block.mmd} />
         </div>
       ))}
     </div>

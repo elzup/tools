@@ -41,7 +41,7 @@ export function toFlowElem(
     }
   )
   const edgeElems = edges.map((e, i): Edge => {
-    console.log(e)
+    // console.log(e)
 
     const options = {
       id: `e${e.start}-${e.end}-${i}`,
