@@ -13,7 +13,10 @@ export function toFlowElem(
   positions: Position[],
   dire: 'TD' | 'LR' = 'TD'
 ) {
-  const positionsById = keyBy(positions, (e) => e.id)
+  const positionsById = keyBy(
+    [...positions, ...positions.map((p) => p.children ?? [])].flat(),
+    (e) => e.id
+  )
   const [targetPosition, sourcePosition] = {
     TD: [RfPosition.Top, RfPosition.Bottom],
     LR: [RfPosition.Left, RfPosition.Right],

@@ -16,7 +16,12 @@ export type MmdEdge = {
   text: string
 }
 
-export type Position = { x: number; y: number; id: string }
+export type Position = {
+  x: number
+  y: number
+  id: string
+  children?: Position[]
+}
 
 export type Graph = {
   vertices: MmdVertex[]
