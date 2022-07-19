@@ -1,6 +1,11 @@
 import { keyBy } from 'lodash'
-import { Edge, MarkerType, Position as RfPosition } from 'react-flow-renderer'
-import { FlowNode, MmdEdge, MmdVertex, Position } from './types'
+import {
+  Edge,
+  MarkerType,
+  Node,
+  Position as RfPosition,
+} from 'react-flow-renderer'
+import { MmdEdge, MmdVertex, Position } from './types'
 
 export function toFlowElem(
   vertices: MmdVertex[],
@@ -8,48 +13,33 @@ export function toFlowElem(
   positions: Position[],
   dire: 'TD' | 'LR' = 'TD'
 ) {
-  const positionsById = keyBy(
-    [...positions, ...positions.map((p) => p.children ?? [])].flat(),
-    (e) => e.id
-  )
+  const positionsById = keyBy(positions, (e) => e.id)
   const [targetPosition, sourcePosition] = {
     TD: [RfPosition.Top, RfPosition.Bottom],
     LR: [RfPosition.Left, RfPosition.Right],
   }[dire]
-  const groupElems = positions
-    .filter((v) => v.children)
-    .map(
-      ({ x, y, id, height, width }): FlowNode => ({
-        id,
-        type: 'group',
-        position: { x, y },
-        style: { height, width, borderWidth: 2 },
+
+  const nodeElems = vertices.map(
+    (node): Node<MmdVertex & { label: string }> => {
+      const classes = [node.outside ? 'outside' : 'inside'].filter(Boolean)
+
+      return {
+        id: node.id,
         targetPosition,
         sourcePosition,
-        data: { id, label: 'group', outside: false, text: '', type: '' },
-        // className: classes.join(' '),
-      })
-    )
-
-  const nodeElems = vertices.map((node): FlowNode => {
-    const classes = [node.outside ? 'outside' : 'inside'].filter(Boolean)
-
-    return {
-      id: node.id,
-      targetPosition,
-      sourcePosition,
-      type: 'default',
-      position: {
-        x: positionsById[node.id].x || 0,
-        y: positionsById[node.id].y || 0,
-      },
-      data: { ...node, label: node.text },
-      className: classes.join(' '),
-      style: {
-        borderWidth: 2,
-      },
+        type: 'default',
+        position: {
+          x: positionsById[node.id].x || 0,
+          y: positionsById[node.id].y || 0,
+        },
+        data: { ...node, label: node.text },
+        className: classes.join(' '),
+        style: {
+          borderWidth: 2,
+        },
+      }
     }
-  })
+  )
   const edgeElems = edges.map((e, i): Edge => {
     // console.log(e)
 
@@ -87,5 +77,5 @@ export function toFlowElem(
     return options
   })
 
-  return { nodes: [...nodeElems, ...groupElems], edges: edgeElems }
+  return { nodes: nodeElems, edges: edgeElems }
 }
