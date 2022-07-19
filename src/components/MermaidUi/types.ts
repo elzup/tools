@@ -16,20 +16,12 @@ export type MmdEdge = {
   text: string
 }
 
-export type Position = {
-  x: number
-  y: number
-  id: string
-  height: number
-  width: number
-  children?: Position[]
-}
+export type Position = { x: number; y: number; id: string }
 
-export type FlowNode = Node<MmdVertex & { label: string }>
 export type Graph = {
   vertices: MmdVertex[]
   edges: MmdEdge[]
-  flows: { nodes: FlowNode[]; edges: Edge[] }
+  flows: { nodes: Node<MmdVertex & { label: string }>[]; edges: Edge[] }
 }
 
 export type MmdGroup = {
