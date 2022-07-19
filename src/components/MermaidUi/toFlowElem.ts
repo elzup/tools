@@ -1,11 +1,6 @@
 import { keyBy } from 'lodash'
-import {
-  Edge,
-  MarkerType,
-  Node,
-  Position as RfPosition,
-} from 'react-flow-renderer'
-import { MmdEdge, MmdVertex, Position } from './types'
+import { Edge, MarkerType, Position as RfPosition } from 'react-flow-renderer'
+import { FlowNode, MmdEdge, MmdVertex, Position } from './types'
 
 export function toFlowElem(
   vertices: MmdVertex[],
@@ -21,28 +16,40 @@ export function toFlowElem(
     TD: [RfPosition.Top, RfPosition.Bottom],
     LR: [RfPosition.Left, RfPosition.Right],
   }[dire]
-
-  const nodeElems = vertices.map(
-    (node): Node<MmdVertex & { label: string }> => {
-      const classes = [node.outside ? 'outside' : 'inside'].filter(Boolean)
-
-      return {
-        id: node.id,
+  const groupElems = positions
+    .filter((v) => v.children)
+    .map(
+      ({ x, y, id, height, width }): FlowNode => ({
+        id,
+        type: 'group',
+        position: { x, y },
+        style: { height, width, borderWidth: 2 },
         targetPosition,
         sourcePosition,
-        type: 'default',
-        position: {
-          x: positionsById[node.id].x || 0,
-          y: positionsById[node.id].y || 0,
-        },
-        data: { ...node, label: node.text },
-        className: classes.join(' '),
-        style: {
-          borderWidth: 2,
-        },
-      }
+        data: { id, label: 'group', outside: false, text: '', type: '' },
+        // className: classes.join(' '),
+      })
+    )
+
+  const nodeElems = vertices.map((node): FlowNode => {
+    const classes = [node.outside ? 'outside' : 'inside'].filter(Boolean)
+
+    return {
+      id: node.id,
+      targetPosition,
+      sourcePosition,
+      type: 'default',
+      position: {
+        x: positionsById[node.id].x || 0,
+        y: positionsById[node.id].y || 0,
+      },
+      data: { ...node, label: node.text },
+      className: classes.join(' '),
+      style: {
+        borderWidth: 2,
+      },
     }
-  )
+  })
   const edgeElems = edges.map((e, i): Edge => {
     // console.log(e)
 
@@ -80,5 +87,5 @@ export function toFlowElem(
     return options
   })
 
-  return { nodes: nodeElems, edges: edgeElems }
+  return { nodes: [...nodeElems, ...groupElems], edges: edgeElems }
 }
