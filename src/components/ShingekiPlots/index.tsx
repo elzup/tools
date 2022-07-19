@@ -46,7 +46,7 @@ function useBlocks(text?: string): GraphBlock[] {
       }
     )
 
-    blocks.forEach(({ mmd: { vertices, edges } }, i) => {
+    blocks.forEach(({ mmd: { vertices, edges } }) => {
       vertices.forEach((v) => {
         vertexes.push(v)
       })
@@ -86,12 +86,15 @@ function useBlocks(text?: string): GraphBlock[] {
     const queryByVid = groupByFunc(insertQueries, (q) => q.vid)
 
     blocks.forEach(({ mmd: { vertices: vs } }, bi) => {
+      const blockVBy = keyBy(vs, (v) => v.id)
+
       vs.filter((v) => !v.outside).forEach((v) => {
         if (!queryByVid[v.id]) return
-        console.log(v.id)
-        console.log(queryByVid[v.id])
         queryByVid[v.id].forEach((q) => {
-          blocks[bi].mmd.vertices.push({ ...q.v, outside: true })
+          if (!(q.v.id in blockVBy)) {
+            blocks[bi].mmd.vertices.push({ ...q.v, outside: true })
+            blockVBy[q.v.id] = q.v
+          }
           blocks[bi].mmd.edges.push(q.e)
         })
       })
