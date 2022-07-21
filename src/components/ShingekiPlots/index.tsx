@@ -143,8 +143,18 @@ function Shingeki() {
   )
 }
 const GraphStyle = styled.div`
-  .react-flow__node.outside {
-    border-style: dashed;
+  .react-flow {
+    .react-flow__node {
+      &.outside {
+        border-style: dashed;
+      }
+    }
+
+    .react-flow__edge {
+      path {
+        stroke-width: 2;
+      }
+    }
   }
 `
 
