@@ -13,7 +13,7 @@ export function toFlowElem(
   positions: Position[],
   dire: 'TD' | 'LR' = 'TD'
 ) {
-  const positionsById = keyBy(positions, (e) => e.id)
+  const posById = keyBy(positions, (e) => e.id)
   const [targetPosition, sourcePosition] = {
     TD: [RfPosition.Top, RfPosition.Bottom],
     LR: [RfPosition.Left, RfPosition.Right],
@@ -29,8 +29,8 @@ export function toFlowElem(
         sourcePosition,
         type: 'default',
         position: {
-          x: positionsById[node.id].x || 0,
-          y: positionsById[node.id].y || 0,
+          x: posById[node.id].x || 0,
+          y: posById[node.id].y || 0,
         },
         data: { ...node, label: node.text },
         className: classes.join(' '),
@@ -43,13 +43,13 @@ export function toFlowElem(
   const edgeElems = edges.map((e, i): Edge => {
     // console.log(e)
 
+    const d = Math.abs(posById[e.start].y - posById[e.end].y)
     const options = {
       id: `e${e.start}-${e.end}-${i}`,
       source: e.start,
       target: e.end,
-      // type: 's'
-      style: { stroke: 'black', strokeWidth: 2 },
     } as Edge
+    const longPath = d > 500
 
     if (e.stroke !== 'normal') {
       options.style = {
@@ -73,6 +73,7 @@ export function toFlowElem(
     }
 
     if (e.text) options.label = e.text
+    if (longPath) options.style = { ...options.style, stroke: '#aaa' }
 
     return options
   })
