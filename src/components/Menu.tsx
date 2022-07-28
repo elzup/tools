@@ -26,6 +26,7 @@ import {
   faWindowRestore,
   IconDefinition,
   faFeatherAlt,
+  faCode,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Typography } from '@mui/material'
@@ -73,6 +74,11 @@ const routings: RoutingGroup[] = [
         icon: faEye,
         label: '動体視力トレ',
         path: '/dynamic-va',
+      },
+      {
+        icon: faCode,
+        label: 'Code Explorer',
+        path: '/code-explorer',
       },
     ],
   },
