@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
-import Code from './Code'
+import CodeLabel from './Code'
 
 export const bitStr = (n: number) => n.toString(2).padStart(8, '0')
 
@@ -8,13 +8,13 @@ export const ByteBlock = ({ c }: { c: number }) => {
   return (
     <Style>
       <div className="hex">
-        <Code text={c.toString(16).padStart(2, '0')} />
+        <CodeLabel text={c.toString(16).padStart(2, '0')} />
       </div>
       <div className="int">
-        <Code text={c} />
+        <CodeLabel text={c} />
       </div>
       <div className="bit">
-        <Code text={bitStr(c)} />
+        <CodeLabel text={bitStr(c)} />
       </div>
     </Style>
   )

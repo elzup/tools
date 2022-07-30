@@ -2,15 +2,20 @@ import styled from 'styled-components'
 
 type Props = {
   text: string | number
-  variant?: 'basic'
+  variant?: 'basic' | 'plain'
 }
-const Code = ({ text, variant = 'basic' }: Props) => {
+const CodeLabel = ({ text, variant = 'basic' }: Props) => {
   return <Style data-variant={variant}>{text}</Style>
 }
 
-const Style = styled.div`
-  [data-variant='basic'] {
+const Style = styled.span`
+  white-space: pre;
+  font-family: monospace;
+  &[data-variant='basic'] {
+    background: #ddd;
+  }
+  &[data-variant='plain'] {
   }
 `
 
-export default Code
+export default CodeLabel
