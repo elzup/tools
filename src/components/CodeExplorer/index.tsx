@@ -1,5 +1,13 @@
 import { range } from '@elzup/kit'
-import { Box, TextField } from '@mui/material'
+import {
+  Box,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
+  TextField,
+} from '@mui/material'
 import React, { useState } from 'react'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
@@ -14,9 +22,14 @@ const uints = (b: Buffer) => [
   }),
 ]
 
+const layoutState = ['col8', 'col4', 'fill'] as const
+
+type LayoutState = typeof layoutState[number]
+const isLayoutState = (v: string): v is LayoutState => layoutState.includes(v)
+
 function CodeExplorer(props: Props) {
   const [text, setText] = useLocalStorage<string>('code-explorer-text', '')
-  const [layout, setLayout] = useState<'col8' | 'col4' | 'fill'>('col8')
+  const [layout, setLayout] = useState<LayoutState>('col8')
 
   const buf = Buffer.from(text)
   const intNums = uints(buf)
@@ -30,6 +43,20 @@ function CodeExplorer(props: Props) {
         style={{ fontSize: '0.8rem' }}
         onChange={(e) => setText(e.currentTarget.value)}
       />
+      <FormControl>
+        <FormLabel>layout</FormLabel>
+        <RadioGroup
+          row
+          name="radio-buttons-group"
+          onChange={({ currentTarget: { value } }) =>
+            setLayout(isLayoutState(value) ? value : 'col8')
+          }
+        >
+          <FormControlLabel value="col8" control={<Radio />} label="Col8" />
+          <FormControlLabel value="col4" control={<Radio />} label="Col4" />
+          <FormControlLabel value="fill" control={<Radio />} label="Fill" />
+        </RadioGroup>
+      </FormControl>
       <Box sx={{ display: 'flex' }}>
         {intNums.map((v, i) => (
           <code key={i}>{v}</code>
