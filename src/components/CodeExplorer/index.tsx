@@ -1,7 +1,10 @@
 import { range } from '@elzup/kit'
-import { TextField } from '@mui/material'
-import React from 'react'
+import { Box, TextField } from '@mui/material'
+import React, { useState } from 'react'
+import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
+import Code from '../Code'
+import { ByteBlock } from './ByteBlock'
 
 type Props = {}
 
@@ -11,26 +14,15 @@ const uints = (b: Buffer) => [
   }),
 ]
 
-const bitStr = (n: number) => n.toString(2).padStart(8, '0')
-
-const ByteBlock = ({ c }: { c: number }) => {
-  return (
-    <div>
-      <div>{c}</div>
-      <div>{bitStr(c)}</div>
-      <div>{c.toString(16).padStart(2, '0')}</div>
-    </div>
-  )
-}
-
 function CodeExplorer(props: Props) {
   const [text, setText] = useLocalStorage<string>('code-explorer-text', '')
+  const [layout, setLayout] = useState<'col8' | 'col4' | 'fill'>('col8')
 
   const buf = Buffer.from(text)
   const intNums = uints(buf)
 
   return (
-    <div>
+    <Style>
       <TextField
         value={text}
         multiline
@@ -38,8 +30,13 @@ function CodeExplorer(props: Props) {
         style={{ fontSize: '0.8rem' }}
         onChange={(e) => setText(e.currentTarget.value)}
       />
+      <Box sx={{ display: 'flex' }}>
+        {intNums.map((v, i) => (
+          <code key={i}>{v}</code>
+        ))}
+      </Box>
       <div>
-        <div style={{ display: 'flex' }}>
+        <div className="blocks" data-layout={layout}>
           {intNums.map((v, i) => (
             <ByteBlock key={i} c={v} />
           ))}
@@ -57,8 +54,25 @@ function CodeExplorer(props: Props) {
           <code>bin: {buf.toString('binary')}</code>
         </pre>
       </div>
-    </div>
+    </Style>
   )
 }
+
+const Style = styled.div`
+  .blocks {
+    display: grid;
+    &[data-layout='col8'] {
+      grid-template-columns: repeat(8, max-content);
+    }
+    &[data-layout='col4'] {
+      grid-template-columns: repeat(4, max-content);
+    }
+
+    &[data-layout='fill'] {
+      display: flex;
+      flex-wrap: wrap;
+    }
+  }
+`
 
 export default CodeExplorer
