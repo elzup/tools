@@ -2,23 +2,18 @@ import { range } from '@elzup/kit'
 import {
   Box,
   FormControl,
-  FormControlLabel,
   FormLabel,
-  Radio,
-  RadioGroup,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { FaArrowsAltH } from 'react-icons/fa'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
-import Code from '../Code'
 import { ByteBlock } from './ByteBlock'
-
-type Props = {}
+import CodeLabel from './Code'
 
 const uints = (b: Buffer) => [
   ...range(b.byteLength).map((i) => {
@@ -29,7 +24,8 @@ const uints = (b: Buffer) => [
 const layoutState = ['col8', 'col4', 'fill'] as const
 
 type LayoutState = typeof layoutState[number]
-const isLayoutState = (v: string): v is LayoutState => layoutState.includes(v)
+const isLayoutState = (v: unknown): v is LayoutState =>
+  typeof v === 'string' && layoutState.includes(v as LayoutState)
 
 function CodeExplorer() {
   const [text, setText] = useLocalStorage<string>('code-explorer-text', '')
@@ -68,32 +64,44 @@ function CodeExplorer() {
           </ToggleButton>
         </ToggleButtonGroup>
       </FormControl>
-      <Box sx={{ display: 'flex' }}>
-        {intNums.map((v, i) => (
-          <code key={i}>{v}</code>
-        ))}
+      <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
+        <Typography variant="subtitle1">int</Typography>
+        <Box className="bytes-line">
+          {intNums.map((v, i) => (
+            <CodeLabel key={i} text={v} variant="plain" />
+          ))}
+        </Box>
       </Box>
       <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
-        <Typography variant="h6">Byte View</Typography>
+        <Typography variant="subtitle1">Byte View</Typography>
         <div className="blocks" data-layout={layout}>
           {intNums.map((v, i) => (
             <ByteBlock key={i} c={v} />
           ))}
         </div>
       </Box>
+      <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
+        <Typography variant="subtitle1">hex</Typography>
+        <Box className="bytes-line">
+          {intNums.map((v, i) => (
+            <CodeLabel key={i} text={v.toString(16)} variant="plain" />
+          ))}
+        </Box>
+      </Box>
       <div>
-        <pre>
-          <code>{buf.length}</code>
-        </pre>
-        <pre>
-          <code>ascii: {buf.toString('ascii')}</code>
-        </pre>
-        <pre>
-          <code>hex: {buf.toString('hex')}</code>
-        </pre>
-        <pre>
-          <code>bin: {buf.toString('binary')}</code>
-        </pre>
+        <Typography variant="caption">{buf.length}Byte</Typography>
+        <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
+          <Typography variant="caption">ascii</Typography>
+          <div>
+            <CodeLabel text={buf.toString('ascii')} />
+          </div>
+        </Box>
+        <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
+          <Typography variant="caption">latin1 (binary)</Typography>
+          <div>
+            <CodeLabel text={buf.toString('latin1')} />
+          </div>
+        </Box>
       </div>
     </Style>
   )
@@ -112,6 +120,18 @@ const Style = styled.div`
     &[data-layout='fill'] {
       display: flex;
       flex-wrap: wrap;
+    }
+  }
+
+  .bytes-line {
+    span {
+      margin: 2px;
+    }
+    span:nth-child(2n) {
+      background: #f0f0f0;
+    }
+    span:nth-child(8n + 1):not(:first-child) {
+      border-left: dashed 1px gray;
     }
   }
 `
