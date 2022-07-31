@@ -12,6 +12,7 @@ import {
 } from '@mui/material'
 import { useState } from 'react'
 import { FaArrowsAltH } from 'react-icons/fa'
+import { defaultProps } from 'recompose'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
 import { ByteBlock, readableAscii } from './ByteBlock'
@@ -31,6 +32,13 @@ const isLayoutState = (v: unknown): v is LayoutState =>
   typeof v === 'string' && layoutState.includes(v as LayoutState)
 const base64UnUrl = (s: string) =>
   s.replace(/\+/g, '-').replace(/\//g, '_').replace(/=*$/g, '')
+
+const PanelBox = defaultProps({
+  border: 'solid 1px',
+  mt: 1,
+  p: 1,
+  borderRadius: 1,
+})(Box)
 
 function CodeExplorer() {
   const [hex, setHex] = useLocalStorage<string>('code-explorer-hex', '')
@@ -91,7 +99,7 @@ function CodeExplorer() {
           </label>
         </Box>
       </div>
-      <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
+      <PanelBox>
         <Box display="flex" justifyContent={'space-between'}>
           <Typography variant="subtitle1">Byte View</Typography>
           <FormControl>
@@ -121,31 +129,31 @@ function CodeExplorer() {
             <ByteBlock key={i} c={v} />
           ))}
         </div>
-      </Box>
-      <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
+      </PanelBox>
+      <PanelBox>
         <Typography variant="subtitle1">UTF-8 View</Typography>
         <div className="blocks">
           {[...text].map((s, i) => (
             <Utf8Block key={i} s={s} />
           ))}
         </div>
-      </Box>
-      <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
+      </PanelBox>
+      <PanelBox>
         <Typography variant="subtitle1">hex</Typography>
         <Box className="bytes-line">
           {intNums.map((v, i) => (
             <CodeLabel key={i} text={v.toString(16)} variant="plain" />
           ))}
         </Box>
-      </Box>
-      <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
+      </PanelBox>
+      <PanelBox>
         <Typography variant="subtitle1">int</Typography>
         <Box className="bytes-line">
           {intNums.map((v, i) => (
             <CodeLabel key={i} text={v} variant="plain" />
           ))}
         </Box>
-      </Box>
+      </PanelBox>
       <div>
         <Typography variant="caption">{buf.length}Byte</Typography>
         <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
@@ -161,12 +169,12 @@ function CodeExplorer() {
             />
           </div>
         </Box>
-        <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
+        <PanelBox>
           <Typography variant="caption">latin1 (binary)</Typography>
           <div>
             <CodeLabel text={buf.toString('latin1')} />
           </div>
-        </Box>
+        </PanelBox>
       </div>
     </Style>
   )
