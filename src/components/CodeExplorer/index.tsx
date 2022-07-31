@@ -15,11 +15,12 @@ import { FaArrowsAltH } from 'react-icons/fa'
 import { defaultProps } from 'recompose'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
-import { ByteBlock, readableAscii } from './ByteBlock'
+import { ByteBlock } from './ByteBlock'
 import CodeLabel from './CodeLabel'
+import { TypeBlock } from './TypeBlock'
 import { useFormat } from './useFormat'
 import { Utf8Block } from './Utf8Block'
-import { uints } from './utils'
+import { readableAscii, uints } from './utils'
 
 const layoutState = ['col8', 'col4', 'fill'] as const
 const pickHexChar = (s: string) => s.replace(/[^0-9a-f]/gi, '')
@@ -49,6 +50,7 @@ function CodeExplorer() {
   )
   const buf = Buffer.from(hex, 'hex')
   const { format, setFormat, parsed } = useFormat(buf)
+
   const text = buf.toString('utf8')
   const base64Base = buf.toString('base64')
   const base64 = baseEncMode === 'base64' ? base64Base : base64UnUrl(base64Base)
@@ -149,17 +151,18 @@ function CodeExplorer() {
         >
           Enable: struct format
         </a>
+        <Typography variant="caption">Only number</Typography>
         <TextField
           value={format}
           label="format"
           multiline
           fullWidth
-          style={{ fontSize: '0.8rem' }}
+          style={{ fontSize: '0.8rem', marginTop: '1rem' }}
           onChange={(e) => setFormat(e.currentTarget.value)}
         />
         <div className="blocks">
-          {[...text].map((s, i) => (
-            <Utf8Block key={i} s={s} />
+          {parsed.map(({ cmd, buf }, i) => (
+            <TypeBlock key={i} cmd={cmd} buf={buf} />
           ))}
         </div>
       </PanelBox>

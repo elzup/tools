@@ -1,15 +1,7 @@
-import { controlCharLib } from '@elzup/kit'
-import React from 'react'
 import styled from 'styled-components'
 import CodeLabel from './CodeLabel'
+import { bitStr, readableAscii } from './utils'
 
-export const bitStr = (n: number) => n.toString(2).padStart(8, '0')
-export const readableAscii = (c: number) => {
-  const controlChar = controlCharLib[c]
-
-  if (controlChar) return `[${controlChar.char}]`
-  return String.fromCharCode(c)
-}
 type Props = {
   c: number
   variant?: 'plain' | 'utf8'
