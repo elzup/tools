@@ -1,8 +1,7 @@
 import { Box, Typography } from '@mui/material'
 import React from 'react'
 import styled from 'styled-components'
-import { ByteBlock } from './ByteBlock'
-import CodeLabel from './Code'
+import { bitStr, ByteBlock } from './ByteBlock'
 import { uints } from './utils'
 
 type Props = {
