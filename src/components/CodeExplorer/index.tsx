@@ -1,4 +1,3 @@
-import { range } from '@elzup/kit'
 import {
   Box,
   FormControl,
@@ -14,12 +13,8 @@ import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
 import { ByteBlock, readableAscii } from './ByteBlock'
 import CodeLabel from './Code'
-
-const uints = (b: Buffer) => [
-  ...range(b.byteLength).map((i) => {
-    return b.readUint8(i)
-  }),
-]
+import { Utf8Block } from './Utf8Block'
+import { uints } from './utils'
 
 const layoutState = ['col8', 'col4', 'fill'] as const
 
@@ -69,6 +64,14 @@ function CodeExplorer() {
         <div className="blocks" data-layout={layout}>
           {intNums.map((v, i) => (
             <ByteBlock key={i} c={v} />
+          ))}
+        </div>
+      </Box>
+      <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
+        <Typography variant="subtitle1">UTF-8 View</Typography>
+        <div className="blocks" data-layout={layout}>
+          {text.split('').map((s, i) => (
+            <Utf8Block key={i} s={s} />
           ))}
         </div>
       </Box>
