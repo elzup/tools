@@ -65,14 +65,6 @@ function CodeExplorer() {
         </ToggleButtonGroup>
       </FormControl>
       <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
-        <Typography variant="subtitle1">int</Typography>
-        <Box className="bytes-line">
-          {intNums.map((v, i) => (
-            <CodeLabel key={i} text={v} variant="plain" />
-          ))}
-        </Box>
-      </Box>
-      <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
         <Typography variant="subtitle1">Byte View</Typography>
         <div className="blocks" data-layout={layout}>
           {intNums.map((v, i) => (
@@ -85,6 +77,14 @@ function CodeExplorer() {
         <Box className="bytes-line">
           {intNums.map((v, i) => (
             <CodeLabel key={i} text={v.toString(16)} variant="plain" />
+          ))}
+        </Box>
+      </Box>
+      <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
+        <Typography variant="subtitle1">int</Typography>
+        <Box className="bytes-line">
+          {intNums.map((v, i) => (
+            <CodeLabel key={i} text={v} variant="plain" />
           ))}
         </Box>
       </Box>
