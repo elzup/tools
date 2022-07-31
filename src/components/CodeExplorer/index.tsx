@@ -17,6 +17,7 @@ import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
 import { ByteBlock, readableAscii } from './ByteBlock'
 import CodeLabel from './CodeLabel'
+import { useFormat } from './useFormat'
 import { Utf8Block } from './Utf8Block'
 import { uints } from './utils'
 
@@ -47,6 +48,7 @@ function CodeExplorer() {
     'base64'
   )
   const buf = Buffer.from(hex, 'hex')
+  const { format, setFormat, parsed } = useFormat(buf)
   const text = buf.toString('utf8')
   const base64Base = buf.toString('base64')
   const base64 = baseEncMode === 'base64' ? base64Base : base64UnUrl(base64Base)
@@ -132,6 +134,29 @@ function CodeExplorer() {
       </PanelBox>
       <PanelBox>
         <Typography variant="subtitle1">UTF-8 View</Typography>
+        <div className="blocks">
+          {[...text].map((s, i) => (
+            <Utf8Block key={i} s={s} />
+          ))}
+        </div>
+      </PanelBox>
+      <PanelBox>
+        <Typography variant="subtitle1">Packet View</Typography>
+        <a
+          href="https://docs.python.org/ja/3/library/struct.html"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Enable: struct format
+        </a>
+        <TextField
+          value={format}
+          label="format"
+          multiline
+          fullWidth
+          style={{ fontSize: '0.8rem' }}
+          onChange={(e) => setFormat(e.currentTarget.value)}
+        />
         <div className="blocks">
           {[...text].map((s, i) => (
             <Utf8Block key={i} s={s} />
