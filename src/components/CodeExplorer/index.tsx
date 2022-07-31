@@ -91,29 +91,31 @@ function CodeExplorer() {
           </label>
         </Box>
       </div>
-      <FormControl>
-        <FormLabel>layout</FormLabel>
-        <ToggleButtonGroup
-          value={layout}
-          exclusive
-          onChange={(_e, value) =>
-            setLayout(isLayoutState(value) ? value : 'col8')
-          }
-          aria-label="blocks alignment"
-        >
-          <ToggleButton size="small" value="fill" aria-label="fill">
-            <FaArrowsAltH />
-          </ToggleButton>
-          <ToggleButton size="small" value="col8" aria-label="8 column">
-            Col8
-          </ToggleButton>
-          <ToggleButton size="small" value="col4" aria-label="4 column">
-            Col4
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </FormControl>
       <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
-        <Typography variant="subtitle1">Byte View</Typography>
+        <Box display="flex" justifyContent={'space-between'}>
+          <Typography variant="subtitle1">Byte View</Typography>
+          <FormControl>
+            <FormLabel>layout</FormLabel>
+            <ToggleButtonGroup
+              value={layout}
+              exclusive
+              onChange={(_e, value) =>
+                setLayout(isLayoutState(value) ? value : 'col8')
+              }
+              aria-label="blocks alignment"
+            >
+              <ToggleButton size="small" value="fill" aria-label="fill">
+                <FaArrowsAltH />
+              </ToggleButton>
+              <ToggleButton size="small" value="col8" aria-label="8 column">
+                Col8
+              </ToggleButton>
+              <ToggleButton size="small" value="col4" aria-label="4 column">
+                Col4
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </FormControl>
+        </Box>
         <div className="blocks" data-layout={layout}>
           {intNums.map((v, i) => (
             <ByteBlock key={i} c={v} />
