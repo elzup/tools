@@ -12,7 +12,7 @@ import { FaArrowsAltH } from 'react-icons/fa'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
 import { ByteBlock, readableAscii } from './ByteBlock'
-import CodeLabel from './Code'
+import CodeLabel from './CodeLabel'
 import { Utf8Block } from './Utf8Block'
 import { uints } from './utils'
 

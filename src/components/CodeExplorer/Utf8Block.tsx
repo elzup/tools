@@ -1,7 +1,7 @@
 import { Box, Typography } from '@mui/material'
 import React from 'react'
 import styled from 'styled-components'
-import { bitStr, ByteBlock } from './ByteBlock'
+import { ByteBlock } from './ByteBlock'
 import { uints } from './utils'
 
 type Props = {
@@ -17,7 +17,7 @@ export const Utf8Block = ({ s }: Props) => {
       <Typography>{s}</Typography>
       <Box display="flex">
         {intNums.map((v, i) => (
-          <ByteBlock key={i} c={v} />
+          <ByteBlock key={i} c={v} variant="utf8" />
         ))}
       </Box>
     </Style>
