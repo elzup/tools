@@ -1,7 +1,7 @@
 import { controlCharLib } from '@elzup/kit'
 import React from 'react'
 import styled from 'styled-components'
-import CodeLabel from './Code'
+import CodeLabel from './CodeLabel'
 
 export const bitStr = (n: number) => n.toString(2).padStart(8, '0')
 export const readableAscii = (c: number) => {
@@ -10,8 +10,12 @@ export const readableAscii = (c: number) => {
   if (controlChar) return `[${controlChar.char}]`
   return String.fromCharCode(c)
 }
+type Props = {
+  c: number
+  variant?: 'plain' | 'utf8'
+}
 
-export const ByteBlock = ({ c }: { c: number }) => {
+export const ByteBlock = ({ c, variant = 'plain' }: Props) => {
   const bs = bitStr(c)
 
   return (
@@ -25,7 +29,10 @@ export const ByteBlock = ({ c }: { c: number }) => {
       <div className="asc">
         <CodeLabel text={readableAscii(c & 0x7f)} />
       </div>
-      <div className="bit" data-cate={bs.indexOf('0')}>
+      <div
+        className="bit"
+        data-utf8cate={variant === 'utf8' ? bs.indexOf('0') : '-'}
+      >
         {[...bs].map((bit, i) => (
           <CodeLabel key={i} text={bit} />
         ))}
@@ -61,27 +68,27 @@ const Style = styled.div`
       }
     }
 
-    &[data-cate='0'] {
+    &[data-utf8cate='0'] {
       > *:nth-child(-n + 1) {
         color: gray;
       }
     }
-    &[data-cate='1'] {
+    &[data-utf8cate='1'] {
       > *:nth-child(-n + 2) {
         color: green;
       }
     }
-    &[data-cate='2'] {
+    &[data-utf8cate='2'] {
       > *:nth-child(-n + 3) {
         color: pink;
       }
     }
-    &[data-cate='3'] {
+    &[data-utf8cate='3'] {
       > *:nth-child(-n + 4) {
         color: blue;
       }
     }
-    &[data-cate='4'] {
+    &[data-utf8cate='4'] {
       > *:nth-child(-n + 5) {
         color: orange;
       }
