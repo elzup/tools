@@ -1,7 +1,10 @@
+import { makeToggle } from '@elzup/kit'
 import {
   Box,
   FormControl,
+  FormControlLabel,
   FormLabel,
+  Switch,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
@@ -17,16 +20,28 @@ import { Utf8Block } from './Utf8Block'
 import { uints } from './utils'
 
 const layoutState = ['col8', 'col4', 'fill'] as const
+const pickHexChar = (s: string) => s.replace(/[^0-9a-f]/gi, '')
+const pickBase64Char = (s: string) => s.replace(/[^A-Za-z0-9+/=_-]/gi, '')
+const base64ToHex = (s: string) => Buffer.from(s, 'base64').toString('hex')
+const utf8ToHex = (s: string) => Buffer.from(s).toString('hex')
+const toggle = makeToggle(['base64', 'base64url'] as const)
 
 type LayoutState = typeof layoutState[number]
 const isLayoutState = (v: unknown): v is LayoutState =>
   typeof v === 'string' && layoutState.includes(v as LayoutState)
+const base64UnUrl = (s: string) =>
+  s.replace(/\+/g, '-').replace(/\//g, '_').replace(/=*$/g, '')
 
 function CodeExplorer() {
   const [hex, setHex] = useLocalStorage<string>('code-explorer-hex', '')
   const [layout, setLayout] = useState<LayoutState>('col8')
+  const [baseEncMode, setBaseEncMode] = useState<'base64' | 'base64url'>(
+    'base64'
+  )
   const buf = Buffer.from(hex, 'hex')
   const text = buf.toString('utf8')
+  const base64Base = buf.toString('base64')
+  const base64 = baseEncMode === 'base64' ? base64Base : base64UnUrl(base64Base)
 
   const intNums = uints(buf)
 
@@ -39,9 +54,7 @@ function CodeExplorer() {
           multiline
           fullWidth
           style={{ fontSize: '0.8rem' }}
-          onChange={(e) =>
-            setHex(Buffer.from(e.currentTarget.value).toString('hex'))
-          }
+          onChange={(e) => setHex(utf8ToHex(e.currentTarget.value))}
         />
         <TextField
           size="small"
@@ -50,15 +63,33 @@ function CodeExplorer() {
           inputProps={{ pattern: '' }}
           fullWidth
           style={{ fontSize: '0.8rem' }}
-          onChange={(e) =>
-            setHex(
-              e.currentTarget.value
-                .split('')
-                .filter((c) => /[0-9a-fA-F]/.test(c))
-                .join('')
-            )
-          }
+          onChange={(e) => setHex(pickHexChar(e.currentTarget.value))}
         />
+        <Box display="grid" gap="1px" p={0.5} gridTemplateColumns="1fr auto">
+          <TextField
+            size="small"
+            label={baseEncMode}
+            value={base64}
+            inputProps={{ pattern: '' }}
+            fullWidth
+            style={{ fontSize: '0.8rem' }}
+            onChange={(e) => {
+              console.log('hello')
+              setHex(base64ToHex(pickBase64Char(e.currentTarget.value)))
+            }}
+          />
+
+          <label>
+            <FormControlLabel
+              control={
+                <Switch onClick={() => setBaseEncMode(toggle(baseEncMode))} />
+              }
+              label="url"
+              labelPlacement="end"
+              checked={baseEncMode === 'base64url'}
+            />
+          </label>
+        </Box>
       </div>
       <FormControl>
         <FormLabel>layout</FormLabel>
