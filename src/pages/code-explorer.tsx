@@ -22,7 +22,7 @@ const CodeExplorerPage = () => {
     <Layout title={title}>
       <GlobalStyle />
       <Head>
-        <link rel="manifest" href="decopik.manifest.json" />
+        <link rel="manifest" href="codeex.manifest.json" />
         <meta name="application-name" content={title} />
 
         <meta name="apple-mobile-web-app-capable" content="yes" />
