@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "name": "Code Explorer",
+  "short_name": "Code exp",
+  "start_url": "/code-explorer",
+  "display": "standalone",
+  "background_color": "#182f58",
+  "description": "binary charcode visualizer",
+  "icons": [
+    {
+      "src": "./codeex-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./codeex-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
