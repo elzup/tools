@@ -69,8 +69,8 @@ function CodeExplorer() {
       </Box>
       <Box border="solid 1px" mt={1} p={1} borderRadius={1}>
         <Typography variant="subtitle1">UTF-8 View</Typography>
-        <div className="blocks" data-layout={layout}>
-          {text.split('').map((s, i) => (
+        <div className="blocks">
+          {[...text].map((s, i) => (
             <Utf8Block key={i} s={s} />
           ))}
         </div>
@@ -100,9 +100,7 @@ function CodeExplorer() {
           </div>
           <div>
             <CodeLabel
-              text={buf
-                .toString('ascii')
-                .split('')
+              text={[...buf.toString('ascii')]
                 .map((c) => readableAscii(c.charCodeAt(0)))
                 .join('')}
             />
@@ -121,17 +119,20 @@ function CodeExplorer() {
 
 const Style = styled.div`
   .blocks {
-    display: grid;
+    display: flex;
+    flex-wrap: wrap;
     &[data-layout='col8'] {
+      display: grid;
       grid-template-columns: repeat(8, max-content);
     }
     &[data-layout='col4'] {
+      display: grid;
       grid-template-columns: repeat(4, max-content);
     }
 
     &[data-layout='fill'] {
-      display: flex;
-      flex-wrap: wrap;
+      /* display: flex; */
+      /* flex-wrap: wrap; */
     }
   }
 

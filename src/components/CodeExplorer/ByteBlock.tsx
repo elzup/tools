@@ -25,8 +25,10 @@ export const ByteBlock = ({ c }: { c: number }) => {
       <div className="asc">
         <CodeLabel text={readableAscii(c & 0x7f)} />
       </div>
-      <div className="bit">
-        <CodeLabel text={bs} />
+      <div className="bit" data-cate={bs.indexOf('0')}>
+        {[...bs].map((bit, i) => (
+          <CodeLabel key={i} text={bit} />
+        ))}
       </div>
     </Style>
   )
@@ -49,6 +51,41 @@ const Style = styled.div`
 
   .bit {
     grid-area: bit;
+
+    > * {
+      &:nth-child(-n + 5) {
+        background: #ffffff;
+      }
+      &:nth-child(n + 5) {
+        background: #e0e0e0;
+      }
+    }
+
+    &[data-cate='0'] {
+      > *:nth-child(-n + 1) {
+        color: gray;
+      }
+    }
+    &[data-cate='1'] {
+      > *:nth-child(-n + 2) {
+        color: green;
+      }
+    }
+    &[data-cate='2'] {
+      > *:nth-child(-n + 3) {
+        color: pink;
+      }
+    }
+    &[data-cate='3'] {
+      > *:nth-child(-n + 4) {
+        color: blue;
+      }
+    }
+    &[data-cate='4'] {
+      > *:nth-child(-n + 5) {
+        color: orange;
+      }
+    }
   }
 
   .hex {
