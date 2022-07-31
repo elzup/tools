@@ -12,7 +12,7 @@ import { useState } from 'react'
 import { FaArrowsAltH } from 'react-icons/fa'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
-import { ByteBlock } from './ByteBlock'
+import { ByteBlock, readableAscii } from './ByteBlock'
 import CodeLabel from './Code'
 
 const uints = (b: Buffer) => [
@@ -94,6 +94,15 @@ function CodeExplorer() {
           <Typography variant="caption">ascii</Typography>
           <div>
             <CodeLabel text={buf.toString('ascii')} />
+          </div>
+          <div>
+            <CodeLabel
+              text={buf
+                .toString('ascii')
+                .split('')
+                .map((c) => readableAscii(c.charCodeAt(0)))
+                .join('')}
+            />
           </div>
         </Box>
         <Box border="solid 1px" mt={1} p={1} borderRadius={1}>

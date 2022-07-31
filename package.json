@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@elzup/kindof": "^0.4.6",
-    "@elzup/kit": "^3.4.1",
+    "@elzup/kit": "^3.5.3",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
     "@fortawesome/fontawesome-svg-core": "^1.3.0",
