@@ -1,62 +1,28 @@
-import { controlCharLib } from '@elzup/kit'
-import React from 'react'
+import { Box, Typography } from '@mui/material'
 import styled from 'styled-components'
-import CodeLabel from './CodeLabel'
+import { ByteBlock } from './ByteBlock'
+import { Cmd, transCmd, uints } from './utils'
 
-export const bitStr = (n: number) => n.toString(2).padStart(8, '0')
-export const readableAscii = (c: number) => {
-  const controlChar = controlCharLib[c]
-
-  if (controlChar) return `[${controlChar.char}]`
-  return String.fromCharCode(c)
-}
-
-export const TypeBlock = ({ c }: { c: number }) => {
-  const bs = bitStr(c)
+type Props = { cmd: Cmd; buf: Buffer }
+export const TypeBlock = ({ cmd, buf }: Props) => {
+  const intNums = uints(buf)
 
   return (
     <Style>
-      <div className="hex">
-        <CodeLabel text={c.toString(16).padStart(2, '0')} />
-      </div>
-      <div className="dec">
-        <CodeLabel text={c} />
-      </div>
-      <div className="asc">
-        <CodeLabel text={readableAscii(c & 0x7f)} />
-      </div>
-      <div className="bit">
-        <CodeLabel text={bs} />
-      </div>
+      <Typography>{cmd}</Typography>
+      <Typography>{transCmd(cmd, buf)}</Typography>
+      <Box display="flex" gap="1px" p={0.5}>
+        {intNums.map((v, i) => (
+          <ByteBlock key={i} c={v} variant="utf8" />
+        ))}
+      </Box>
     </Style>
   )
 }
 
 const Style = styled.div`
-  display: grid;
-  grid-template-areas: 'asc ...' 'hex dec' 'bit bit';
   border: 1px solid gray;
-  margin: 2px;
-  .dec {
-    grid-area: dec;
-    text-align: right;
-  }
-
   .asc {
-    grid-area: asc;
-    text-align: center;
-  }
-
-  .bit {
-    grid-area: bit;
-  }
-
-  .hex {
-    grid-area: hex;
-    &::before {
-      font-family: monospace;
-      opacity: 0.5;
-      content: '0x';
-    }
+    display: none;
   }
 `
