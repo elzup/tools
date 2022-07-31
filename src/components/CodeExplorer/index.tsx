@@ -23,21 +23,43 @@ const isLayoutState = (v: unknown): v is LayoutState =>
   typeof v === 'string' && layoutState.includes(v as LayoutState)
 
 function CodeExplorer() {
-  const [text, setText] = useLocalStorage<string>('code-explorer-text', '')
+  const [hex, setHex] = useLocalStorage<string>('code-explorer-hex', '')
   const [layout, setLayout] = useState<LayoutState>('col8')
+  const buf = Buffer.from(hex, 'hex')
+  const text = buf.toString('utf8')
 
-  const buf = Buffer.from(text)
   const intNums = uints(buf)
 
   return (
     <Style>
-      <TextField
-        value={text}
-        multiline
-        fullWidth
-        style={{ fontSize: '0.8rem' }}
-        onChange={(e) => setText(e.currentTarget.value)}
-      />
+      <div className="forms">
+        <TextField
+          value={text}
+          label="text"
+          multiline
+          fullWidth
+          style={{ fontSize: '0.8rem' }}
+          onChange={(e) =>
+            setHex(Buffer.from(e.currentTarget.value).toString('hex'))
+          }
+        />
+        <TextField
+          size="small"
+          label="hex"
+          value={hex}
+          inputProps={{ pattern: '' }}
+          fullWidth
+          style={{ fontSize: '0.8rem' }}
+          onChange={(e) =>
+            setHex(
+              e.currentTarget.value
+                .split('')
+                .filter((c) => /[0-9a-fA-F]/.test(c))
+                .join('')
+            )
+          }
+        />
+      </div>
       <FormControl>
         <FormLabel>layout</FormLabel>
         <ToggleButtonGroup
@@ -48,14 +70,14 @@ function CodeExplorer() {
           }
           aria-label="blocks alignment"
         >
+          <ToggleButton size="small" value="fill" aria-label="fill">
+            <FaArrowsAltH />
+          </ToggleButton>
           <ToggleButton size="small" value="col8" aria-label="8 column">
             Col8
           </ToggleButton>
           <ToggleButton size="small" value="col4" aria-label="4 column">
             Col4
-          </ToggleButton>
-          <ToggleButton size="small" value="fill" aria-label="fill">
-            <FaArrowsAltH />
           </ToggleButton>
         </ToggleButtonGroup>
       </FormControl>
@@ -118,9 +140,14 @@ function CodeExplorer() {
 }
 
 const Style = styled.div`
+  .forms {
+    display: grid;
+    gap: 1rem;
+  }
   .blocks {
     display: flex;
     flex-wrap: wrap;
+    gap: 1px;
     &[data-layout='col8'] {
       display: grid;
       grid-template-columns: repeat(8, max-content);
