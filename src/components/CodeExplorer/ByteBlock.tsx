@@ -45,7 +45,6 @@ const Style = styled.div`
   display: grid;
   grid-template-areas: 'asc ...' 'hex dec' 'bit bit';
   border: 1px solid gray;
-  margin: 2px;
   .dec {
     grid-area: dec;
     text-align: right;
