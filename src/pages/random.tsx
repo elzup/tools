@@ -1,4 +1,4 @@
-import { randGen } from '@elzup/kit/lib/rand'
+import { randGen } from '@elzup/kit/lib/seedRand'
 import * as React from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
@@ -7,9 +7,13 @@ const title = 'random inspect'
 
 const randBasic = Math.random
 const makeRand = () => {
-  const r = randGen()
+  const r = randGen(String(Date.now()))
 
-  return () => (r.next() % 1000000) / 1000000
+  return () => {
+    const tn = r.next()
+
+    return ((tn.value ?? 0) % 1000000) / 1000000
+  }
 }
 const randOrigin = makeRand()
 const funcs = [randBasic, randOrigin]

@@ -1,5 +1,5 @@
 import { range } from '@elzup/kit'
-import { randRange } from '@elzup/kit/lib/rand'
+import { randRange } from '@elzup/kit/lib/seedRand'
 import {
   Box,
   FormControlLabel,
