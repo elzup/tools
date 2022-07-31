@@ -1473,10 +1473,10 @@
   resolved "https://registry.yarnpkg.com/@elzup/kindof/-/kindof-0.4.6.tgz#aa042d679052a7932422d79d97f85e5116734802"
   integrity sha512-+cQ/ytzjCQkkXbsZVNUWzIrH6bm9EGwgY0MqbilhG3Ahgle2IMBPFrL+nw4H061cj3QkFCe3T5CJqd++xb4JTA==
 
-"@elzup/kit@^3.4.1":
-  version "3.4.1"
-  resolved "https://registry.yarnpkg.com/@elzup/kit/-/kit-3.4.1.tgz#743c8211872f1f7741cb12e734716e79701ece5d"
-  integrity sha512-/E7H2v2dWVl4Jk2In37kxHZNfbg/ZSzhPNrsFTMaf3H0Xj9mSq4cWdHrHDFSJuy+3SO0e1R1o6Uavlg/EVdARA==
+"@elzup/kit@^3.5.3":
+  version "3.5.3"
+  resolved "https://registry.yarnpkg.com/@elzup/kit/-/kit-3.5.3.tgz#2c42a137c5add787c620fab76871dff74dedd5fb"
+  integrity sha512-uc8bq9OkKkd80tChUAsuMLmk8jkfg0Z3TtvWKgVVMDTQEv6zOQ0226aTrmYbRUZSrTnNa1W5SvuFFCNL4KZO7g==
 
 "@emotion/babel-plugin@^11.7.1":
   version "11.7.2"
