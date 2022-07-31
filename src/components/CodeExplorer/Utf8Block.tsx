@@ -17,7 +17,7 @@ export const Utf8Block = ({ s }: Props) => {
       <Typography>{s}</Typography>
       <Box display="flex" gap="1px" p={0.5}>
         {intNums.map((v, i) => (
-          <ByteBlock key={i} c={v} />
+          <ByteBlock key={i} c={v} variant="utf8" />
         ))}
       </Box>
     </Style>
