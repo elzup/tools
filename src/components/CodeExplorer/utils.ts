@@ -1,4 +1,3 @@
-import buffer from 'buffer'
 import { controlCharLib, range } from '@elzup/kit'
 
 export const uints = (b: Buffer) => [
