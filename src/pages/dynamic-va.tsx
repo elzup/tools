@@ -7,7 +7,7 @@ import {
   Switch,
   Typography,
 } from '@mui/material'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useInterval } from 'react-use'
 import styled from 'styled-components'
 import Layout from '../components/Layout'
@@ -26,15 +26,8 @@ const initConfig: Config = {
   color: false,
 }
 
-type Point = { x: number; y: number; v: number }
-const RandInspect = () => {
-  const [config, setConfig] = useState<Config>(initConfig)
-  const { speedMs, n, color } = config
+const useMarkers = (speedMs: number, n: number) => {
   const [markers, setMarkers] = useState<Point[]>([])
-
-  const toggleColor = () => setConfig((v) => ({ ...v, color: !v.color }))
-  const setSpeedMs = (speedMs: number) => setConfig((v) => ({ ...v, speedMs }))
-  const setN = (n: number) => setConfig((v) => ({ ...v, n }))
 
   useInterval(() => {
     setMarkers(
@@ -45,6 +38,18 @@ const RandInspect = () => {
       }))
     )
   }, speedMs)
+  return { markers }
+}
+
+type Point = { x: number; y: number; v: number }
+const RandInspect = () => {
+  const [config, setConfig] = useState<Config>(initConfig)
+  const { speedMs, n, color } = config
+  const { markers } = useMarkers(speedMs, n)
+
+  const toggleColor = () => setConfig((v) => ({ ...v, color: !v.color }))
+  const setSpeedMs = (speedMs: number) => setConfig((v) => ({ ...v, speedMs }))
+  const setN = (n: number) => setConfig((v) => ({ ...v, n }))
 
   return (
     <Layout title={title}>
@@ -87,7 +92,7 @@ const RandInspect = () => {
               <div
                 key={i}
                 className="point"
-                style={{ top: `${m.y * 100}%`, left: `${m.x * 100}%` }}
+                style={{ top: `${m.y * 95}%`, left: `${m.x * 95}%` }}
               >
                 {m.v}
               </div>

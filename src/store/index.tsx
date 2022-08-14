@@ -30,8 +30,6 @@ const migrate = (config: Config) => {
 export const ConfigProvider = ({ children }: WithChild) => {
   const [config, setConfig] = useState<Config>(defaultConfig)
 
-  console.log(config)
-
   useEffect(() => {
     if (config.version === defaultConfig.version) return
     setConfig(migrate(config))
