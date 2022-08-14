@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
+import { WithChild } from '../types'
 
 type Config = {
   version: number
@@ -26,7 +27,7 @@ const migrate = (config: Config) => {
   return { ...defaultConfig, ...config, version: defaultConfig.version }
 }
 
-export const ConfigProvider: React.FC = ({ children }) => {
+export const ConfigProvider = ({ children }: WithChild) => {
   const [config, setConfig] = useState<Config>(defaultConfig)
 
   console.log(config)
