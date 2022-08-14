@@ -1,9 +1,9 @@
 import { Box, Container } from '@mui/material'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import * as React from 'react'
 import styled from 'styled-components'
 import { ConfigProvider } from '../store'
+import { WithChild } from '../types'
 import Footer from './Footer'
 
 type Props = {
@@ -12,13 +12,13 @@ type Props = {
   top?: boolean
 }
 
-const Layout: React.FC<Props & { currentPath: string }> = ({
+const Layout = ({
   children,
-  title = 'mini web tools by anozon',
-  fullWidth,
   currentPath,
+  title = 'mini web tools by anozon',
+  fullWidth = false,
   top = false,
-}) => {
+}: WithChild<Props & { currentPath: string }>) => {
   const contentsBody = <>{children}</>
 
   return (
@@ -55,7 +55,7 @@ const Wrap = styled.div`
   }
 `
 
-function LayoutRouter(props: React.PropsWithChildren<Props>) {
+function LayoutRouter(props: WithChild<Props>) {
   const { pathname } = useRouter()
 
   return <Layout {...props} currentPath={pathname} />

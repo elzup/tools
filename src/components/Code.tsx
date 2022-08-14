@@ -1,8 +1,8 @@
-import React, { FC } from 'react'
 import styled from 'styled-components'
+import { WithChild } from '../types'
 
 type Props = {}
-const Code: FC<Props> = ({ children }) => {
+const Code = ({ children }: WithChild<Props>) => {
   return (
     <Style>
       <code>{children}</code>
