@@ -1,5 +1,5 @@
 import { range } from '@elzup/kit'
-import { randRange } from '@elzup/kit/lib/seedRand'
+import { randRange } from '@elzup/kit/lib/rand/randRange'
 import {
   Box,
   FormControlLabel,
@@ -38,10 +38,10 @@ const RandInspect = () => {
 
   useInterval(() => {
     setMarkers(
-      range(n).map((i) => ({
+      range(n).map(() => ({
         x: Math.random(),
         y: Math.random(),
-        v: randRange(Math.random() * 10, 1, 9),
+        v: randRange(1, 9),
       }))
     )
   }, speedMs)
