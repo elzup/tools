@@ -1,3 +1,4 @@
+import { faDev } from '@fortawesome/free-brands-svg-icons'
 import {
   faIdBadge,
   faLightbulb,
@@ -79,6 +80,11 @@ const routings: RoutingGroup[] = [
         icon: faCode,
         label: 'Code Explorer',
         path: '/code-explorer',
+      },
+      {
+        icon: faDev,
+        label: 'DevTools Camp',
+        path: '/devtools-camp',
       },
     ],
   },
