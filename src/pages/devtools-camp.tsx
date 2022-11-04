@@ -20,6 +20,7 @@ const TASK = {
   EDIT_TEXT: '1-edit-text',
   DELETE_DOM: '1-delete-dom',
   HIDE_DOM: '1-hide-dom',
+  EDIT_DOM: '1-edit-dom',
 }
 
 const useTask = () => {
@@ -61,6 +62,7 @@ const DevToolsCamp = () => {
       <TaskBox1 {...getAccess(TASK.EDIT_TEXT)} />
       <TaskBox2 {...getAccess(TASK.DELETE_DOM)} />
       <TaskBox3 {...getAccess(TASK.HIDE_DOM)} />
+      <TaskBox4 {...getAccess(TASK.EDIT_DOM)} />
     </Box>
   )
 }
@@ -111,7 +113,6 @@ const TaskBox2 = ({ task, setTask }: TaskBoxProps) => {
 
   useEffect(() => {
     if (ref.current === null) return
-    console.log(ref.current)
     ref.current.addEventListener('DOMNodeRemoved', (e) => {
       setTask({ done: true, mem: {} })
     })
@@ -152,15 +153,61 @@ const TaskBox3 = ({ task, setTask }: TaskBoxProps) => {
   )
 }
 
+const TaskBox4 = ({ task, setTask }: TaskBoxProps) => {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useMutationObserver(ref, (e) => {
+    const $e = e[0].target as HTMLElement
+
+    console.log($e.getAttribute('data-active'))
+    console.log($e.tagName)
+
+    if ($e.getAttribute('data-active') === 'true' && $e.tagName === 'P') {
+      setTask({ done: true, mem: {} })
+    }
+  })
+
+  return (
+    <Box mt={1}>
+      <Typography variant="h6">4. DOMを書き換える</Typography>
+      <Typography>{`data-active="true" 属性を追加, spanをpタグに変更する`}</Typography>
+      <div ref={ref}>
+        <TargetWrap>
+          <span>CHANGE ME</span>
+        </TargetWrap>
+      </div>
+      <TaskDone done={task.done} />
+    </Box>
+  )
+}
+
 const TaskDone = ({ done }: { done: boolean }) => {
-  return <div>result: {done ? 'ok' : '-'}</div>
+  return (
+    <Box
+      p={1}
+      mt={1}
+      sx={{
+        width: '100px',
+        border: `solid 2px ${done ? '#d0ffd0' : '#f7ebff'}`,
+        borderRadius: '4px',
+        background: done ? 'green' : 'white',
+      }}
+    >
+      result: {done ? 'ok' : '-'}
+    </Box>
+  )
 }
 
 const TargetWrap = styled.div`
   border: solid 1px gray;
   padding: 1rem;
+  max-width: 400px;
+  margin-top: 1rem;
   > * {
     background: #eee;
+    &[data-active='true'] {
+      background: #a7ffa7;
+    }
   }
   &[data-action='remove'] {
     p {
