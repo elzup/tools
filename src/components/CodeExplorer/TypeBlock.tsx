@@ -10,7 +10,7 @@ export const TypeBlock = ({ cmd, buf }: Props) => {
   return (
     <Style>
       <Typography>{cmd}</Typography>
-      <Typography>{transCmd(cmd, buf)}</Typography>
+      <Typography>{String(transCmd(cmd, buf))}</Typography>
       <Box display="flex" gap="1px" p={0.5}>
         {intNums.map((v, i) => (
           <ByteBlock key={i} c={v} />
