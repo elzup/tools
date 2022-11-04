@@ -21,6 +21,7 @@ const TASK = {
   DELETE_DOM: '1-delete-dom',
   HIDE_DOM: '1-hide-dom',
   EDIT_DOM: '1-edit-dom',
+  COLOR_COPY: '2-color-copy',
 }
 
 const useTask = () => {
@@ -63,6 +64,7 @@ const DevToolsCamp = () => {
       <TaskBox2 {...getAccess(TASK.DELETE_DOM)} />
       <TaskBox3 {...getAccess(TASK.HIDE_DOM)} />
       <TaskBox4 {...getAccess(TASK.EDIT_DOM)} />
+      <TaskBox5 {...getAccess(TASK.COLOR_COPY)} />
     </Box>
   )
 }
@@ -98,7 +100,7 @@ const TaskBox1 = ({ task, setTask }: TaskBoxProps) => {
 
   return (
     <Box mt={1}>
-      <Typography variant="h6">1. テキストを書き換える</Typography>
+      <Typography variant="h6">1-1. テキストを書き換える</Typography>
       <Typography>{`'${initText}' を 'hello' に書き換える`}</Typography>
       <TargetWrap>
         <p ref={ref}>{initText}</p>
@@ -120,7 +122,7 @@ const TaskBox2 = ({ task, setTask }: TaskBoxProps) => {
 
   return (
     <Box mt={1}>
-      <Typography variant="h6">2. DOMを削除する</Typography>
+      <Typography variant="h6">1-2. DOMを削除する</Typography>
       <Typography>{`pタグを削除する`}</Typography>
       <TargetWrap data-action="remove">
         <p ref={ref}>DELETE ME</p>
@@ -143,7 +145,7 @@ const TaskBox3 = ({ task, setTask }: TaskBoxProps) => {
 
   return (
     <Box mt={1}>
-      <Typography variant="h6">3. DOMを非表示にする</Typography>
+      <Typography variant="h6">1-3. DOMを非表示にする</Typography>
       <Typography>{`pタグを非表示にする`}</Typography>
       <TargetWrap data-action="remove">
         <p ref={ref}>HIDE ME</p>
@@ -169,11 +171,47 @@ const TaskBox4 = ({ task, setTask }: TaskBoxProps) => {
 
   return (
     <Box mt={1}>
-      <Typography variant="h6">4. DOMを書き換える</Typography>
+      <Typography variant="h6">1-4. DOMを書き換える</Typography>
       <Typography>{`data-active="true" 属性を追加, spanをpタグに変更する`}</Typography>
       <div ref={ref}>
         <TargetWrap>
           <span>CHANGE ME</span>
+        </TargetWrap>
+      </div>
+      <TaskDone done={task.done} />
+    </Box>
+  )
+}
+
+const TaskBox5 = ({ task, setTask }: TaskBoxProps) => {
+  const ref = useRef<HTMLDivElement>(null)
+  const ref1 = useRef<HTMLDivElement>(null)
+  const ref2 = useRef<HTMLDivElement>(null)
+
+  useMutationObserver(ref, (e) => {
+    if (ref1.current === null || ref2.current === null) return
+    const c1 = window.getComputedStyle(ref1.current).backgroundColor
+    const c2 = window.getComputedStyle(ref1.current).backgroundColor
+
+    if (c1 === c2) {
+      setTask({ done: true, mem: {} })
+    }
+  })
+
+  return (
+    <Box mt={1}>
+      <Typography variant="h6">2-1. 色を変更する</Typography>
+      <Typography>{`background を隣の色と揃える`}</Typography>
+      <div ref={ref}>
+        <TargetWrap>
+          <Box display="flex" gap={'1rem'}>
+            <div ref={ref1} style={{ background: '#abcabc' }}>
+              CHANGE ME
+            </div>
+            <div ref={ref2} style={{ background: '#cbacba' }}>
+              CHANGE ME
+            </div>
+          </Box>
         </TargetWrap>
       </div>
       <TaskDone done={task.done} />
@@ -205,8 +243,13 @@ const TargetWrap = styled.div`
   margin-top: 1rem;
   > * {
     background: #eee;
+    padding: 4px;
+    text-align: center;
     &[data-active='true'] {
       background: #a7ffa7;
+    }
+    > div {
+      padding: 1rem;
     }
   }
   &[data-action='remove'] {
