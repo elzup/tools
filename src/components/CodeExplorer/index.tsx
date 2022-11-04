@@ -10,9 +10,8 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
-import { useState } from 'react'
+import { ComponentProps, useState } from 'react'
 import { FaArrowsAltH } from 'react-icons/fa'
-import { defaultProps } from 'recompose'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
 import { ByteBlock } from './ByteBlock'
@@ -35,12 +34,9 @@ const isLayoutState = (v: unknown): v is LayoutState =>
 const base64UnUrl = (s: string) =>
   s.replace(/\+/g, '-').replace(/\//g, '_').replace(/=*$/g, '')
 
-const PanelBox = defaultProps({
-  border: 'solid 1px',
-  mt: 1,
-  p: 1,
-  borderRadius: 1,
-})(Box)
+const PanelBox = (props: ComponentProps<typeof Box>) => (
+  <Box border={'solid 1px'} mt={1} p={1} borderRadius={1} {...props} />
+)
 
 function CodeExplorer() {
   const [hex, setHex] = useLocalStorage<string>('code-explorer-hex', '')
