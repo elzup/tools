@@ -3,6 +3,8 @@ import 'devtools-detect'
 import { useEvent } from 'react-use'
 import styled from 'styled-components'
 import NoSSR from 'react-no-ssr'
+import { useEffect, useRef } from 'react'
+import { useMutationObserver } from 'rooks'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 import { useLocalStorage } from '../utils/useLocalStorage'
@@ -74,77 +76,95 @@ const TaskBox0 = ({ task, setTask }: TaskBoxProps) => {
   })
   return (
     <Box mt={1}>
-      <Typography>0. 開発者ツールを開く</Typography>
-      <div>{task.done ? 'ok' : '-'}</div>
+      <Typography variant="h6">0. 開発者ツールを開く</Typography>
+      <TaskDone done={task.done} />
     </Box>
   )
 }
 
+const initText = 'CHANGE ME'
 const TaskBox1 = ({ task, setTask }: TaskBoxProps) => {
-  useEvent('devtoolschange', (e) => {
-    if (e?.detail?.isOpen) setTask({ done: true, mem: {} })
+  const ref = useRef<HTMLParagraphElement>(null)
+
+  useMutationObserver(ref, (e) => {
+    const $e = e[0].target as HTMLElement
+
+    if ($e.innerText !== initText) {
+      setTask({ done: true, mem: {} })
+    }
   })
+
   return (
     <Box mt={1}>
-      <Typography>2. テキストを書き換える</Typography>
-      <p
-        onChange={(e) => {
-          console.log(e)
-        }}
-      >
-        {'change me'}
-      </p>
-      <div>{task.done ? 'ok' : '-'}</div>
+      <Typography variant="h6">1. テキストを書き換える</Typography>
+      <Typography>{`'${initText}' を 'hello' に書き換える`}</Typography>
+      <TargetWrap>
+        <p ref={ref}>{initText}</p>
+      </TargetWrap>
+      <TaskDone done={task.done} />
     </Box>
   )
 }
 
 const TaskBox2 = ({ task, setTask }: TaskBoxProps) => {
+  const ref = useRef<HTMLParagraphElement>(null)
+
+  useEffect(() => {
+    if (ref.current === null) return
+    console.log(ref.current)
+    ref.current.addEventListener('DOMNodeRemoved', (e) => {
+      setTask({ done: true, mem: {} })
+    })
+  }, [ref.current])
+
   return (
     <Box mt={1}>
-      <Typography>3. DOMを削除する</Typography>
-      <p
-        onChange={(e) => {
-          console.log(e)
-        }}
-      >
-        DELETE ME
-      </p>
-      <div>{task.done ? 'ok' : '-'}</div>
+      <Typography variant="h6">2. DOMを削除する</Typography>
+      <Typography>{`pタグを削除する`}</Typography>
+      <TargetWrap data-action="remove">
+        <p ref={ref}>DELETE ME</p>
+      </TargetWrap>
+      <TaskDone done={task.done} />
     </Box>
   )
 }
 
 const TaskBox3 = ({ task, setTask }: TaskBoxProps) => {
+  const ref = useRef<HTMLParagraphElement>(null)
+
+  useMutationObserver(ref, (e) => {
+    const { visibility } = window.getComputedStyle(e[0].target as HTMLElement)
+
+    if (visibility === 'hidden') {
+      setTask({ done: true, mem: {} })
+    }
+  })
+
   return (
     <Box mt={1}>
-      <Typography>4. DOMを非表示にする</Typography>
-      <p
-        onChange={(e) => {
-          console.log(e)
-        }}
-      >
-        HIDE ME
-      </p>
-      <div>{task.done ? 'ok' : '-'}</div>
+      <Typography variant="h6">3. DOMを非表示にする</Typography>
+      <Typography>{`pタグを非表示にする`}</Typography>
+      <TargetWrap data-action="remove">
+        <p ref={ref}>HIDE ME</p>
+      </TargetWrap>
+      <TaskDone done={task.done} />
     </Box>
   )
 }
 
-const Style = styled.div`
-  table {
-    border-collapse: collapse;
-    th,
-    td {
-      border-top: 1px solid #aaa;
-      border-bottom: 1px solid #aaa;
-      border-left: 1px solid #ccc;
-      border-right: 1px solid #ccc;
-      background: #ddd;
-      padding: 0 0.5rem;
-    }
-    td {
-      background: #fff;
+const TaskDone = ({ done }: { done: boolean }) => {
+  return <div>result: {done ? 'ok' : '-'}</div>
+}
+
+const TargetWrap = styled.div`
+  border: solid 1px gray;
+  padding: 1rem;
+  > * {
+    background: #eee;
+  }
+  &[data-action='remove'] {
+    p {
+      color: red;
     }
   }
 `
