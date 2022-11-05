@@ -1,6 +1,6 @@
 import through from 'through'
 import ReactDOM from 'react-dom'
-import React from 'react'
+import React, { PropsWithChildren } from 'react'
 
 export const zoom1D = (
   s: number,
@@ -65,3 +65,5 @@ export function getComponentHtmlCode(component: React.ReactElement) {
 }
 
 export const asciify = (s: string) => s.replace(/[^\x20-\x7e\n]*/g, '')
+
+export type WithChild = PropsWithChildren
