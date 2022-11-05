@@ -1,4 +1,5 @@
 import { Alert, Button } from '@mui/material'
+import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 import Webcam from 'react-webcam'
 import Layout from '../components/Layout'
@@ -64,7 +65,9 @@ const MirrorCamera = () => {
       {/* <Stack sx={{ width: '100%' }} spacing={2}> */}
       <Alert severity="warning">
         こちらのツール集に<strong>移動しました。</strong>
-        <a href="https://mitelop.anozon.me/">https://mitelop.anozon.me/</a>
+        <Link href="https://mitelop.anozon.me/">
+          https://mitelop.anozon.me/
+        </Link>
       </Alert>
       {/* </Stack> */}
 

@@ -245,9 +245,7 @@ function MenuItem({ routing, opened }: { routing: Routing; opened: boolean }) {
       ) : (
         <>
           <Link href={routing.path}>
-            <a>
-              <Typography>{routing.label}</Typography>
-            </a>
+            <Typography>{routing.label}</Typography>
           </Link>
         </>
       )}

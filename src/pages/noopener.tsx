@@ -1,4 +1,5 @@
 import { Card, TextField } from '@mui/material'
+import Link from 'next/link'
 import * as React from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
@@ -21,9 +22,9 @@ const NoOpener = () => {
         }
       </p>
       <p>
-        <a href="/noopener-attacker" target="_blank" rel="noopener">
+        <Link href="/noopener-attacker" target="_blank" rel="noopener">
           noopenerをつけているリンク
-        </a>
+        </Link>
       </p>
       <p>リンクを開いた状態でフォームに入力してください。</p>
 
