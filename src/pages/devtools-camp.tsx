@@ -81,6 +81,7 @@ const TaskBox0 = ({ task, setTask }: TaskBoxProps) => {
   return (
     <Box mt={1}>
       <Typography variant="h6">0. 開発者ツールを開く</Typography>
+      <Typography>セパレートウィンドウ以外で開く</Typography>
       <TaskDone done={task.done} />
     </Box>
   )
@@ -155,14 +156,23 @@ const TaskBox3 = ({ task, setTask }: TaskBoxProps) => {
   )
 }
 
+export const isElement = (node: Node): node is Element =>
+  node.nodeType === Node.ELEMENT_NODE
+
 const TaskBox4 = ({ task, setTask }: TaskBoxProps) => {
   const ref = useRef<HTMLDivElement>(null)
 
-  useMutationObserver(ref, (e) => {
-    const $e = e[0].target as HTMLElement
+  useMutationObserver(ref, (_mrs) => {
+    // const divs = mrs
+    //   .map(({ target }) => target)
+    //   .filter(isElement)
+    //   .filter(($e) => $e.tagName === 'div')
 
-    console.log($e.getAttribute('data-active'))
-    console.log($e.tagName)
+    if (!ref.current) return
+
+    const $e = ref.current.children[0]?.children[0]
+
+    if (!$e) return
 
     if ($e.getAttribute('data-active') === 'true' && $e.tagName === 'P') {
       setTask({ done: true, mem: {} })
@@ -219,6 +229,11 @@ const TaskBox5 = ({ task, setTask }: TaskBoxProps) => {
   )
 }
 
+const colors = {
+  main: '#a7ffa7',
+  sub: '#00ae37',
+}
+
 const TaskDone = ({ done }: { done: boolean }) => {
   return (
     <Box
@@ -226,9 +241,9 @@ const TaskDone = ({ done }: { done: boolean }) => {
       mt={1}
       sx={{
         width: '100px',
-        border: `solid 2px ${done ? '#d0ffd0' : '#f7ebff'}`,
+        border: `solid 2px ${done ? colors.sub : '#f7ebff'}`,
         borderRadius: '4px',
-        background: done ? 'green' : 'white',
+        background: done ? colors.main : 'white',
       }}
     >
       result: {done ? 'ok' : '-'}
@@ -246,7 +261,7 @@ const TargetWrap = styled.div`
     padding: 4px;
     text-align: center;
     &[data-active='true'] {
-      background: #a7ffa7;
+      background: ${colors.main};
     }
     > div {
       padding: 1rem;
