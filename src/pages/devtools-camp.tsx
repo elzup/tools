@@ -8,6 +8,7 @@ import { useMutationObserver } from 'rooks'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 import { useLocalStorage } from '../utils/useLocalStorage'
+import { WithChild } from '../types'
 
 type TaskMem = {
   done: boolean
@@ -74,16 +75,37 @@ type TaskBoxProps = {
   setTask: (task: TaskMem) => void
 }
 
+type TaskBoxWrapProps = { title: string; desc: string; dones: boolean[] }
+const TaskBoxWrap = ({
+  title,
+  desc,
+  dones,
+  children,
+}: WithChild<TaskBoxWrapProps>) => {
+  return (
+    <Box mt={1}>
+      <Typography variant="h6">{title}</Typography>
+      <Typography>{desc}</Typography>
+      {children}
+      <Box display="flex">
+        {dones.map((done, i) => (
+          <TaskDone key={i} done={done} />
+        ))}
+      </Box>
+    </Box>
+  )
+}
+
 const TaskBox0 = ({ task, setTask }: TaskBoxProps) => {
   useEvent('devtoolschange', (e) => {
     if (e?.detail?.isOpen) setTask({ done: true, mem: {} })
   })
   return (
-    <Box mt={1}>
-      <Typography variant="h6">0. 開発者ツールを開く</Typography>
-      <Typography>セパレートウィンドウ以外で開く</Typography>
-      <TaskDone done={task.done} />
-    </Box>
+    <TaskBoxWrap
+      title="0. 開発者ツールを開く"
+      desc="セパレートウィンドウ以外で開く"
+      dones={[task.done]}
+    ></TaskBoxWrap>
   )
 }
 
@@ -100,14 +122,15 @@ const TaskBox1 = ({ task, setTask }: TaskBoxProps) => {
   })
 
   return (
-    <Box mt={1}>
-      <Typography variant="h6">1-1. テキストを書き換える</Typography>
-      <Typography>{`'${initText}' を 'hello' に書き換える`}</Typography>
+    <TaskBoxWrap
+      title="1-1. テキストを書き換える"
+      desc={`'${initText}' を 'hello' に書き換える`}
+      dones={[task.done]}
+    >
       <TargetWrap>
         <p ref={ref}>{initText}</p>
       </TargetWrap>
-      <TaskDone done={task.done} />
-    </Box>
+    </TaskBoxWrap>
   )
 }
 
@@ -122,14 +145,15 @@ const TaskBox2 = ({ task, setTask }: TaskBoxProps) => {
   }, [ref.current])
 
   return (
-    <Box mt={1}>
-      <Typography variant="h6">1-2. DOMを削除する</Typography>
-      <Typography>{`pタグを削除する`}</Typography>
+    <TaskBoxWrap
+      title="1-2. DOMを削除する"
+      desc={`pタグを削除する`}
+      dones={[task.done]}
+    >
       <TargetWrap data-action="remove">
         <p ref={ref}>DELETE ME</p>
       </TargetWrap>
-      <TaskDone done={task.done} />
-    </Box>
+    </TaskBoxWrap>
   )
 }
 
@@ -145,14 +169,15 @@ const TaskBox3 = ({ task, setTask }: TaskBoxProps) => {
   })
 
   return (
-    <Box mt={1}>
-      <Typography variant="h6">1-3. DOMを非表示にする</Typography>
-      <Typography>{`pタグを非表示にする`}</Typography>
+    <TaskBoxWrap
+      title="1-3. DOMを非表示にする"
+      desc={`pタグを非表示にする`}
+      dones={[task.done]}
+    >
       <TargetWrap data-action="remove">
         <p ref={ref}>HIDE ME</p>
       </TargetWrap>
-      <TaskDone done={task.done} />
-    </Box>
+    </TaskBoxWrap>
   )
 }
 
@@ -180,16 +205,17 @@ const TaskBox4 = ({ task, setTask }: TaskBoxProps) => {
   })
 
   return (
-    <Box mt={1}>
-      <Typography variant="h6">1-4. DOMを書き換える</Typography>
-      <Typography>{`data-active="true" 属性を追加, spanをpタグに変更する`}</Typography>
+    <TaskBoxWrap
+      title="1-4. DOMを書き換える"
+      desc={`data-active="true" 属性を追加, spanをpタグに変更する`}
+      dones={[task.done]}
+    >
       <div ref={ref}>
         <TargetWrap>
           <span>CHANGE ME</span>
         </TargetWrap>
       </div>
-      <TaskDone done={task.done} />
-    </Box>
+    </TaskBoxWrap>
   )
 }
 
@@ -209,9 +235,11 @@ const TaskBox5 = ({ task, setTask }: TaskBoxProps) => {
   })
 
   return (
-    <Box mt={1}>
-      <Typography variant="h6">2-1. 色を変更する</Typography>
-      <Typography>{`background を隣の色と揃える`}</Typography>
+    <TaskBoxWrap
+      title="2-1. 色を変更する"
+      desc={`background を隣の色と揃える`}
+      dones={[task.done]}
+    >
       <div ref={ref}>
         <TargetWrap>
           <Box display="flex" gap={'1rem'}>
@@ -224,8 +252,7 @@ const TaskBox5 = ({ task, setTask }: TaskBoxProps) => {
           </Box>
         </TargetWrap>
       </div>
-      <TaskDone done={task.done} />
-    </Box>
+    </TaskBoxWrap>
   )
 }
 
