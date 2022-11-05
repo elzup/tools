@@ -1,13 +1,16 @@
 import createEmotionServer from '@emotion/server/create-instance'
 import NextDocument, { Head, Html, Main, NextScript } from 'next/document'
 import React from 'react'
+import { theme } from '../components/theme'
 import createEmotionCache from '../utils/createEmotionCache'
 
 class Document extends NextDocument {
   render() {
     return (
       <Html lang={'ja'}>
-        <Head />
+        <meta name="theme-color" content={theme.palette.primary.main} />
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        <Head>{(this.props as any).emotionStyleTags}</Head>
         <body>
           <Main />
           <NextScript />
@@ -46,6 +49,7 @@ Document.getInitialProps = async (ctx) => {
       ...React.Children.toArray(initialProps.styles),
       ...emotionStyleTags,
     ],
+    emotionStyleTags,
   }
 }
 

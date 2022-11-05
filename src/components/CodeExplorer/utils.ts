@@ -57,7 +57,7 @@ export const transCmdUnsafe = (cmd: Cmd, buf: Buffer) => {
 export const transCmd = (cmd: Cmd, buf: Buffer) => {
   try {
     return transCmdUnsafe(cmd, buf)
-  } catch (e) {
+  } catch (_e) {
     return ''
   }
 }

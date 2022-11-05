@@ -1,8 +1,7 @@
 import { TextField } from '@mui/material'
 import React, { useState } from 'react'
 
-type Props = {}
-function WordSearch(props: Props) {
+function WordSearch() {
   const [q, setQ] = useState<string>('')
 
   return (
