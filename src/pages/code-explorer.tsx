@@ -1,7 +1,5 @@
-import { Typography } from '@mui/material'
 import dynamic from 'next/dynamic'
 import Head from 'next/head'
-import * as React from 'react'
 import { createGlobalStyle } from 'styled-components'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'

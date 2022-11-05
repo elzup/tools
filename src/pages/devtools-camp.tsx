@@ -115,7 +115,7 @@ const TaskBox2 = ({ task, setTask }: TaskBoxProps) => {
 
   useEffect(() => {
     if (ref.current === null) return
-    ref.current.addEventListener('DOMNodeRemoved', (e) => {
+    ref.current.addEventListener('DOMNodeRemoved', (_e) => {
       setTask({ done: true, mem: {} })
     })
   }, [ref.current])
@@ -188,7 +188,7 @@ const TaskBox5 = ({ task, setTask }: TaskBoxProps) => {
   const ref1 = useRef<HTMLDivElement>(null)
   const ref2 = useRef<HTMLDivElement>(null)
 
-  useMutationObserver(ref, (e) => {
+  useMutationObserver(ref, (_e) => {
     if (ref1.current === null || ref2.current === null) return
     const c1 = window.getComputedStyle(ref1.current).backgroundColor
     const c2 = window.getComputedStyle(ref1.current).backgroundColor
