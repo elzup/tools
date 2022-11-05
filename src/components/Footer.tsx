@@ -1,4 +1,5 @@
 import { Container } from '@mui/material'
+import Link from 'next/link'
 import * as React from 'react'
 import Menu from './Menu'
 
@@ -10,7 +11,7 @@ const Footer = ({ currentPath }: Props) => (
     <Container>
       <hr />
       <Menu currentPath={currentPath} />
-      <a href="https://anozon.me">anozon.me</a>
+      <Link href="https://anozon.me">anozon.me</Link>
     </Container>
   </footer>
 )

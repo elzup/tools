@@ -1,4 +1,5 @@
 import { Button, TextField, Typography } from '@mui/material'
+import Link from 'next/link'
 import prettier from 'prettier'
 import parserHtml from 'prettier/parser-html'
 import * as React from 'react'
@@ -63,7 +64,7 @@ function ProfileCard({ name }: { name: string }) {
         <div>{"I'm Engineer."}</div>
       </div>
       <div>
-        <a>22 Follower</a>
+        <Link href="./">22 Follower</Link>
       </div>
     </Card>
   )

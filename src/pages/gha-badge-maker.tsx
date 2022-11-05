@@ -1,4 +1,5 @@
 import { Alert, Card, TextField, Typography } from '@mui/material'
+import Link from 'next/link'
 import * as React from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
@@ -54,7 +55,8 @@ const GHABadgePage = () => {
       </Alert>
       <div>
         <label>
-          Badge Page URL <a href={exampleUrl}>example</a>
+          Badge Page URL
+          <Link href={exampleUrl}>example</Link>
         </label>
         <TextField
           value={url}

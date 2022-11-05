@@ -1,4 +1,5 @@
 import { Alert, Button } from '@mui/material'
+import Link from 'next/link'
 import * as React from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
@@ -75,9 +76,9 @@ const FragProbLab = () => {
     <Layout title={title}>
       <Title>{title}</Title>
       <p>
-        <a href="https://www.youtube.com/watch?v=cpwSGsb-rTs&t=13s">
+        <Link href="https://www.youtube.com/watch?v=cpwSGsb-rTs&t=13s">
           この動画の検証
-        </a>
+        </Link>
       </p>
       <Button onClick={drawOne}>1回シミュレーションする</Button>
       <Button onClick={() => drawMany()}>{MANY}回シミュレーションする</Button>

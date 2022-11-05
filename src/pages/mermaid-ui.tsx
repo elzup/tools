@@ -1,5 +1,6 @@
 import { Typography } from '@mui/material'
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import React from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
@@ -15,9 +16,9 @@ const MermaidUi = () => {
       <Title>{title}</Title>
       <Typography>
         mermaid graph to React-flow convert.{'('}
-        <a href="https://github.com/mermaid-js/mermaid">mermaid</a>→
-        <a href="https://github.com/kieler/elkjs">elkjs</a>→
-        <a href="https://github.com/wbkd/react-flow">React Flow</a>
+        <Link href="https://github.com/mermaid-js/mermaid">mermaid</Link>→
+        <Link href="https://github.com/kieler/elkjs">elkjs</Link>→
+        <Link href="https://github.com/wbkd/react-flow">React Flow</Link>
         {')'}
       </Typography>
       <MermaidUiStatic />
