@@ -109,14 +109,15 @@ const TaskBox0 = ({ task, setTask }: TaskBoxProps) => {
   )
 }
 
-const initText = 'CHANGE ME'
+const badText = 'bug'
+const okText = 'blue'
 const TaskBox1 = ({ task, setTask }: TaskBoxProps) => {
   const ref = useRef<HTMLParagraphElement>(null)
 
   useMutationObserver(ref, (e) => {
     const $e = e[0].target as HTMLElement
 
-    if ($e.innerText !== initText) {
+    if ($e.innerText !== okText) {
       setTask({ done: true, mem: {} })
     }
   })
@@ -124,11 +125,11 @@ const TaskBox1 = ({ task, setTask }: TaskBoxProps) => {
   return (
     <TaskBoxWrap
       title="1-1. テキストを書き換える"
-      desc={`'${initText}' を 'hello' に書き換える`}
+      desc={`'${badText}' を '${okText}' に書き換える`}
       dones={[task.done]}
     >
       <TargetWrap>
-        <p ref={ref}>{initText}</p>
+        <p ref={ref}>{badText}</p>
       </TargetWrap>
     </TaskBoxWrap>
   )
@@ -151,7 +152,7 @@ const TaskBox2 = ({ task, setTask }: TaskBoxProps) => {
       dones={[task.done]}
     >
       <TargetWrap data-action="remove">
-        <p ref={ref}>DELETE ME</p>
+        <p ref={ref}>{badText}</p>
       </TargetWrap>
     </TaskBoxWrap>
   )
@@ -175,7 +176,7 @@ const TaskBox3 = ({ task, setTask }: TaskBoxProps) => {
       dones={[task.done]}
     >
       <TargetWrap data-action="remove">
-        <p ref={ref}>HIDE ME</p>
+        <p ref={ref}>{badText}</p>
       </TargetWrap>
     </TaskBoxWrap>
   )
@@ -212,7 +213,7 @@ const TaskBox4 = ({ task, setTask }: TaskBoxProps) => {
     >
       <div ref={ref}>
         <TargetWrap>
-          <span>CHANGE ME</span>
+          <span>p tag</span>
         </TargetWrap>
       </div>
     </TaskBoxWrap>
@@ -243,11 +244,11 @@ const TaskBox5 = ({ task, setTask }: TaskBoxProps) => {
       <div ref={ref}>
         <TargetWrap>
           <Box display="flex" gap={'1rem'}>
-            <div ref={ref1} style={{ background: '#abcabc' }}>
-              CHANGE ME
+            <div ref={ref1} style={{ background: '#4f6cff' }}>
+              same color
             </div>
-            <div ref={ref2} style={{ background: '#cbacba' }}>
-              CHANGE ME
+            <div ref={ref2} style={{ background: '#ffe657' }}>
+              same color
             </div>
           </Box>
         </TargetWrap>
@@ -257,23 +258,23 @@ const TaskBox5 = ({ task, setTask }: TaskBoxProps) => {
 }
 
 const colors = {
-  main: '#a7ffa7',
-  sub: '#00ae37',
+  main: '#c4d8ff',
+  sub: '#2c00b1',
+  accent: '#dba500',
 }
 
 const TaskDone = ({ done }: { done: boolean }) => {
   return (
     <Box
-      p={1}
       mt={1}
       sx={{
-        width: '100px',
-        border: `solid 2px ${done ? colors.sub : '#f7ebff'}`,
+        border: `solid 2px ${done ? colors.sub : colors.accent}`,
         borderRadius: '4px',
+        padding: '0 8px',
         background: done ? colors.main : 'white',
       }}
     >
-      result: {done ? 'ok' : '-'}
+      {done ? 'ok' : '--'}
     </Box>
   )
 }
@@ -296,7 +297,7 @@ const TargetWrap = styled.div`
   }
   &[data-action='remove'] {
     p {
-      color: red;
+      color: ${colors.accent};
     }
   }
 `
