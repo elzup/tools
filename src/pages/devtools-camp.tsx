@@ -23,6 +23,7 @@ const TASK = {
   HIDE_DOM: '1-hide-dom',
   EDIT_DOM: '1-edit-dom',
   COLOR_COPY: '2-color-copy',
+  HOVER_CSS: '2-hover-css',
 }
 
 const useTask = () => {
@@ -66,6 +67,7 @@ const DevToolsCamp = () => {
       <TaskBox3 {...getAccess(TASK.HIDE_DOM)} />
       <TaskBox4 {...getAccess(TASK.EDIT_DOM)} />
       <TaskBox5 {...getAccess(TASK.COLOR_COPY)} />
+      <TaskBox6 {...getAccess(TASK.COLOR_COPY)} />
     </Box>
   )
 }
@@ -257,6 +259,40 @@ const TaskBox5 = ({ task, setTask }: TaskBoxProps) => {
   )
 }
 
+const TaskBox6 = ({ task, setTask }: TaskBoxProps) => {
+  const ref = useRef<HTMLDivElement>(null)
+  const ref1 = useRef<HTMLDivElement>(null)
+
+  useMutationObserver(ref1, (e) => {
+    if (ref1.current === null) return
+    const c1 = window.getComputedStyle(ref1.current)
+
+    console.log(e)
+
+    // if (c1 === c2) {
+    //   setTask({ done: true, mem: {} })
+    // }
+  })
+
+  return (
+    <TaskBoxWrap
+      title="2-1. ホバー時の色を変更する"
+      desc={`:hover で background を ${colors.sub} にする`}
+      dones={[task.done]}
+    >
+      <div ref={ref}>
+        <TargetWrap>
+          <Box display="flex" gap={'1rem'}>
+            <div ref={ref1} data-hov-bad>
+              blue on hover
+            </div>
+          </Box>
+        </TargetWrap>
+      </div>
+    </TaskBoxWrap>
+  )
+}
+
 const colors = {
   main: '#c4d8ff',
   sub: '#2c00b1',
@@ -291,6 +327,11 @@ const TargetWrap = styled.div`
     &[data-active='true'] {
       background: ${colors.main};
     }
+
+    [data-hov-bad]:hover {
+      background: ${colors.accent};
+    }
+
     > div {
       padding: 1rem;
     }
