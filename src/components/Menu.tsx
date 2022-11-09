@@ -28,6 +28,7 @@ import {
   IconDefinition,
   faFeatherAlt,
   faCode,
+  faSortNumericAsc,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Typography } from '@mui/material'
@@ -211,6 +212,11 @@ const routings: RoutingGroup[] = [
         icon: faSpider,
         label: 'Diginima',
         path: '/diginima',
+      },
+      {
+        icon: faSortNumericAsc,
+        label: 'Decimal',
+        path: '/decimal',
       },
     ],
   },
