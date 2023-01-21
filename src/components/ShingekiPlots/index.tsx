@@ -1,4 +1,6 @@
-import { groupByFunc, keyBy } from '@elzup/kit'
+import { groupByFunc } from '@elzup/kit/lib/groupBy'
+import { keyBy } from '@elzup/kit/lib/keyBy'
+import { isDev } from '@elzup/kit/lib/constants'
 import { TextField, Typography } from '@mui/material'
 import { useMemo, useState } from 'react'
 import styled from 'styled-components'
@@ -103,9 +105,6 @@ function useBlocks(text?: string): GraphBlock[] {
     return blocks
   }, [text])
 }
-
-// const isDev = process.env.NODE_ENV === 'development'
-const isDev = false
 
 const plotUrl = isDev
   ? 'http://localhost:3001/ShingekiNoKyojin.mmd'

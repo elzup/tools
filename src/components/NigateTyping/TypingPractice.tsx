@@ -1,4 +1,5 @@
-import { asciify, range } from '@elzup/kit'
+import { range } from '@elzup/kit/lib/range'
+import { asciify } from '@elzup/kit/lib/ascii'
 import React from 'react'
 import styled from 'styled-components'
 

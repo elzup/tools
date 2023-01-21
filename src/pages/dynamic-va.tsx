@@ -1,4 +1,4 @@
-import { range } from '@elzup/kit'
+import { range } from '@elzup/kit/lib/range'
 import { randRange } from '@elzup/kit/lib/rand/randRange'
 import {
   Box,

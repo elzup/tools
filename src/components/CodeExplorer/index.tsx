@@ -1,4 +1,4 @@
-import { makeToggle } from '@elzup/kit'
+import { makeToggle } from '@elzup/kit/lib/makeToggle'
 import {
   Box,
   FormControl,
