@@ -1,6 +1,6 @@
 import { groupByFunc, keyBy } from '@elzup/kit'
 import { TextField, Typography } from '@mui/material'
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { MmdEdge, MmdGroup, MmdVertex } from '../MermaidUi/types'
 import { parseMarmaid } from '../MermaidUi/useMermaid'
@@ -103,7 +103,9 @@ function useBlocks(text?: string): GraphBlock[] {
     return blocks
   }, [text])
 }
-const isDev = process.env.NODE_ENV === 'development'
+
+// const isDev = process.env.NODE_ENV === 'development'
+const isDev = false
 
 const plotUrl = isDev
   ? 'http://localhost:3001/ShingekiNoKyojin.mmd'
@@ -118,7 +120,7 @@ function Shingeki() {
   return (
     <div>
       <TextField
-        style={{ display: 'none' }}
+        // style={{ display: 'none' }}
         label="url"
         multiline
         fullWidth
