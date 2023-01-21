@@ -954,10 +954,10 @@
   resolved "https://registry.yarnpkg.com/@elzup/kindof/-/kindof-0.4.6.tgz#aa042d679052a7932422d79d97f85e5116734802"
   integrity sha512-+cQ/ytzjCQkkXbsZVNUWzIrH6bm9EGwgY0MqbilhG3Ahgle2IMBPFrL+nw4H061cj3QkFCe3T5CJqd++xb4JTA==
 
-"@elzup/kit@^4.1.0":
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/@elzup/kit/-/kit-4.1.0.tgz#30e95a3ab586bd7b9378185a2e1124d87ade8bfd"
-  integrity sha512-rD7sBv6FALlCZKH25PwmpXtTC+EV20PzeZhdd6mjdno45cTnzH0PjJufK9fjzJIClVzCr32RuiT+DfsaoS9UpA==
+"@elzup/kit@^4.1.1":
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/@elzup/kit/-/kit-4.1.1.tgz#58fc32fc20d70e417a6e5c217e623f3b386d970e"
+  integrity sha512-7rO7vIdr1aqV+RNu/iLXQy8Ooe67Z7hCV3tS72Lv8QZE20ofqIyvZ7yGcd3FHVuyK3VxM6iGNhISMu/UfwKJmw==
 
 "@emotion/babel-plugin@^11.10.5":
   version "11.10.5"
