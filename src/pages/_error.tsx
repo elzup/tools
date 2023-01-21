@@ -1,9 +1,8 @@
-import * as React from 'react'
 import Layout from '../components/Layout'
 
 const Error = () => {
   return (
-    <Layout title="GHA BadgeMaker">
+    <Layout title="404">
       <h1>404 Error</h1>
     </Layout>
   )
