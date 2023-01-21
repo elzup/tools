@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { range } from '@elzup/kit'
+import { range } from '@elzup/kit/lib/range'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 

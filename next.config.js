@@ -1,6 +1,9 @@
 const withPWAfn = require('next-pwa')
 const runtimeCaching = require('next-pwa/cache')
 
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+})
 const withPWA = withPWAfn({
   dest: 'public',
   runtimeCaching,
@@ -8,4 +11,4 @@ const withPWA = withPWAfn({
   buildExcludes: [/middleware-manifest.json$/],
 })
 
-module.exports = withPWA({})
+module.exports = withBundleAnalyzer(withPWA({}))
