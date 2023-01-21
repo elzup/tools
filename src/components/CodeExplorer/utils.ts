@@ -1,5 +1,5 @@
 import { range } from '@elzup/kit/lib/range'
-import { controlCharLib } from '@elzup/kit/lib/ascii'
+import { controlCharLib } from '@elzup/kit/lib/char/ascii'
 
 export const uints = (b: Buffer) => [
   ...range(b.byteLength).map((i) => {
