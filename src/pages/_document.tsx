@@ -9,8 +9,14 @@ class Document extends NextDocument {
     return (
       <Html lang={'ja'}>
         <meta name="theme-color" content={theme.palette.primary.main} />
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        <Head>{(this.props as any).emotionStyleTags}</Head>
+        <Head>
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {(this.props as any).emotionStyleTags}
+          <link
+            href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap"
+            rel="stylesheet"
+          ></link>
+        </Head>
         <body>
           <Main />
           <NextScript />
