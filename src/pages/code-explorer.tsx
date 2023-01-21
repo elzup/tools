@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic'
-import { Head } from 'next/head'
+import Head from 'next/head'
 import { createGlobalStyle } from 'styled-components'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
@@ -12,7 +12,7 @@ const GlobalStyle = createGlobalStyle`
 `
 
 const title = 'Code Explorer'
-const description = 'String '
+const description = 'text codes analyze'
 const url = 'https://tools.anozon.me/code-explorer'
 // const imgUrl = `https://tools.anozon.me/pikbl-ss.png`
 const CodeExplorerPage = () => {
