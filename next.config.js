@@ -11,4 +11,6 @@ const withPWA = withPWAfn({
   buildExcludes: [/middleware-manifest.json$/],
 })
 
-module.exports = withBundleAnalyzer(withPWA({}))
+module.exports = withTM(withBundleAnalyzer(withPWA({})))
+
+const withTM = require('next-transpile-modules')(['three'])
