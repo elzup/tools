@@ -29,6 +29,7 @@ import {
   faFeatherAlt,
   faCode,
   faSortNumericAsc,
+  faTimes,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Typography } from '@mui/material'
@@ -187,6 +188,11 @@ const routings: RoutingGroup[] = [
         icon: faFeatherAlt,
         label: '進撃プロット',
         path: '/shingeki',
+      },
+      {
+        icon: faTimes,
+        label: '3d Time anozon',
+        path: '/time',
       },
     ],
   },
