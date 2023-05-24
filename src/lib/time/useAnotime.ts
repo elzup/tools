@@ -2,8 +2,8 @@ import { range } from '@elzup/kit/lib/range'
 import { useMemo } from 'react'
 
 const YR = 100
-const WR = 10
-const DR = 1
+// const WR = 10
+// const DR = 1
 
 export const useAnotime = () => {
   const date = new Date()
@@ -46,5 +46,5 @@ export const calcRad = (year: number, mon: number, d: number, h: number) => {
 
   const z = 0
 
-  return [x, y, z]
+  return [(x - 162) * 1, (y - 21) * 1, z]
 }
