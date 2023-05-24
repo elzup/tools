@@ -50,6 +50,7 @@
     "react-google-charts": "^4.0.0",
     "react-icons": "^4.3.1",
     "react-no-ssr": "^1.1.0",
+    "react-stats": "^0.0.5",
     "react-use": "^17.3.2",
     "react-webcam": "^7.0.1",
     "rooks": "^7.4.1",
