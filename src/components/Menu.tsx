@@ -197,6 +197,16 @@ const routings: RoutingGroup[] = [
     ],
   },
   {
+    label: '3D',
+    routings: [
+      {
+        icon: faPortrait,
+        label: 'Bitcounter',
+        path: '/gl-bit-counter',
+      },
+    ],
+  },
+  {
     label: 'ProtoType',
     routings: [
       {
