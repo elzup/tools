@@ -25,9 +25,11 @@
     "@inlet/react-pixi": "^6.6.5",
     "@mui/material": "^5.8.2",
     "@mui/styled-engine-sc": "^5.8.0",
-    "@react-three/drei": "^9.66.3",
+    "@pmndrs/cannon-worker-api": "^2.3.2",
+    "@react-three/cannon": "^6.5.2",
+    "@react-three/drei": "^9.78.1",
     "@react-three/fiber": "^8.13.0",
-    "@types/three": "^0.152.0",
+    "@types/three": "^0.152.1",
     "babel-plugin-styled-components": "^2.0.6",
     "clipboardy": "^3.0.0",
     "devtools-detect": "^4.0.0",
@@ -58,7 +60,8 @@
     "styled-components": "^5.3.5",
     "swr": "^1.2.2",
     "tequery": "^2.5.0",
-    "three": "^0.152.2",
+    "three": "^0.154.0",
+    "three-stdlib": "^2.23.12",
     "through": "^2.3.8"
   },
   "devDependencies": {
