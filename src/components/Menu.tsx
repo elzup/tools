@@ -1,40 +1,40 @@
 import { faDev } from '@fortawesome/free-brands-svg-icons'
 import {
+  faEye,
   faIdBadge,
   faLightbulb,
   faStopCircle,
-  faEye,
 } from '@fortawesome/free-regular-svg-icons'
 import {
+  IconDefinition,
   faBowlingBall,
   faCalculator,
   faChartLine,
   faClipboard,
+  faCode,
   faExchangeAlt,
+  faFeatherAlt,
   faGlobe,
   faHome,
   faKeyboard,
   faLeaf,
   faListOl,
+  faPaintBrush,
   faPortrait,
   faPuzzlePiece,
   faRing,
   faShapes,
   faShieldAlt,
   faShieldVirus,
+  faSortNumericAsc,
   faSpider,
+  faTimes,
   faWindowMinimize,
   faWindowRestore,
-  IconDefinition,
-  faFeatherAlt,
-  faCode,
-  faSortNumericAsc,
-  faTimes,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Typography } from '@mui/material'
 import Link from 'next/link'
-import * as React from 'react'
 import styled from 'styled-components'
 
 type Routing = {
@@ -197,12 +197,17 @@ const routings: RoutingGroup[] = [
     ],
   },
   {
-    label: '3D',
+    label: 'Graphical',
     routings: [
       {
         icon: faPortrait,
-        label: 'Bitcounter',
+        label: '3d Bitcounter',
         path: '/gl-bit-counter',
+      },
+      {
+        icon: faPaintBrush,
+        label: 'Creative Coding playground',
+        path: '/creative-coding',
       },
     ],
   },
