@@ -15,24 +15,29 @@ const preload = (p5: p5Types) => {
 
 const setup = (p5: p5Types, canvasParentRef: Element) => {
   p5.createCanvas(p5.windowWidth, p5.windowHeight).parent(canvasParentRef)
-  p5.createCanvas(p5.windowWidth, p5.windowHeight).parent(canvasParentRef)
-  p5.colorMode(p5.HSB, p5.width, p5.height, 100)
+
+  const { width, height } = p5
+
+  p5.colorMode(p5.HSB, width, height, 100)
+  p5.background(51)
+  p5.circle(width / 2, height / 2, 50)
+
   p5.noStroke()
-  // p5でいうsetupの処理を書く
 }
 const barWidth = 20
 let lastBar = -1
 
 const draw = (p5: p5Types) => {
-  // p5でいうdrawの処理を書く
-  let whichBar = p5.mouseX / barWidth
+  const { width: w, height: h, mouseX: mx, mouseY: my } = p5
+  const whichBar = mx / barWidth
 
   if (whichBar === lastBar) return
 
   let barX = whichBar * barWidth
 
-  p5.fill(barX, p5.mouseY, 66)
-  p5.rect(barX, 0, barWidth, p5.height)
+  p5.circle(mx, my, 50)
+  p5.fill(barX, my, 66)
+  p5.rect(barX, 0, barWidth, h)
   lastBar = whichBar
 }
 
