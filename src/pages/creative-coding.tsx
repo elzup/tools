@@ -9,9 +9,7 @@ const Sketch = dynamic(import('react-p5'), {
   ssr: false,
 })
 
-const preload = (p5: p5Types) => {
-  // 画像などのロードを行う
-}
+const preload = (p5: p5Types) => {}
 
 const setup = (p5: p5Types, canvasParentRef: Element) => {
   p5.createCanvas(p5.windowWidth, p5.windowHeight).parent(canvasParentRef)
@@ -41,6 +39,10 @@ const draw = (p5: p5Types) => {
   lastBar = whichBar
 }
 
+const mouseClicked = (p5: p5Types) => {
+  p5.rect(p5.mouseX, p5.mouseY, 50, 30)
+}
+
 const windowResized = (p5: p5Types) => {
   p5.resizeCanvas(p5.windowWidth, p5.windowHeight)
 }
@@ -51,6 +53,7 @@ export const SketchComponent = () => {
       preload={preload}
       setup={setup}
       draw={draw}
+      mouseClicked={mouseClicked}
       windowResized={windowResized}
     />
   )
