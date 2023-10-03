@@ -88,6 +88,11 @@ const routings: RoutingGroup[] = [
         label: 'DevTools Camp',
         path: '/devtools-camp',
       },
+      {
+        icon: faShapes,
+        label: 'Time Clip',
+        path: '/time-clip',
+      },
     ],
   },
   {
