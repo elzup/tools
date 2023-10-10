@@ -7322,7 +7322,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react@npm:^7.30.0":
+"eslint-plugin-react@npm:^7.30.0, eslint-plugin-react@npm:^7.37.5":
   version: 7.37.5
   resolution: "eslint-plugin-react@npm:7.37.5"
   dependencies:
@@ -13015,6 +13015,7 @@ __metadata:
     elkjs: "npm:^0.7.1"
     eslint: "npm:8.22.0"
     eslint-config-nzap: "npm:6.1.0"
+    eslint-plugin-react: "npm:^7.37.5"
     file-loader: "npm:6.2.0"
     flatted: "npm:^3.2.5"
     html5-qrcode: "npm:^2.3.8"

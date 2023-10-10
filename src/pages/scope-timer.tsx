@@ -1,5 +1,6 @@
 import Head from 'next/head'
 import { useEffect, useRef, useState } from 'react'
+import type { MutableRefObject } from 'react'
 
 // カラーテーマ定義
 type Theme = {
@@ -9,7 +10,9 @@ type Theme = {
   SCALE_COLOR: string
 }
 
-const THEMES: Record<string, Theme> = {
+type ThemeKey = 'blackOnWhite' | 'whiteOnBlack' | 'greenMatrix'
+
+const THEMES: Record<ThemeKey, Theme> = {
   blackOnWhite: {
     BG_COLOR: '#fff',
     TEXT_COLOR: '#000',
@@ -116,8 +119,8 @@ function useAnimationLoop(callback: () => void, fps: number) {
 
 // カスタムフック: プログレスバーの更新（60fps固定）
 function useProgressBars(
-  startTimeRef: React.RefObject<number>,
-  startPerfRef: React.RefObject<number>
+  startTimeRef: MutableRefObject<number>,
+  startPerfRef: MutableRefObject<number>
 ) {
   const topBarRef = useRef<HTMLDivElement>(null)
   const leftBarRef = useRef<HTMLDivElement>(null)
@@ -125,8 +128,8 @@ function useProgressBars(
 
   useEffect(() => {
     const animate = () => {
-      const elapsed = performance.now() - startPerfRef.current!
-      const now = startTimeRef.current! + elapsed
+      const elapsed = performance.now() - startPerfRef.current
+      const now = startTimeRef.current + elapsed
       const progress = (now % 1000) / 1000
 
       if (topBarRef.current) {
@@ -202,7 +205,7 @@ function ScaleMarks({
 
 const ScopeTimer = () => {
   const [currentTime, setCurrentTime] = useState(0)
-  const [theme, setTheme] = useState<keyof typeof THEMES>(CONFIG.DEFAULT_THEME)
+  const [theme, setTheme] = useState<ThemeKey>(CONFIG.DEFAULT_THEME)
   const [fps, setFps] = useState<number>(CONFIG.UPDATE_FPS)
   const [mounted, setMounted] = useState(false)
   const startTimeRef = useRef(0)
@@ -220,6 +223,7 @@ const ScopeTimer = () => {
     // performance.now() を使って高精度な経過時間を計算し、起点時刻に加算
     const elapsed = performance.now() - startPerfRef.current
     const now = startTimeRef.current + elapsed
+
     setCurrentTime(now)
   }, fps)
 
@@ -233,9 +237,10 @@ const ScopeTimer = () => {
   }
 
   const cycleTheme = () => {
-    const themeKeys = Object.keys(THEMES) as Array<keyof typeof THEMES>
+    const themeKeys = Object.keys(THEMES) as ThemeKey[]
     const currentIndex = themeKeys.indexOf(theme)
     const nextIndex = (currentIndex + 1) % themeKeys.length
+
     setTheme(themeKeys[nextIndex])
   }
 
@@ -243,16 +248,18 @@ const ScopeTimer = () => {
     const fpsOptions = [15, 24, 30, 60]
     const currentIndex = fpsOptions.indexOf(fps)
     const nextIndex = (currentIndex + 1) % fpsOptions.length
+
     setFps(fpsOptions[nextIndex])
   }
 
   const getThemeName = () => {
-    const names = {
+    const names: Record<ThemeKey, string> = {
       whiteOnBlack: 'W/B',
       blackOnWhite: 'B/W',
       greenMatrix: 'GRN',
     }
-    return names[theme as keyof typeof names] ?? 'N/A'
+
+    return names[theme]
   }
 
   return (
