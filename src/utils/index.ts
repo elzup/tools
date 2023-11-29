@@ -1,6 +1,7 @@
 import through from 'through'
 import ReactDOM from 'react-dom'
 import React, { PropsWithChildren } from 'react'
+import { createRoot } from 'react-dom/client'
 
 export const zoom1D = (
   s: number,
@@ -54,13 +55,16 @@ export const sum = (a: number, b: number) => a + b
 
 export const noop = () => {}
 
-export function getComponentHtmlCode(component: React.ReactElement) {
-  const div = document.createElement('div')
+export function getComponentHtmlCode(component) {
+  const container = document.createElement('div')
+  const root = createRoot(container)
 
-  return new Promise<string>((resolve) => {
-    ReactDOM.render(component, div, () => {
-      resolve(div.innerHTML)
-    })
+  root.render(component)
+
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(container.innerHTML)
+    }, 0)
   })
 }
 
