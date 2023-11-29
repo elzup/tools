@@ -55,13 +55,13 @@ export const sum = (a: number, b: number) => a + b
 
 export const noop = () => {}
 
-export function getComponentHtmlCode(component) {
+export function getComponentHtmlCode(component: React.ReactElement) {
   const container = document.createElement('div')
   const root = createRoot(container)
 
   root.render(component)
 
-  return new Promise((resolve) => {
+  return new Promise<string>((resolve) => {
     setTimeout(() => {
       resolve(container.innerHTML)
     }, 0)

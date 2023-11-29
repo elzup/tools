@@ -1,5 +1,6 @@
-import { Box, Typography } from '@mui/material'
+import { Typography } from '@mui/material'
 import styled from 'styled-components'
+import { Box } from '../common/mui'
 import { ByteBlock } from './ByteBlock'
 import { Cmd, transCmd, uints } from './utils'
 

@@ -1,4 +1,4 @@
-import { Box, Button } from '@mui/material'
+import { Button } from '@mui/material'
 import styled from 'styled-components'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'

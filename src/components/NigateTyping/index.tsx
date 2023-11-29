@@ -1,6 +1,7 @@
-import { Box, Container, TextField, Typography } from '@mui/material'
+import { Container, TextField, Typography } from '@mui/material'
 import React from 'react'
 import styled from 'styled-components'
+import { Box } from '../common/mui'
 import { asciify } from '../../utils'
 import { useLocalStorage } from '../../utils/useLocalStorage'
 import TypingPractice from './TypingPractice'
@@ -41,7 +42,7 @@ function NigateTyping() {
               value={words}
             />
           </Box>
-          <Box mt={2} style={{ display: 'grid', gap: '12px' }}>
+          <Box mt={2} sx={{ display: 'grid', gap: '12px' }}>
             {practiceWords.length === 0 && (
               <Typography>←練習する単語を登録してください</Typography>
             )}
