@@ -8,6 +8,7 @@
     "react/react-in-jsx-scope": 0,
     "react/display-name": 0,
     "jest/prefer-lowercase-title": 0,
-    "@typescript-eslint/strict-boolean-expressions": 0
+    "@typescript-eslint/strict-boolean-expressions": 0,
+    "react/no-unknown-property": ["off", { "ignore": ["JSX"] }]
   }
 }

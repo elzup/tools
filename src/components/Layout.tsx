@@ -28,11 +28,15 @@ const Layout = ({
         <meta charSet="utf-8" />
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
-      <Box sx={top ? {} : { minHeight: '100vh', height: 'max-content' }}>
+      <Box
+        sx={top ? {} : { minHeight: '100vh', height: 'max-content' }}
+        component="div"
+      >
         <ConfigProvider>
           {fullWidth ? contentsBody : <Container>{contentsBody}</Container>}
         </ConfigProvider>
       </Box>
+
       <Footer {...{ currentPath }} />
     </Wrap>
   )

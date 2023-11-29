@@ -2,7 +2,6 @@ import { kindof } from '@elzup/kindof'
 import { faCopy, faPaste } from '@fortawesome/free-regular-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Box, Button, Grid, Link, TextField, Typography } from '@mui/material'
-import React from 'react'
 import styled from 'styled-components'
 import { dictionaries } from 'tequery/dist/dictionary'
 import { useShowDict } from '../../store'
@@ -39,7 +38,7 @@ function ClipshContent() {
 
   return (
     <Style>
-      <Box m={'1rem'}>
+      <Box m={'1rem'} component="div">
         <Typography>
           clipboard text convert quickly. Query using{' '}
           <Link href="https://github.com/elzup/tequery" target="_blank">
@@ -74,7 +73,7 @@ function ClipshContent() {
           </code>
         </div>
       </Box>
-      <Box p={'1rem'} className="suggestions">
+      <Box p={'1rem'} className="suggestions" component="div">
         {clipsh.suggestions.map(({ dict }, k) => (
           <div key={dict.name} data-kb={k}>
             <Button
