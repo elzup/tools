@@ -1,10 +1,11 @@
 import punycode from 'punycode'
-import { Box, TextField, Typography } from '@mui/material'
+import { TextField, Typography } from '@mui/material'
 import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 import { sum } from '../utils'
+import { Box } from '../components/common/mui'
 
 type Count = { char: string; count: number }
 

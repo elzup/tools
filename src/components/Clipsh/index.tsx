@@ -1,10 +1,11 @@
 import { kindof } from '@elzup/kindof'
 import { faCopy, faPaste } from '@fortawesome/free-regular-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { Box, Button, Grid, Link, TextField, Typography } from '@mui/material'
+import { Button, Grid, Link, TextField, Typography } from '@mui/material'
 import styled from 'styled-components'
 import { dictionaries } from 'tequery/dist/dictionary'
 import { useShowDict } from '../../store'
+import { Box } from '../common/mui'
 import { useClipsh } from './useClipsh'
 
 const makePreviewPre = (resultRaw: unknown): string => {
@@ -38,7 +39,7 @@ function ClipshContent() {
 
   return (
     <Style>
-      <Box m={'1rem'} component="div">
+      <Box m={'1rem'}>
         <Typography>
           clipboard text convert quickly. Query using{' '}
           <Link href="https://github.com/elzup/tequery" target="_blank">
@@ -73,7 +74,7 @@ function ClipshContent() {
           </code>
         </div>
       </Box>
-      <Box p={'1rem'} className="suggestions" component="div">
+      <Box p={'1rem'} className="suggestions">
         {clipsh.suggestions.map(({ dict }, k) => (
           <div key={dict.name} data-kb={k}>
             <Button
@@ -88,7 +89,7 @@ function ClipshContent() {
         ))}
       </Box>
       <Button onClick={toggleShowDict}>Dict{showDict ? '▼' : '▶'}</Button>
-      <Box p={'1rem'} style={{ display: showDict ? 'flex' : 'none' }}>
+      <Box p={'1rem'} sx={{ display: showDict ? 'flex' : 'none' }}>
         {[
           dictionaries.funcs.map((v) => ({ ...v, category: 'func' })),
           dictionaries.vars.map((v) => ({ ...v, category: 'var' })),

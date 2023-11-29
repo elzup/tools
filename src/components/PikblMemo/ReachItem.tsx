@@ -1,7 +1,8 @@
-import { Box, Typography } from '@mui/material'
+import { Typography } from '@mui/material'
 import React from 'react'
 import { RiPlantLine } from 'react-icons/ri'
 import styled from 'styled-components'
+import { Box } from '../common/mui'
 import { Group, MemoState, picmins } from './picminConstants'
 
 type Props = {

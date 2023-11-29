@@ -1,10 +1,11 @@
-import { Box, Container } from '@mui/material'
+import { Container } from '@mui/material'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { ConfigProvider } from '../store'
 import { WithChild } from '../types'
 import Footer from './Footer'
+import { Box } from './common/mui'
 
 type Props = {
   title?: string
@@ -28,10 +29,7 @@ const Layout = ({
         <meta charSet="utf-8" />
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
-      <Box
-        sx={top ? {} : { minHeight: '100vh', height: 'max-content' }}
-        component="div"
-      >
+      <Box sx={top ? {} : { minHeight: '100vh', height: 'max-content' }}>
         <ConfigProvider>
           {fullWidth ? contentsBody : <Container>{contentsBody}</Container>}
         </ConfigProvider>

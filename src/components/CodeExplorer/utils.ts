@@ -16,7 +16,7 @@ export const cmdChars = `${cmdChars1}${cmdChars2}${cmdChars4}${cmdChars8}`
 
 // not supported: n N s p P
 
-export type Cmd = typeof cmdChars[number]
+export type Cmd = (typeof cmdChars)[number]
 
 export const isCmd = (cmd: string): cmd is Cmd => cmdChars.includes(cmd)
 

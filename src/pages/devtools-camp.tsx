@@ -1,4 +1,4 @@
-import { Box, Typography } from '@mui/material'
+import { Typography } from '@mui/material'
 import 'devtools-detect'
 import { useEvent } from 'react-use'
 import styled from 'styled-components'
@@ -9,6 +9,7 @@ import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 import { useLocalStorage } from '../utils/useLocalStorage'
 import { WithChild } from '../types'
+import { Box } from '../components/common/mui'
 
 type TaskMem = {
   done: boolean

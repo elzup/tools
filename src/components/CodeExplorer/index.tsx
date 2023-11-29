@@ -1,6 +1,6 @@
 import { makeToggle } from '@elzup/kit/lib/makeToggle'
 import {
-  Box,
+  Box as BoxType,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -14,6 +14,7 @@ import { ComponentProps, useState } from 'react'
 import { FaArrowsAltH } from 'react-icons/fa'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
+import { Box } from '../common/mui'
 import { ByteBlock } from './ByteBlock'
 import CodeLabel from './CodeLabel'
 import { TypeBlock } from './TypeBlock'
@@ -28,13 +29,13 @@ const base64ToHex = (s: string) => Buffer.from(s, 'base64').toString('hex')
 const utf8ToHex = (s: string) => Buffer.from(s).toString('hex')
 const toggle = makeToggle(['base64', 'base64url'] as const)
 
-type LayoutState = typeof layoutState[number]
+type LayoutState = (typeof layoutState)[number]
 const isLayoutState = (v: unknown): v is LayoutState =>
   typeof v === 'string' && layoutState.includes(v as LayoutState)
 const base64UnUrl = (s: string) =>
   s.replace(/\+/g, '-').replace(/\//g, '_').replace(/=*$/g, '')
 
-const PanelBox = (props: ComponentProps<typeof Box>) => (
+const PanelBox = (props: ComponentProps<typeof BoxType>) => (
   <Box border={'solid 1px'} mt={1} p={1} borderRadius={1} {...props} />
 )
 

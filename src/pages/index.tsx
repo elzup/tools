@@ -1,9 +1,10 @@
 import { faSatellite } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { Box, Typography } from '@mui/material'
+import { Typography } from '@mui/material'
 import { NextPage } from 'next'
 import * as React from 'react'
 import Layout from '../components/Layout'
+import { Box } from '../components/common/mui'
 
 const IndexPage: NextPage = () => {
   return (
