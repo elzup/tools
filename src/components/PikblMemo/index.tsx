@@ -1,16 +1,11 @@
 import { faCheck, faLeaf } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  Box,
-  Container,
-  FormControlLabel,
-  Switch,
-  Typography,
-} from '@mui/material'
+import { Container, FormControlLabel, Switch, Typography } from '@mui/material'
 import { omit } from 'lodash'
 import React, { useEffect, useMemo } from 'react'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
+import { Box } from '../common/mui'
 import { Group, groups, MemoState, picmins } from './picminConstants'
 import ReachItem from './ReachItem'
 
@@ -100,7 +95,7 @@ function PikblMemo() {
 
   return (
     <Style>
-      <Box style={{ marginLeft: '8px' }}>
+      <Box sx={{ marginLeft: '8px' }}>
         <label>
           <FormControlLabel
             control={<Switch onClick={() => setDesc(!desc)}></Switch>}

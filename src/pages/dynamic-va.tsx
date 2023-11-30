@@ -1,17 +1,12 @@
 import { range } from '@elzup/kit/lib/range'
 import { randRange } from '@elzup/kit/lib/rand/randRange'
-import {
-  Box,
-  FormControlLabel,
-  Slider,
-  Switch,
-  Typography,
-} from '@mui/material'
+import { FormControlLabel, Slider, Switch, Typography } from '@mui/material'
 import { useState } from 'react'
 import { useInterval } from 'react-use'
 import styled from 'styled-components'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
+import { Box } from '../components/common/mui'
 
 const title = 'Dynamic Visual acuity 動体視力'
 
@@ -62,7 +57,7 @@ const RandInspect = () => {
             labelPlacement="end"
             checked={color}
           />
-          <Box style={{ width: 200 }}>
+          <Box sx={{ width: 200 }}>
             <Typography>speed(ms)</Typography>
             <Slider
               defaultValue={speedMs}
@@ -74,7 +69,7 @@ const RandInspect = () => {
               max={1000}
             />
           </Box>
-          <Box style={{ width: 200 }}>
+          <Box sx={{ width: 200 }}>
             <Typography>num</Typography>
             <Slider
               defaultValue={n}
