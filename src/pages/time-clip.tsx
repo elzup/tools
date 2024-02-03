@@ -16,8 +16,6 @@ type Pin = {
 const usePins = () => {
   const [pins, setPins] = useLocalStorage<Pin[]>('pins', [])
 
-  console.log(pins)
-
   return {
     pins,
     addPins: (category: string) => {
