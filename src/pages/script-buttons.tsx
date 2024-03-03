@@ -1,4 +1,4 @@
-import { Button } from '@mui/material'
+import { Button, TextareaAutosize } from '@mui/material'
 import styled from 'styled-components'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
@@ -11,8 +11,13 @@ const TextAndEvalButton = ({ actionId }: { actionId: string }) => {
 
   return (
     <div>
-      <textarea value={text} onChange={(e) => setText(e.target.value)} />
-      <Button onClick={() => setText('')}>Reset</Button>
+      <TextareaAutosize
+        value={text}
+        minRows={3}
+        style={{ width: '100%' }}
+        onChange={(e) => setText(e.target.value)}
+      />
+
       <Button
         onClick={() => {
           // eslint-disable-next-line no-eval
@@ -21,6 +26,7 @@ const TextAndEvalButton = ({ actionId }: { actionId: string }) => {
       >
         Eval
       </Button>
+      <Button onClick={() => setText('')}>x</Button>
     </div>
   )
 }
@@ -31,20 +37,13 @@ const TimeClipPage = () => {
   return (
     <Layout title={title}>
       <Title>{title}</Title>
-      <Button
-        onClick={() => {
-          setN(n + 1)
-        }}
-      >
-        +1
-      </Button>
-      {Array.from({ length: n }).map((_, i) => (
-        <TextAndEvalButton key={i} actionId={`action-${i}`} />
-      ))}
 
       <Style>
-        <div></div>
+        {Array.from({ length: n }).map((_, i) => (
+          <TextAndEvalButton key={i} actionId={`action-${i}`} />
+        ))}
       </Style>
+      <Button onClick={() => setN(n + 1)}>+1</Button>
     </Layout>
   )
 }
