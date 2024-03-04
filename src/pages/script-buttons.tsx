@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 import { useLocalStorage } from '../utils/useLocalStorage'
+import { useConsoleLog } from '../components/useConsoleLogs'
 
 const title = 'Time Log Clip'
 
@@ -33,6 +34,7 @@ const TextAndEvalButton = ({ actionId }: { actionId: string }) => {
 
 const TimeClipPage = () => {
   const [n, setN] = useLocalStorage('script-buttons-n', 3)
+  const { recentLogs } = useConsoleLog()
 
   return (
     <Layout title={title}>
@@ -44,6 +46,11 @@ const TimeClipPage = () => {
         ))}
       </Style>
       <Button onClick={() => setN(n + 1)}>+1</Button>
+      <div>
+        {recentLogs.map((line, i) => (
+          <div key={i}>{line}</div>
+        ))}
+      </div>
     </Layout>
   )
 }
