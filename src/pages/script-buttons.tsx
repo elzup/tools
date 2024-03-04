@@ -5,7 +5,7 @@ import { Title } from '../components/Title'
 import { useLocalStorage } from '../utils/useLocalStorage'
 import { useConsoleLog } from '../components/useConsoleLogs'
 
-const title = 'Time Log Clip'
+const title = 'Script button'
 
 const TextAndEvalButton = ({ actionId }: { actionId: string }) => {
   const [text, setText] = useLocalStorage(`text-${actionId}`, '')
