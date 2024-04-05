@@ -2,31 +2,29 @@ import P5 from 'p5'
 
 function draw(p: P5) {
   p.background(0)
-  p.translate(p.width / 2, p.height / 2)
+  const centerX = p.width / 2
+  const centerY = p.height / 2
+  const maxRadius = p.min(p.width, p.height) * 0.4
+  const numCircles = 100
+  const circleGap = maxRadius / numCircles
 
-  const circles = 100 // 円の数
-  const maxRadius = 250 // 最大半径
+  // 中央の大きな円（プランク質量を象徴）
+  p.fill(60, 100, 100)
+  p.ellipse(centerX, centerY, 2 * circleGap, 2 * circleGap)
 
-  for (let i = 0; i < circles; i++) {
-    let radius = p.map(i, 0, circles, 2, maxRadius)
-    let angle = p.map(i, 0, circles, 0, 360)
-    let hue = p.map(i, 0, circles, 0, 360)
+  // 小さな円を放射状に配置
+  for (let i = 0; i < numCircles; i++) {
+    let radius = (i + 1) * circleGap
+    let hue = p.map(i, 0, numCircles, 0, 360)
 
     p.fill(hue, 100, 100)
-    p.noStroke()
-    p.push()
-    p.rotate(angle)
-    p.ellipse(radius, 0, radius / circles, radius / circles)
-    p.pop()
+    for (let angle = 0; angle < 360; angle += 360 / numCircles) {
+      let x = centerX + p.cos(p.radians(angle)) * radius
+      let y = centerY + p.sin(p.radians(angle)) * radius
+
+      p.ellipse(x, y, circleGap, circleGap)
+    }
   }
-
-  p.fill(360, 100, 100)
-  p.ellipse(0, 0, 20, 20)
-
-  // テキスト表示
-  p.fill(255)
-  p.textSize(16)
-  p.textAlign(p.CENTER, p.CENTER)
 }
 
 export const sketchPu = (p: P5) => {
