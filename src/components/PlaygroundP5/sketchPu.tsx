@@ -1,35 +1,67 @@
-import P5 from 'p5'
-import { RiNotionFill } from 'react-icons/ri'
+import P5, { Vector } from 'p5'
 
-let R = 97,
-  r = 68,
-  a = 16
+type State = {
+  f: number
+}
+function draw(p: P5, state: State) {
+  p.background(255)
 
-function draw(p: P5) {
-  p.background(50)
+  for (let i = 0; i < 24; i++) {
+    drawPlanckDistribution(p, i * 200)
+  }
+  drawLinewave(p)
+}
+
+function drawPlanckDistribution(p: P5, T: number) {
+  let h = 6.62607004e-34 // プランク定数
+  let c = 3.0e8 // 光速
+  let k = 1.38064852e-23 // ボルツマン定数
+
+  // #8FBDD4
+  //
+  p.stroke(143, 189, 212)
   p.noFill()
-  p.translate(p.width / 2, p.height / 2)
   p.beginShape()
-  for (let j = 0; j < 360; j++) {
-    p.curveVertex(
-      5 * ((R - r) * Math.cos((r / R) * j) + a * Math.cos((1 - r / R) * j)),
-      5 * ((R - r) * Math.sin((r / R) * j) - a * Math.sin((1 - r / R) * j))
-    )
+  for (let lambda = 1e-7; lambda < 3e-6; lambda += 1e-9) {
+    let B =
+      (2 * h * c * c) /
+      (p.pow(lambda, 5) * (p.exp((h * c) / (lambda * k * T)) - 1))
+    let x = p.map(lambda, 1e-7, 3e-6, 0, p.width)
+    let y = p.map(B, 0, 1e13, p.height, 0)
+
+    p.vertex(x, y)
   }
   p.endShape()
 }
 
+function drawLinewave(p: P5) {
+  const f = 0
+
+  p.strokeWeight(2)
+  for (let x = -200 - ((f * 3) % 200); x < 600; x += 200) {
+    if (x <= 399) continue
+    for (let y = -50 - x / 7; y < 600; y += 6) {
+      const t = (300 * p.noise(x + f * 3, y + x / 7 - f / 99)) / 3
+
+      p.stroke(54, 107, 141, t * 3)
+      p.line(x - t / 2, y, x + t / 2, y)
+    }
+  }
+}
+
 export const sketchPu = (p: P5) => {
   const size = 4
-  const w = 105
 
   p.setup = () => {
-    p.createCanvas(500, 500)
-    p.stroke(255)
-    p.angleMode(p.DEGREES)
+    p.createCanvas(720, 720)
+    p.noStroke()
+  }
+
+  let state: State = {
+    f: 0,
   }
 
   p.draw = () => {
-    draw(p)
+    draw(p, state)
   }
 }
