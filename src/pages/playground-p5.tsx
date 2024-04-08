@@ -9,7 +9,7 @@ const PlaygroundP5 = dynamic(() => import('../components/PlaygroundP5'), {
 
 const Playground = () => {
   return (
-    <Layout title={title}>
+    <Layout title={title} fullWidth>
       <PlaygroundP5 />
     </Layout>
   )

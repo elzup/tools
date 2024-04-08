@@ -1,13 +1,11 @@
 import styled from 'styled-components'
 import P5Wrapper from './P5Wrapper'
-import { sketch1 } from './sketch1'
-import { sketchPu } from './sketchPu'
+import { sketchRens } from './sketchRens'
 
 const PlaygroundP5 = () => {
   return (
     <Style>
-      <P5Wrapper sketch={sketchPu} />
-      <P5Wrapper sketch={sketch1} />
+      <P5Wrapper sketch={sketchRens} />
     </Style>
   )
 }

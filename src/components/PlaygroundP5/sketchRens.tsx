@@ -1,22 +1,19 @@
 /* eslint-disable no-param-reassign */
 // fork by: https://openprocessing.org/sketch/1992772
 import P5 from 'p5'
-import { colorScheme } from './colorScheme'
+import { range } from '@elzup/kit/lib/range'
+import { shuffleSchema } from './p5Util'
 
-export const sketch = (p: P5) => {
+export const sketchRens = (p: P5) => {
   let globalN = 0
-  let aOffset = ((p.TWO_PI / 360) * 1) / 2
-  let rOffset = 1
-  let palette = p.shuffle(p.random(colorScheme).colors).concat()
+  let aOfs = ((p.TWO_PI / 360) * 1) / 2
+  let rOfs = 1
+  const palette = shuffleSchema(p)
 
   p.setup = () => {
     p.createCanvas(p.windowWidth, p.windowHeight)
     p.noStroke()
-    for (let i = 0; i < palette.length; i++) {
-      let c = p.color(palette[i])
-
-      palette[i] = c
-    }
+    p.frameRate(20)
   }
 
   p.draw = () => {
@@ -27,20 +24,17 @@ export const sketch = (p: P5) => {
     p.translate(p.width / 2, p.height / 2)
     // rotate(noise(frameCount / 100) * TWO_PI);
 
-    let num = 5
-    let arr = []
-    let sum = 0
+    const num = 5
 
-    for (let i = 0; i < num; i++) {
+    const arr2 = range(num).map((i) => {
       let n = p.sin((i / num) * p.TWO_PI + p.frameCount / 120) / 2 + 1 / 2
 
-      n = easeInOutCirc(n)
-      arr.push(n)
-      sum += n
-    }
-    for (let i = 0; i < arr.length; i++) {
-      arr[i] /= sum
-    }
+      return easeInOutCirc(n)
+    })
+
+    const aSum = arr2.reduce((a, b) => a + b, 0)
+    const arr = arr2.map((n) => n / aSum)
+
     let x = 0
     let y = 0
     let a1 = 0
@@ -50,7 +44,8 @@ export const sketch = (p: P5) => {
     let rStep = r2 - r1
     let depth = 4
 
-    sum = 0
+    let sum = 0
+
     p.noStroke()
     for (let i = 0; i < arr.length; i++) {
       p.push()
@@ -124,42 +119,10 @@ export const sketch = (p: P5) => {
         (r2 - r1)
 
     if (depth === 0) {
-      drawArc(
-        x,
-        y,
-        a1 + aOffset,
-        na - aOffset,
-        r1 + rOffset,
-        nr - rOffset,
-        depth
-      )
-      drawArc(
-        x,
-        y,
-        na + aOffset,
-        a2 - aOffset,
-        r1 + rOffset,
-        nr - rOffset,
-        depth
-      )
-      drawArc(
-        x,
-        y,
-        a1 + aOffset,
-        na - aOffset,
-        nr + rOffset,
-        r2 - rOffset,
-        depth
-      )
-      drawArc(
-        x,
-        y,
-        na + aOffset,
-        a2 - aOffset,
-        nr + rOffset,
-        r2 - rOffset,
-        depth
-      )
+      drawArc(x, y, a1 + aOfs, na - aOfs, r1 + rOfs, nr - rOfs, depth)
+      drawArc(x, y, na + aOfs, a2 - aOfs, r1 + rOfs, nr - rOfs, depth)
+      drawArc(x, y, a1 + aOfs, na - aOfs, nr + rOfs, r2 - rOfs, depth)
+      drawArc(x, y, na + aOfs, a2 - aOfs, nr + rOfs, r2 - rOfs, depth)
     } else {
       recursiveArc(x, y, a1, na, r1, nr, depth - 1)
       recursiveArc(x, y, na, a2, r1, nr, depth - 1)
