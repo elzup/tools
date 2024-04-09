@@ -2,13 +2,24 @@
 // fork by: https://openprocessing.org/sketch/1992772
 import P5 from 'p5'
 import { range } from '@elzup/kit/lib/range'
-import { shuffleSchema } from './p5Util'
+import { binds, shuffleSchema } from './p5Util'
 
 export const sketchRens = (p: P5) => {
   let globalN = 0
   let aOfs = ((p.TWO_PI / 360) * 1) / 2
   let rOfs = 1
   const palette = shuffleSchema(p)
+  //
+  const b = binds(p)
+  const { background, push, pop } = b
+  const { beginShape, endShape, vertex, map } = b
+  const { noStroke, noFill, stroke, strokeWeight, strokeCap } = b
+  const { lerpColor, color } = b
+
+  const { translate, rotate } = b
+  const { sin, cos, sqrt, max, min, radians, abs, arc } = b
+  const { random, randomSeed, noise } = b
+  const { TWO_PI, PI, SQUARE } = p
 
   p.setup = () => {
     p.createCanvas(p.windowWidth, p.windowHeight)
@@ -17,17 +28,18 @@ export const sketchRens = (p: P5) => {
   }
 
   p.draw = () => {
-    p.background(0)
-    p.randomSeed(0)
+    background(0)
+    randomSeed(0)
+    const { width, height, frameCount } = p
 
-    p.push()
-    p.translate(p.width / 2, p.height / 2)
+    push()
+    translate(width / 2, height / 2)
     // rotate(noise(frameCount / 100) * TWO_PI);
 
     const num = 5
 
     const arr2 = range(num).map((i) => {
-      let n = p.sin((i / num) * p.TWO_PI + p.frameCount / 120) / 2 + 1 / 2
+      let n = sin((i / num) * TWO_PI + frameCount / 120) / 2 + 1 / 2
 
       return easeInOutCirc(n)
     })
@@ -38,18 +50,18 @@ export const sketchRens = (p: P5) => {
     let x = 0
     let y = 0
     let a1 = 0
-    let a2 = p.TWO_PI
-    let r2 = (p.max(p.width, p.height) / 2) * p.sqrt(2)
+    let a2 = TWO_PI
+    let r2 = (max(width, height) / 2) * sqrt(2)
     let r1 = r2 / 20
     let rStep = r2 - r1
     let depth = 4
 
     let sum = 0
 
-    p.noStroke()
+    noStroke()
     for (let i = 0; i < arr.length; i++) {
-      p.push()
-      p.rotate((i / arr.length) * p.TWO_PI)
+      push()
+      rotate((i / arr.length) * TWO_PI)
       recursiveArc(
         x,
         y,
@@ -60,9 +72,9 @@ export const sketchRens = (p: P5) => {
         depth
       )
       sum += arr[i]
-      p.pop()
+      pop()
     }
-    p.pop()
+    pop()
   }
 
   function recursiveArc(
@@ -87,32 +99,32 @@ export const sketchRens = (p: P5) => {
       r1 = r2
       r2 = tmp
     }
-    p.push()
-    p.translate(x, y)
-    p.rotate(p.noise(x, y, p.frameCount / 150000) * p.TWO_PI)
-    let rsx = p.random(100)
-    let rsy = p.random(100)
-    let t = p.noise(rsx, rsy, p.frameCount / 5000) //frameCount/500%1;
+    push()
+    translate(x, y)
+    rotate(noise(x, y, p.frameCount / 150000) * TWO_PI)
+    let rsx = random(100)
+    let rsy = random(100)
+    let t = noise(rsx, rsy, p.frameCount / 5000) //frameCount/500%1;
 
-    t = easeInOutElastic(t) * p.TWO_PI
+    t = easeInOutElastic(t) * TWO_PI
     let na =
       a1 +
-      (p.sin(
+      (sin(
         rsx +
           y / 20 +
-          ((t * p.TWO_PI) / 4) * depth +
-          (p.radians(p.frameCount / 5) % p.TWO_PI)
+          ((t * TWO_PI) / 4) * depth +
+          (radians(p.frameCount / 5) % TWO_PI)
       ) /
         2 +
         0.5) *
         (a2 - a1)
     let nr =
       r1 +
-      (p.cos(
+      (cos(
         rsy +
           x / 20 +
-          ((t * p.TWO_PI) / 4) * depth +
-          (p.radians(p.frameCount / 5) % p.TWO_PI)
+          ((t * TWO_PI) / 4) * depth +
+          (radians(p.frameCount / 5) % TWO_PI)
       ) /
         2 +
         0.5) *
@@ -129,7 +141,7 @@ export const sketchRens = (p: P5) => {
       recursiveArc(x, y, a1, na, nr, r2, depth - 1)
       recursiveArc(x, y, na, a2, nr, r2, depth - 1)
     }
-    p.pop()
+    pop()
   }
 
   function drawArc(
@@ -144,64 +156,64 @@ export const sketchRens = (p: P5) => {
     globalN++
     if (
       startAngle < 0 ||
-      endAngle - startAngle < p.radians(1) ||
+      endAngle - startAngle < radians(1) ||
       minD < 0 ||
-      p.abs(maxD - minD) < 5
+      abs(maxD - minD) < 5
     )
       return
 
-    p.push()
-    p.translate(x, y)
+    push()
+    translate(x, y)
     let d = maxD - minD
     let e = minD + d / 2
     let c1 = palette[globalN % palette.length]
     let c2 = palette[(globalN + 1) % palette.length]
 
-    p.noFill()
-    p.strokeCap(p.SQUARE)
-    let angleStep = p.TWO_PI / 360
+    noFill()
+    strokeCap(SQUARE)
+    let angleStep = TWO_PI / 360
 
     if (globalN % 2 === 0) {
       for (let a = startAngle; a <= endAngle; a += angleStep * (depth + 3)) {
-        let c = p.lerpColor(c1, c2, p.map(a, startAngle, endAngle, 0, 1))
+        let c = lerpColor(c1, c2, map(a, startAngle, endAngle, 0, 1))
 
-        p.stroke(c)
-        p.strokeWeight(d)
-        p.beginShape()
-        p.vertex(p.cos(a) * e, p.sin(a) * e)
-        p.vertex(p.cos(a + angleStep) * e, p.sin(a + angleStep) * e)
-        p.endShape()
+        stroke(c)
+        strokeWeight(d)
+        beginShape()
+        vertex(cos(a) * e, sin(a) * e)
+        vertex(cos(a + angleStep) * e, sin(a + angleStep) * e)
+        endShape()
       }
     } else {
       let d2 = d / 10
 
-      p.strokeWeight(d2)
+      strokeWeight(d2)
       for (
-        let f = p.max(maxD, minD) - d2 / 2;
-        f > p.min(maxD, minD) + d2 / 2;
+        let f = max(maxD, minD) - d2 / 2;
+        f > min(maxD, minD) + d2 / 2;
         f -= d2 * 2
       ) {
-        let c = p.lerpColor(
+        let c = lerpColor(
           c1,
           c2,
-          p.map(f, p.min(maxD, minD), p.max(maxD, minD), 0, 1)
+          map(f, min(maxD, minD), max(maxD, minD), 0, 1)
         )
 
-        p.stroke(c)
-        p.arc(0, 0, f * 2, f * 2, startAngle, endAngle)
+        stroke(c)
+        arc(0, 0, f * 2, f * 2, startAngle, endAngle)
       }
     }
-    p.pop()
+    pop()
   }
 
   function getColorByTheta(theta: number, time: number) {
     let th = 8.0 * theta + time * 5.0
-    let r = 0.5 + 0.5 * p.sin(th)
+    let r = 0.5 + 0.5 * sin(th)
 
-    const g = 0.5 + 0.5 * p.sin(th - p.PI / 3)
-    const b = 0.5 + 0.5 * p.sin(th - (p.PI * 2) / 3)
+    const g = 0.5 + 0.5 * sin(th - PI / 3)
+    const b = 0.5 + 0.5 * sin(th - (PI * 2) / 3)
 
-    return p.color(r * 255, g * 255, b * 255)
+    return color(r * 255, g * 255, b * 255)
   }
   function easeInOutCirc(x: number) {
     return x < 0.5
