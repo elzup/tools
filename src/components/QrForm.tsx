@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { Suspense, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import QRCode, { QRCodeSVG } from 'qrcode.react'
+import { QRCodeSVG } from 'qrcode.react'
 import CryptoJS from 'crypto-js'
 import { TextField, Button, Container, Typography, Box } from '@mui/material'
 
@@ -13,6 +13,7 @@ const secretKey = ''
 const encryptData = (text: string) => {
   return CryptoJS.AES.encrypt(text, secretKey).toString()
 }
+const maxChar = 1000
 
 const QRForm: React.FC = () => {
   const {
@@ -76,15 +77,15 @@ const QRForm: React.FC = () => {
 
         <TextField
           fullWidth
-          label={`テキスト（500文字まで ${descriptionLength}/500）`}
+          label={`テキスト [${descriptionLength}/${maxChar}]`}
           margin="normal"
           multiline
           rows={4}
           {...register('description', {
             required: 'テキストは必須です',
             maxLength: {
-              value: 500,
-              message: '500文字以内で入力してください',
+              value: maxChar,
+              message: `${maxChar}文字以内で入力してください`,
             },
           })}
           onChange={handleDescriptionChange}
@@ -100,7 +101,9 @@ const QRForm: React.FC = () => {
       {qrValue && (
         <Box mt={4} textAlign="center">
           <Typography variant="h6">QRコード:</Typography>
-          <QRCodeSVG value={qrValue} level="L" />
+          <Suspense fallback={<div>invalid</div>}>
+            <QRCodeSVG value={qrValue} level="L" />
+          </Suspense>
         </Box>
       )}
     </Container>
