@@ -1,6 +1,5 @@
 import { Box, Button, Container, TextField, Typography } from '@mui/material'
 import CryptoJS from 'crypto-js'
-import { QRCodeSVG } from 'qrcode.react'
 import React, { Suspense, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -15,7 +14,7 @@ const encryptData = (text: string) => {
 }
 const maxChar = 1000
 
-const Logicript: React.FC = () => {
+const Magicronic = () => {
   const {
     getValues,
     register,
@@ -44,7 +43,7 @@ const Logicript: React.FC = () => {
   return (
     <Container maxWidth="sm">
       <Typography variant="h4" align="center" gutterBottom>
-        QRコード生成フォーム
+        Magicronic 原始テキスト
       </Typography>
       <Box
         component="form"
@@ -52,29 +51,6 @@ const Logicript: React.FC = () => {
         noValidate
         sx={{ mt: 3 }}
       >
-        <TextField
-          fullWidth
-          label="氏名"
-          margin="normal"
-          {...register('name', { required: '氏名は必須です' })}
-          error={!!errors.name}
-          helperText={errors.name?.message}
-        />
-
-        <TextField
-          fullWidth
-          label="年齢"
-          type="number"
-          margin="normal"
-          {...register('age', {
-            required: '年齢は必須です',
-            min: { value: 0, message: '年齢は0以上にしてください' },
-            max: { value: 120, message: '年齢は120以下にしてください' },
-          })}
-          error={!!errors.age}
-          helperText={errors.age?.message}
-        />
-
         <TextField
           fullWidth
           label={`テキスト [${descriptionLength}/${maxChar}]`}
@@ -100,14 +76,11 @@ const Logicript: React.FC = () => {
 
       {qrValue && (
         <Box mt={4} textAlign="center">
-          <Typography variant="h6">QRコード:</Typography>
-          <Suspense fallback={<div>invalid</div>}>
-            <QRCodeSVG value={qrValue} level="L" />
-          </Suspense>
+          <Suspense fallback={<div>invalid</div>}>{'todo'}</Suspense>
         </Box>
       )}
     </Container>
   )
 }
 
-export default Logicript
+export default Magicronic

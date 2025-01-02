@@ -1,12 +1,12 @@
 import Layout from '../components/Layout'
-import QRForm from '../components/QrForm'
+import Magicronic from '../components/Magicronic'
 
-const title = 'Logicript プロトタイプ'
+const title = 'Magicronic プロトタイプ'
 const MermaidUi = () => {
   return (
     <Layout title={title}>
       {/* <Title>{title}</Title> */}
-      <QRForm />
+      <Magicronic />
     </Layout>
   )
 }
