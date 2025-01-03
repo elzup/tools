@@ -2,6 +2,7 @@ import { Box, Button, Container, TextField, Typography } from '@mui/material'
 import CryptoJS from 'crypto-js'
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useMagironic } from '../../lib/magironic/useMagironic'
 
 type FormData = {
   name: string
@@ -14,13 +15,20 @@ const encryptData = (text: string) => {
 }
 const maxChar = 1000
 
-const Magicronic = () => {
+const Magironic = () => {
   const {
     getValues,
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormData>()
+  } = useForm<FormData>({
+    defaultValues: {
+      name: '',
+      age: 0,
+      description: '',
+    },
+  })
+  const magi = useMagironic(getValues().description)
 
   const [descriptionLength, setDescriptionLength] = useState(0)
   const handleDescriptionChange = (
@@ -32,7 +40,7 @@ const Magicronic = () => {
   return (
     <Container maxWidth="sm">
       <Typography variant="h4" align="center" gutterBottom>
-        Magicronic 原始テキスト
+        Magironic 原始テキスト
       </Typography>
       <Box component="form" noValidate sx={{ mt: 3 }}>
         <TextField
@@ -64,11 +72,11 @@ const Magicronic = () => {
         alignItems="center"
         mt={2}
       >
-        <Box>{JSON.stringify()}</Box>
+        <Box>{JSON.stringify(magi)}</Box>
         <Box></Box>
       </Box>
     </Container>
   )
 }
 
-export default Magicronic
+export default Magironic

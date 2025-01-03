@@ -1,12 +1,12 @@
 import Layout from '../components/Layout'
-import Magicronic from '../components/Magicronic'
+import Magironic from '../components/Magironic'
 
-const title = 'Magicronic プロトタイプ'
+const title = 'Magironic プロトタイプ'
 const MermaidUi = () => {
   return (
     <Layout title={title}>
       {/* <Title>{title}</Title> */}
-      <Magicronic />
+      <Magironic />
     </Layout>
   )
 }
