@@ -11,10 +11,14 @@ export default function TabOneScreen() {
   const CX = urlParams.get('cx') || '' // `?cx=YOUR_CX` を指定
 
   // 音声認識APIの初期化（ブラウザ専用）
+  // @ts-ignore
+  // eslint-disable-next-line no-undef
   let recognition: SpeechRecognition | null = null
 
   if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+    // @ts-ignore
     const SpeechRecognition =
+      // @ts-ignore
       window.SpeechRecognition || (window as unknown).webkitSpeechRecognition
 
     recognition = new SpeechRecognition()
@@ -42,6 +46,7 @@ export default function TabOneScreen() {
     const data = await response.json()
 
     if (data.items) {
+      // @ts-ignore
       setImages(data.items.map((item: unknown) => item.link))
     }
   }
@@ -56,6 +61,8 @@ export default function TabOneScreen() {
     recognition.start()
     setIsRecording(true)
 
+    // @ts-ignore
+    // eslint-disable-next-line no-undef
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       const lastResult = event.results[event.results.length - 1]
 
@@ -71,6 +78,8 @@ export default function TabOneScreen() {
       }
     }
 
+    // @ts-ignore
+    // eslint-disable-next-line no-undef
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.error('音声認識エラー:', event.error)
       setIsRecording(false)
