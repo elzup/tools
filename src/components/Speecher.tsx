@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
+import { useSpeechRecognition } from '../utils/useSpeechRecognition'
 
 export default function TabOneScreen() {
   const [recognizedText, setRecognizedText] = useState<string>('')
@@ -13,19 +14,7 @@ export default function TabOneScreen() {
   // 音声認識APIの初期化（ブラウザ専用）
   // @ts-ignore
   // eslint-disable-next-line no-undef
-  let recognition: SpeechRecognition | null = null
-
-  if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-    // @ts-ignore
-    const SpeechRecognition =
-      // @ts-ignore
-      window.SpeechRecognition || (window as unknown).webkitSpeechRecognition
-
-    recognition = new SpeechRecognition()
-    recognition.lang = 'ja-JP' // 日本語対応
-    recognition.interimResults = true // 中間結果を表示
-    recognition.continuous = true // 継続的に認識
-  }
+  const recognition = useSpeechRecognition()
 
   // 固有名詞の検出（簡易的な方法）
   const detectProperNouns = (text: string): string[] => {
