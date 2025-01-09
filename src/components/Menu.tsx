@@ -2,6 +2,7 @@ import { faDev } from '@fortawesome/free-brands-svg-icons'
 import {
   faEye,
   faIdBadge,
+  faImage,
   faLightbulb,
   faStopCircle,
 } from '@fortawesome/free-regular-svg-icons'
@@ -15,6 +16,7 @@ import {
   faExchangeAlt,
   faFeatherAlt,
   faGlobe,
+  faGraduationCap,
   faHome,
   faKeyboard,
   faLeaf,
@@ -30,6 +32,7 @@ import {
   faSortNumericAsc,
   faSpider,
   faTimes,
+  faWandSparkles,
   faWindowMinimize,
   faWindowRestore,
 } from '@fortawesome/free-solid-svg-icons'
@@ -205,6 +208,11 @@ const routings: RoutingGroup[] = [
         label: '3d Time anozon',
         path: '/time',
       },
+      {
+        icon: faGraduationCap,
+        label: 'Milion Learning Technology',
+        path: '/million-lean-tech',
+      },
     ],
   },
   {
@@ -249,6 +257,16 @@ const routings: RoutingGroup[] = [
         icon: faSortNumericAsc,
         label: 'Decimal',
         path: '/decimal',
+      },
+      {
+        icon: faWandSparkles,
+        label: 'Magironic',
+        path: '/magironic',
+      },
+      {
+        icon: faImage,
+        label: 'Speecher',
+        path: '/speecher',
       },
     ],
   },
