@@ -1,9 +1,9 @@
-import P5, { Vector } from 'p5'
+import P5 from 'p5'
 
 type State = {
   f: number
 }
-function draw(p: P5, state: State) {
+function draw(p: P5, _state: State) {
   p.background(255)
 
   for (let i = 0; i < 24; i++) {
@@ -50,7 +50,7 @@ function drawLinewave(p: P5) {
 }
 
 export const sketchPu = (p: P5) => {
-  const size = 4
+  const _size = 4
 
   p.setup = () => {
     p.createCanvas(720, 720)
