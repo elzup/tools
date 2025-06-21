@@ -102,6 +102,11 @@ const routings: RoutingGroup[] = [
         label: 'Script buttons',
         path: '/script-buttons',
       },
+      {
+        icon: faExchangeAlt,
+        label: 'テキスト変換',
+        path: '/text-transformer',
+      },
     ],
   },
   {
