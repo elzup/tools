@@ -75,20 +75,30 @@ const TextTransformerPage = () => {
         />
       </Box>
       <Box mt={2}>
-        <InputLabel id="transformer-select-label">変換器</InputLabel>
-        <Select
-          labelId="transformer-select-label"
-          id="transformer-select"
-          value={selectedTransformer}
-          label="変換器"
-          onChange={(e) => setSelectedTransformer(e.target.value)}
-        >
+        <InputLabel id="transformer-radio-group-label">変換器</InputLabel>
+        <Box style={{ display: 'flex', flexDirection: 'row' }}>
           {transformers.map((transformer) => (
-            <MenuItem key={transformer.name} value={transformer.name}>
-              {transformer.name}
-            </MenuItem>
+            <Box
+              key={transformer.name}
+              display="flex"
+              alignItems="center"
+              mb={1}
+            >
+              <input
+                type="radio"
+                id={`transformer-${transformer.name}`}
+                name="transformer"
+                value={transformer.name}
+                checked={selectedTransformer === transformer.name}
+                onChange={() => setSelectedTransformer(transformer.name)}
+                style={{ marginRight: 8 }}
+              />
+              <label htmlFor={`transformer-${transformer.name}`}>
+                {transformer.name}
+              </label>
+            </Box>
           ))}
-        </Select>
+        </Box>
       </Box>
       <Box mt={2}>
         <Button variant="contained" color="primary" onClick={handleTransform}>
