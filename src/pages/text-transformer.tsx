@@ -4,6 +4,7 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  Switch,
   TextField,
 } from '@mui/material'
 import { useState } from 'react'
@@ -19,6 +20,7 @@ const TextTransformerPage = () => {
   const [selectedTransformer, setSelectedTransformer] = useState<string>(
     'generateTextDiagram'
   )
+  const [outputFontMono, setOutputFontMono] = useState(false)
 
   const transformers: TextTransformer[] = [
     {
@@ -94,6 +96,16 @@ const TextTransformerPage = () => {
         </Button>
       </Box>
       <Box mt={2}>
+        <Box display="flex" alignItems="center" mb={1}>
+          <Button
+            variant="outlined"
+            size="small"
+            sx={{ ml: 1 }}
+            onClick={() => setOutputFontMono((prev) => !prev)}
+          >
+            <Switch checked={outputFontMono} size="small" /> 等幅
+          </Button>
+        </Box>
         <TextField
           label="出力テキスト"
           multiline
@@ -102,6 +114,7 @@ const TextTransformerPage = () => {
           value={outputText}
           InputProps={{
             readOnly: true,
+            style: { fontFamily: outputFontMono ? 'monospace' : undefined },
           }}
           variant="outlined"
         />
