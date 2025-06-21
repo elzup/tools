@@ -7,7 +7,7 @@ import {
   Switch,
   TextField,
 } from '@mui/material'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 import { generateTextDiagramTransformer } from '../lib/text-transformer/binaryPacketDiagramTransformer'
@@ -40,7 +40,8 @@ const TextTransformerPage = () => {
     { name: 'generateTextDiagram', transform: generateTextDiagramTransformer },
   ]
 
-  const handleTransform = () => {
+  // 変換処理を行う関数
+  const transformText = () => {
     // 選択された変換器に基づいてテキストを変換
     const transformer = transformers.find((t) => t.name === selectedTransformer)
 
@@ -59,6 +60,15 @@ const TextTransformerPage = () => {
       setOutputText('変換に失敗しました')
     }
   }
+
+  // inputTextまたはselectedTransformerが変更されたときに変換を実行
+  useEffect(() => {
+    if (inputText) {
+      transformText()
+    } else {
+      setOutputText('')
+    }
+  }, [inputText, selectedTransformer])
 
   return (
     <Layout title="テキスト変換ツール">
@@ -100,11 +110,7 @@ const TextTransformerPage = () => {
           ))}
         </Box>
       </Box>
-      <Box mt={2}>
-        <Button variant="contained" color="primary" onClick={handleTransform}>
-          変換実行
-        </Button>
-      </Box>
+      {/* 変換はリアルタイムで行われるため、ボタンは不要 */}
       <Box mt={2}>
         <Box display="flex" alignItems="center" mb={1}>
           <Button
