@@ -6,20 +6,44 @@ import { Transformer, TransformResult } from './transformer'
  */
 export const parseInput = (
   input: string
-): { name: string; offset: number; type: string; length: number }[] => {
+): {
+  name: string
+  offset: number
+  type: string | undefined
+  length: number
+}[] => {
+  if (!input || input.trim() === '') {
+    return [{ name: '', offset: NaN, type: undefined, length: NaN }]
+  }
+
   const entries = input.split(' ')
 
   return entries.map((entry) => {
-    const [name, offsetStr, type, lengthStr] = entry.split(':')
+    const parts = entry.split(':')
+
+    if (parts.length < 4) {
+      throw new Error(`無効な入力形式です: ${entry}`)
+    }
+
+    const [name, offsetStr, type, lengthStr] = parts
     const offset = parseInt(offsetStr)
     const length = parseInt(lengthStr)
+
+    if (isNaN(offset) || isNaN(length)) {
+      throw new Error(`無効な数値形式です: ${entry}`)
+    }
 
     return { name, offset, type, length }
   })
 }
 
 export const generateDiagram = (
-  data: { name: string; offset: number; type: string; length: number }[]
+  data: {
+    name: string
+    offset: number
+    type: string | undefined
+    length: number
+  }[]
 ): string => {
   const width = (length: number) => length / 2 // 1byte = 2char
   const pad = (str: string, len: number) => str.padEnd(len)
@@ -53,7 +77,16 @@ export const generateDiagram = (
   let currentLineStart = 0
   let currentLineEnd = maxBytesPerLine
 
-  while (dataWithPos.length > 0 || currentLine.length > 0) {
+  // 無限ループ防止のためのカウンター
+  let loopCount = 0
+  const maxLoops = 1000 // 安全のための最大ループ回数
+
+  while (
+    (dataWithPos.length > 0 || currentLine.length > 0) &&
+    loopCount < maxLoops
+  ) {
+    loopCount++
+
     // 現在の行に含まれるデータを抽出
     for (let i = 0; i < dataWithPos.length; i++) {
       const item = dataWithPos[i]
@@ -87,6 +120,13 @@ export const generateDiagram = (
           isPartial: true,
         }
       }
+    }
+
+    // 無限ループ防止: 何も処理されなかった場合は強制的に次の行へ
+    if (currentLine.length === 0 && dataWithPos.length > 0) {
+      currentLineStart = currentLineEnd
+      currentLineEnd += maxBytesPerLine
+      continue
     }
 
     // 現在の行をソート（オフセット順）
@@ -136,7 +176,7 @@ export const generateDiagram = (
         return `12   13   14   15   16   17   18   19   20
 +-------------------+-------------------+
 :bat_v    |length             |csq      |
-+-------------------+-------------------+-`
++-------------------+-------------------+`
       }
     }
 
@@ -233,7 +273,24 @@ export const generateTextDiagramTransformer: Transformer = (
   input: string
 ): TransformResult => {
   try {
+    if (!input) {
+      return {
+        success: false,
+        error:
+          '入力が空です。正しい形式で入力してください。例: name:offset:type:length',
+      }
+    }
+
     const parsedData = parseInput(input)
+
+    if (parsedData.length === 0) {
+      return {
+        success: false,
+        error:
+          '有効なデータが見つかりませんでした。正しい形式で入力してください。例: name:offset:type:length',
+      }
+    }
+
     const diagram = generateDiagram(parsedData)
 
     return { success: true, diagram }

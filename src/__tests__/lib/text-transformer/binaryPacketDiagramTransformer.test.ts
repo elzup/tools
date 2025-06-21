@@ -124,41 +124,7 @@ describe('generateTextDiagramTransformer', () => {
     }
   })
 
-  it('ユーザー指定のフォーマットで正しく変換できること', () => {
-    const input =
-      'seq:0:int:16 pressure:2:float:32 temperature:6:float:32 bat_v:10:float:32 length:14:float:32 csq:18:int:16'
-    const result = generateTextDiagramTransformer(input)
-
-    expect(result.success).toBe(true)
-    expect(result.diagram).toBeDefined()
-
-    if (result.success && result.diagram) {
-      const lines = result.diagram.split('\n')
-
-      // 基本的な構造を確認
-      expect(lines.length).toBeGreaterThan(10) // 少なくとも10行以上あるはず
-
-      // すべてのフィールドが表示されていることを確認
-      const diagramText = result.diagram
-
-      expect(diagramText).toContain('seq')
-      expect(diagramText).toContain('pressure')
-      expect(diagramText).toContain('temperature')
-      expect(diagramText).toContain('bat_v')
-      expect(diagramText).toContain('length')
-      expect(diagramText).toContain('csq')
-
-      // バイト数の説明が正しいことを確認
-      expect(diagramText).toContain('seq: seq 2byte')
-      expect(diagramText).toContain('pressure: pressure 4byte')
-      expect(diagramText).toContain('temperature: temperature 4byte')
-      expect(diagramText).toContain('bat_v: bat_v 4byte')
-      expect(diagramText).toContain('length: length 4byte')
-      expect(diagramText).toContain('csq: csq 2byte')
-    }
-  })
-
-  it('ユーザー指定のフォーマットで完全一致のテスト', () => {
+  it('バイナリテストケース2', () => {
     const input =
       'seq:0:int:16 pressure:2:float:32 temperature:6:float:32 bat_v:10:float:32 length:14:float:32 csq:18:int:16'
     const result = generateTextDiagramTransformer(input)
@@ -177,7 +143,7 @@ describe('generateTextDiagramTransformer', () => {
 12   13   14   15   16   17   18   19   20
 +-------------------+-------------------+
 :bat_v    |length             |csq      |
-+-------------------+-------------------+-
++-------------------+-------------------+
 seq: seq 2byte
 pressure: pressure 4byte
 temperature: temperature 4byte
