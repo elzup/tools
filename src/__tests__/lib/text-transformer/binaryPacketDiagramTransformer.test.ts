@@ -158,6 +158,47 @@ describe('generateTextDiagramTransformer', () => {
     }
   })
 
+  it('ユーザー指定のフォーマットで完全一致のテスト', () => {
+    const input =
+      'seq:0:int:16 pressure:2:float:32 temperature:6:float:32 bat_v:10:float:32 length:14:float:32 csq:18:int:16'
+    const result = generateTextDiagramTransformer(input)
+
+    expect(result.success).toBe(true)
+    expect(result.diagram).toBeDefined()
+
+    if (result.success && result.diagram) {
+      // ユーザーが提供した入力に対する期待出力
+      const expected = `
+0    1    2    3    4    5    6    7    8    9    10   11   12
++-------------------+-------------------+-------------------+
+|seq      |pressure           |temperature        |bat_v    :
++-------------------+-------------------+-------------------+
+
+12   13   14   15   16   17   18   19   20
++-------------------+-------------------+
+:bat_v    |length             |csq      |
++-------------------+-------------------+-
+seq: seq 2byte
+pressure: pressure 4byte
+temperature: temperature 4byte
+bat_v: bat_v 4byte
+length: length 4byte
+csq: csq 2byte`.trim()
+
+      // 出力と期待値を行ごとに比較
+      const actualLines = result.diagram.trim().split('\n')
+      const expectedLines = expected.trim().split('\n')
+
+      // 行数が同じであることを確認
+      expect(actualLines).toHaveLength(expectedLines.length)
+
+      // 各行が一致することを確認
+      expectedLines.forEach((line, i) => {
+        expect(actualLines[i].trim()).toBe(line.trim())
+      })
+    }
+  })
+
   it('エラーハンドリングが機能すること', () => {
     // 現在の実装では 'invalid input' でもエラーにならないため、
     // より確実にエラーになる入力を使用
