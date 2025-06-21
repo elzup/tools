@@ -36,10 +36,16 @@ export const MlEmily = () => {
       </Select>
 
       <Box>
-        <Card>
-          <h3>{t[lang].title}</h3>
-          <p>{t[lang].description}</p>
-          <p>{t[lang].milionArmer}</p>
+        <Card
+          style={{
+            padding: '16px',
+            margin: '16px 0',
+            backgroundColor: '#f5f5f5',
+          }}
+        >
+          <h3 style={{ color: 'blue' }}>{t[lang].title}</h3>
+          <p style={{ fontStyle: 'italic' }}>{t[lang].description}</p>
+          <p style={{ fontWeight: 'bold' }}>{t[lang].milionArmer}</p>
         </Card>
       </Box>
     </Card>
