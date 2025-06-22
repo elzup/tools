@@ -102,6 +102,111 @@ longlong_name: longlong_name 2byte
     // 実際の折り返し機能が実装されたら、以下のようなテストを行います
     // expect(lines.length).toBeGreaterThan(7) // 折り返しがあるため行数が増える
   })
+
+  // 1行だけ（12バイト以下のパターン）のテスト
+  it('12バイト以下の小さなパケットを正しく表示できること', () => {
+    // 小さなパケット定義（1-2フィールドのみ）
+    const data = [
+      { name: 'header', offset: 0, type: 'uint8', length: 8 },
+      { name: 'value', offset: 1, type: 'uint16', length: 16 },
+    ]
+
+    const result = generateDiagram(data)
+    const lines = result.split('\n')
+
+    // 期待される出力
+    const expected = `
+0    1    2    3
++---------------
+|head|value    |
++---------------
+header: header 1byte
+value: value 2byte`
+      .trim()
+      .split('\n')
+
+    // 行数を確認（折り返しがないため少ない行数になる）
+    expect(lines).toHaveLength(expected.length)
+
+    // 各行が期待通りか確認
+    expected.forEach((line, i) => {
+      expect(lines[i].trim()).toBe(line.trim())
+    })
+  })
+
+  it('4バイトで割り切れる場合は+記号', () => {
+    // 小さなパケット定義（1-2フィールドのみ）
+    const data = [
+      { name: 'header', offset: 0, type: 'uint8', length: 16 },
+      { name: 'value', offset: 2, type: 'uint16', length: 48 },
+    ]
+
+    const result = generateDiagram(data)
+    const lines = result.split('\n')
+
+    // 期待される出力
+    const expected = `
+0    1    2    3    4    5    6    7    8
++-------------------+-------------------+
+|head     |value                        |
++-------------------+-------------------+
+header: header 2byte
+value: value 6byte`
+      .trim()
+      .split('\n')
+
+    expect(lines).toHaveLength(expected.length)
+
+    expected.forEach((line, i) => {
+      expect(lines[i].trim()).toBe(line.trim())
+    })
+  })
+
+  // 3行（25バイト以上）のパターンのテスト
+  it('25バイト以上の大きなパケットで複数回折り返されること', () => {
+    // 大きなパケット定義（多数のフィールド）
+    const data = [
+      { name: 'header', offset: 0, type: 'uint8', length: 8 },
+      { name: 'cmd', offset: 1, type: 'uint8', length: 8 },
+      { name: 'len', offset: 2, type: 'uint16', length: 16 },
+      { name: 'data1', offset: 4, type: 'uint32', length: 32 },
+      { name: 'data2', offset: 8, type: 'uint32', length: 32 },
+      { name: 'data3', offset: 12, type: 'uint32', length: 32 },
+      { name: 'data4', offset: 16, type: 'uint32', length: 32 },
+      { name: 'data5', offset: 20, type: 'uint32', length: 64 },
+      { name: 'crc', offset: 28, type: 'uint16', length: 16 },
+    ]
+
+    const result = generateDiagram(data)
+
+    expect(result).toStrictEqual(
+      `
+0    1    2    3    4    5    6    7    8    9    10   11   12
++-------------------+-------------------+-------------------+
+|head|cmd |len      |data1              |data2              |
++-------------------+-------------------+-------------------+
+
+12   13   14   15   16   17   18   19   20   21   22   23   24
++-------------------+-------------------+-------------------+
+|data3              |data4              |data5              :
++-------------------+-------------------+-------------------+
+
+25   26   27   28   29   30   31
++-------------------+----------
+:data5              |crc      |
++-------------------+----------
+header: header 1byte
+cmd: cmd 1byte
+len: len 2byte
+data1: data1 4byte
+data2: data2 4byte
+data3: data3 4byte
+data4: data4 4byte
+data5: data5 8byte
+crc: crc 2byte
+`.trim()
+    )
+  })
 })
 
 describe('generateTextDiagramTransformer', () => {
@@ -113,15 +218,25 @@ describe('generateTextDiagramTransformer', () => {
     expect(result.success).toBe(true)
     expect(result.diagram).toBeDefined()
 
-    if (result.success && result.diagram) {
-      const lines = result.diagram.split('\n')
+    // 基本的な構造を確認
+    expect(result.diagram).toStrictEqual(
+      `
+0    1    2    3    4    5    6    7    8    9    10   11   12
++-------------------+-------------------+-------------------+
+|SQ  |val1               |val2               |val3          :
++-------------------+-------------------+-------------------+
 
-      // 基本的な構造を確認
-      expect(lines.length).toBeGreaterThan(5) // 少なくとも5行以上あるはず
-      expect(lines[0]).toContain('0') // オフセット行
-      expect(lines[1]).toContain('+') // 区切り線
-      expect(lines[2]).toContain('|') // 名前行
-    }
+12   13   14   15   16   17   18   19
++-------------------+---------------
+:val3|val4               |CSQ      |
++-------------------+---------------
+SQ: SQ 1byte
+val1: val1 4byte
+val2: val2 4byte
+val3: val3 4byte
+val4: val4 4byte
+CSQ: CSQ 2byte"`.trim()
+    )
   })
 
   it('バイナリテストケース2', () => {
@@ -132,9 +247,8 @@ describe('generateTextDiagramTransformer', () => {
     expect(result.success).toBe(true)
     expect(result.diagram).toBeDefined()
 
-    if (result.success && result.diagram) {
-      // ユーザーが提供した入力に対する期待出力
-      const expected = `
+    // ユーザーが提供した入力に対する期待出力
+    const expected = `
 0    1    2    3    4    5    6    7    8    9    10   11   12
 +-------------------+-------------------+-------------------+
 |seq      |pressure           |temperature        |bat_v    :
@@ -151,18 +265,9 @@ bat_v: bat_v 4byte
 length: length 4byte
 csq: csq 2byte`.trim()
 
-      // 出力と期待値を行ごとに比較
-      const actualLines = result.diagram.trim().split('\n')
-      const expectedLines = expected.trim().split('\n')
+    expect(result.diagram?.trim()).toStrictEqual(expected)
 
-      // 行数が同じであることを確認
-      expect(actualLines).toHaveLength(expectedLines.length)
-
-      // 各行が一致することを確認
-      expectedLines.forEach((line, i) => {
-        expect(actualLines[i].trim()).toBe(line.trim())
-      })
-    }
+    // 各行が一致することを確認
   })
 
   it('エラーハンドリングが機能すること', () => {
