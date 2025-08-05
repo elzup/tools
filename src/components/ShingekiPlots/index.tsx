@@ -1,8 +1,8 @@
+import { isDev } from '@elzup/kit/lib/char/constants'
 import { groupByFunc } from '@elzup/kit/lib/obj/groupBy'
 import { keyBy } from '@elzup/kit/lib/obj/keyBy'
-import { isDev } from '@elzup/kit/lib/char/constants'
-import { TextField, Typography } from '@mui/material'
-import { useMemo, useState } from 'react'
+import { Tab, Tabs, TextField, Typography } from '@mui/material'
+import { SyntheticEvent, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { MmdEdge, MmdGroup, MmdVertex } from '../MermaidUi/types'
 import { parseMarmaid } from '../MermaidUi/useMermaid'
@@ -116,6 +116,11 @@ function Shingeki() {
   const blocks = useBlocks(data)
   const _all = { title: 'all', mmd: data ?? '' }
 
+  const [tab, setTab] = useState<string | false>(_all.title)
+  const enableBlocks = blocks.filter(
+    (v, i) => i > 0 && v.mmd.vertices.length > 0
+  )
+
   return (
     <div>
       <TextField
@@ -130,15 +135,33 @@ function Shingeki() {
       />
       <GraphStyle>
         <StoryMmdGraph />
-        {blocks.map((block, i) => (
-          <div key={`${i}_${block.title}`}>
-            <Typography variant="h5">{block.title}</Typography>
-            <MmdGraph
-              mmd={block.mmd}
-              height={`${Math.min(block.mmd.vertices.length * 5, 90)}vh`}
-            />
-          </div>
-        ))}
+        <div>
+          <Tabs
+            value={blocks.length > 0 ? tab : false}
+            variant="scrollable"
+            scrollButtons="auto"
+            onChange={(e: SyntheticEvent, v: string | false) => {
+              setTab(v)
+            }}
+            aria-label="Graph Tabs"
+          >
+            {enableBlocks.map((block) => (
+              <Tab key={block.title} label={block.title} value={block.title} />
+            ))}
+          </Tabs>
+          {enableBlocks.map((block, i) => (
+            <div
+              key={`${i}_${block.title}`}
+              hidden={tab !== block.title && tab !== false}
+            >
+              <Typography variant="h5">{block.title}</Typography>
+              <MmdGraph
+                mmd={block.mmd}
+                height={`${Math.min(block.mmd.vertices.length * 5, 90)}vh`}
+              />
+            </div>
+          ))}
+        </div>
       </GraphStyle>
     </div>
   )
