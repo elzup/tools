@@ -65,6 +65,127 @@ export const parseInput = (
   })
 }
 
+// 数字行（オフセット行）を生成する関数
+export const generateNumberLine = (
+  startOffset: number,
+  endOffset: number
+): string => {
+  // テストケースの期待値に合わせて、正確な幅で文字列をパディングする
+  const pad = (str: string, len: number) => str.padEnd(len)
+
+  let offsetLine = ''
+
+  // 表示するバイト数を計算
+  for (let i = startOffset; i <= endOffset; i++) {
+    offsetLine += pad(i.toString(), 5)
+  }
+
+  // 余分な空白を削除
+  return offsetLine.trimEnd()
+}
+
+// 区切り線を生成する関数
+export const generateSeparatorLine = (
+  startOffset: number,
+  endOffset: number,
+  isWrapped = false
+): string => {
+  const charPerByte = 5 // 1バイトあたりの文字数
+  const gapCount = endOffset - startOffset // 区切り線はオフセット間のギャップ数
+  const groupSize = 4 // 4ギャップごとに改行相当の区切り
+
+  // テストでは常に '+' で始める
+  let line = '+'
+
+  // ギャップが4未満ならそのままダッシュを繋げる
+  if (gapCount < groupSize) {
+    line += '-'.repeat(charPerByte * gapCount)
+    return line
+  }
+
+  // 4ギャップずつのグループと余り
+  const fullGroups = Math.floor(gapCount / groupSize)
+  const remainder = gapCount % groupSize
+  const groupDashCount = charPerByte * groupSize - 1 // '+' の分だけダッシュをひとつ減らす
+
+  // 各グループごとに「ダッシュ19本 + '+'」
+  for (let i = 0; i < fullGroups; i++) {
+    line += '-'.repeat(groupDashCount) + '+'
+  }
+  // 余りのギャップ分ダッシュだけ追加
+  if (remainder > 0) {
+    line += '-'.repeat(charPerByte * remainder)
+  }
+
+  return line
+}
+
+// ラベル行を生成する関数
+export const generateLabelLine = (
+  data: {
+    name: string
+    offset: number
+    type: string | undefined
+    length: number
+    startPos: number
+    endPos: number
+    isPartial?: boolean
+  }[],
+  startOffset: number,
+  endOffset: number,
+  isWrapped = false,
+  needsContinuation = false
+): string => {
+  const charPerByte = 5 // 1バイトあたりの文字数（区切り文字含む）
+
+  // テストケースの期待値に合わせて、正確な幅で文字列をパディングする
+  const pad = (str: string, len: number) => str.padEnd(len)
+
+  // 名前行の先頭文字
+  let nameLine = isWrapped ? ':' : '|'
+
+  // アイテムをオフセット順にソート
+  const sortedItems = [...data].sort((a, b) => a.startPos - b.startPos)
+
+  // 各アイテムの表示幅を計算
+  const itemWidths = sortedItems.map((item) => {
+    // ビット長をバイト長に変換し、表示幅を計算
+    return Math.ceil(item.length / 8) * charPerByte - 1
+  })
+
+  // アイテムの順番に基づいて配置
+  for (let i = 0; i < sortedItems.length; i++) {
+    const item = sortedItems[i]
+
+    // アイテムの名前を表示
+    let displayName = item.name
+
+    // 部分的なアイテムの場合の特別処理
+    if (item.isPartial) {
+      // 折り返し行の先頭アイテムは名前を表示する
+      if (i === 0 && isWrapped) {
+        displayName = item.name
+      } else {
+        // それ以外の部分的なアイテムは名前を表示しない
+        displayName = ''
+      }
+    }
+
+    // 名前の幅を調整
+    const nameWidth = Math.max(0, itemWidths[i] - displayName.length)
+
+    // 名前行に追加
+    nameLine += pad(displayName, displayName.length + nameWidth) + '|'
+  }
+
+  // 折り返しが必要な場合は最後の|を:に置き換え
+  if (needsContinuation) {
+    nameLine = nameLine.slice(0, -1) + ':'
+  }
+
+  return nameLine
+}
+
 export const generateDiagram = (
   data: {
     name: string
