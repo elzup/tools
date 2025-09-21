@@ -90,31 +90,25 @@ export const generateSeparatorLine = (
   endOffset: number,
   isWrapped = false
 ): string => {
-  const charPerByte = 5 // 1バイトあたりの文字数
-  const gapCount = endOffset - startOffset // 区切り線はオフセット間のギャップ数
-  const groupSize = 4 // 4ギャップごとに改行相当の区切り
+  const totalBytes = endOffset - startOffset
+  const groupSize = 4 // 4バイトごとに区切り
 
-  // テストでは常に '+' で始める
-  let line = '+'
+  let line = '|'
 
-  // ギャップが4未満ならそのままダッシュを繋げる
-  if (gapCount < groupSize) {
-    line += '-'.repeat(charPerByte * gapCount)
-    return line
-  }
+  // 4バイトグループの数と余り
+  const fullGroups = Math.floor(totalBytes / groupSize)
+  const remainder = totalBytes % groupSize
 
-  // 4ギャップずつのグループと余り
-  const fullGroups = Math.floor(gapCount / groupSize)
-  const remainder = gapCount % groupSize
-  const groupDashCount = charPerByte * groupSize - 1 // '+' の分だけダッシュをひとつ減らす
-
-  // 各グループごとに「ダッシュ19本 + '+'」
+  // 各4バイトグループを処理
   for (let i = 0; i < fullGroups; i++) {
-    line += '-'.repeat(groupDashCount) + '+'
+    line += '----+----+----+----|'
   }
-  // 余りのギャップ分ダッシュだけ追加
+
+  // 余りのバイト数に応じて処理
   if (remainder > 0) {
-    line += '-'.repeat(charPerByte * remainder)
+    for (let i = 0; i < remainder; i++) {
+      line += '----+'
+    }
   }
 
   return line
@@ -136,27 +130,16 @@ export const generateLabelLine = (
   isWrapped = false,
   needsContinuation = false
 ): string => {
-  const charPerByte = 5 // 1バイトあたりの文字数（区切り文字含む）
-
-  // テストケースの期待値に合わせて、正確な幅で文字列をパディングする
-  const pad = (str: string, len: number) => str.padEnd(len)
-
   // 名前行の先頭文字
   let nameLine = isWrapped ? ':' : '|'
 
   // アイテムをオフセット順にソート
   const sortedItems = [...data].sort((a, b) => a.startPos - b.startPos)
 
-  // 各アイテムの表示幅を計算
-  const itemWidths = sortedItems.map((item) => {
-    // ビット長をバイト長に変換し、表示幅を計算
-    return Math.ceil(item.length / 8) * charPerByte - 1
-  })
-
-  // アイテムの順番に基づいて配置
   for (let i = 0; i < sortedItems.length; i++) {
     const item = sortedItems[i]
-
+    const fieldBytes = Math.ceil(item.length / 8)
+    
     // アイテムの名前を表示
     let displayName = item.name
 
@@ -171,11 +154,30 @@ export const generateLabelLine = (
       }
     }
 
-    // 名前の幅を調整
-    const nameWidth = Math.max(0, itemWidths[i] - displayName.length)
-
-    // 名前行に追加
-    nameLine += pad(displayName, displayName.length + nameWidth) + '|'
+    // フィールドの幅を計算
+    let fieldWidth
+    if (fieldBytes === 1) {
+      fieldWidth = 4 // 1バイトフィールドは4文字
+    } else if (fieldBytes === 2) {
+      fieldWidth = 9 // 2バイトフィールドは9文字
+    } else {
+      // 4バイト以上は通常の計算
+      fieldWidth = fieldBytes * 4 + Math.max(0, fieldBytes - 1)
+    }
+    
+    // 最後のフィールドで折り返しがある場合は幅を調整
+    if (i === sortedItems.length - 1 && needsContinuation) {
+      // 継続する場合は最後の | を除く
+      fieldWidth = fieldWidth - 1
+    }
+    
+    // 名前を適切な幅で配置
+    if (displayName.length <= fieldWidth) {
+      nameLine += displayName.padEnd(fieldWidth) + '|'
+    } else {
+      // 名前が長すぎる場合は切り詰める
+      nameLine += displayName.substring(0, fieldWidth) + '|'
+    }
   }
 
   // 折り返しが必要な場合は最後の|を:に置き換え
@@ -196,13 +198,7 @@ export const generateDiagram = (
 ): string => {
   // 定数定義
   const maxBytesPerLine = 12 // 1行あたりの最大バイト数
-  const charPerByte = 5 // 1バイトあたりの文字数（区切り文字含む）
 
-  // テストケースの期待値に合わせて、正確な幅で文字列をパディングする
-  const pad = (str: string, len: number) => str.padEnd(len)
-
-  // バイト数から表示幅を計算
-  const width = (byteLength: number) => byteLength * charPerByte
 
   // データを最大バイト数ごとに分割
   const splitData: ExtendedData[][] = []
@@ -300,10 +296,6 @@ export const generateDiagram = (
 
   // 各行の図を生成
   const diagrams = splitData.map((lineData, lineIndex) => {
-    // 定数を先頭にまとめる
-    // 4バイトごとのセグメント幅を設定
-    const bytesPerSegment = 4 // 1セグメントあたりのバイト数
-    const dashWidth = bytesPerSegment * charPerByte - 1 // 「+」の分を引いた幅
     // オフセット行
     const offsetStart = lineData[0]?.startPos || 0
 
@@ -313,9 +305,6 @@ export const generateDiagram = (
       offsetStart + maxBytesPerLine
     )
 
-    // 1行あたりの最大セグメント数を計算
-    const maxSegmentsPerLine = Math.floor(maxBytesPerLine / bytesPerSegment)
-
     // 1行に表示するアイテムを決定
     // 1行あたりの最大バイト数（12バイト）に基づいて、適切なアイテムを表示
     const displayItems = lineData.filter(
@@ -324,123 +313,61 @@ export const generateDiagram = (
         item.startPos >= offsetStart
     )
 
-    // 一般的なアルゴリズムによる図の生成
     // オフセット行の生成
-    let offsetLine = ''
+    const offsetLine = generateNumberLine(offsetStart, offsetEnd)
 
-    // オフセット行の生成
-    // 各行の最大バイト数に基づいてオフセットを表示
-    // 1行に表示する最大バイト数
-    const maxDisplayBytes = 13 // 0-12の13バイト
-
-    // 表示するバイト数を計算
-    for (let i = offsetStart; i <= offsetStart + maxDisplayBytes - 1; i++) {
-      offsetLine += pad(i.toString(), 5)
-    }
-
-    // 余分な空白を削除
-    offsetLine = offsetLine.trimEnd()
-
-    // 区切り線と名前行の生成
-    // 最大セグメント数に基づいて区切り線を生成
-    let separatorLine = '+'
-
-    for (let i = 0; i < maxSegmentsPerLine; i++) {
-      separatorLine += '-'.repeat(dashWidth) + '+'
-    }
-
-    let nameLine = ''
-
-    // 名前行を生成
-    nameLine = '|'
+    // 区切り線の生成
+    let separatorLine = generateSeparatorLine(offsetStart, offsetEnd)
 
     // アイテムをオフセット順にソート
     const sortedItems = [...displayItems].sort((a, b) => a.offset - b.offset)
 
-    // 折り返し行の場合の区切り線調整
-    if (lineIndex > 0) {
-      // 2行目以降で、前の行からの折り返しがある場合
-      const hasWrappedItems = sortedItems.some((item) => item.isPartial)
-
-      if (hasWrappedItems) {
-        // 折り返し行の場合は区切り線を調整
-        // 折り返し行の区切り線は最後が不完全になる（「+」がない）
-        separatorLine = '+'
-
-        // 折り返し行の区切り線を生成
-        // 表示されるフィールドの数や幅に基づいて生成
-        const totalItems = sortedItems.length
-
-        // 折り返し行の区切り線を生成
-        // 最初のセグメント
-        separatorLine += '-'.repeat(dashWidth) + '+'
-
-        // 2番目のセグメント（最後のセグメント）
-        // 最後のセグメントは「+」を省略
-        if (lineIndex === 1) {
-          // 2行目の場合、短い区切り線を使用
-          separatorLine += '-'.repeat(dashWidth - 10)
-        } else {
-          // その他の場合は通常の幅
-          separatorLine += '-'.repeat(dashWidth)
-        }
-      }
-    }
-
-    // 各アイテムの表示幅を計算
-    const itemWidths = sortedItems.map((item) => {
-      // ビット長をバイト長に変換し、表示幅を計算
-      return Math.ceil(item.length / 8) * charPerByte - 1
-    })
-
-    // 前の行からの折り返しがある場合
-    if (lineIndex > 0 && sortedItems.some((item) => item.isPartial)) {
-      // 折り返し行の場合は先頭を:に
-      nameLine = ':'
-    }
-
     // 折り返し判定
-    // 次の行があるかどうかで折り返しを判断
     const needsContinuation = lineIndex < splitData.length - 1
+    const isWrapped = lineIndex > 0
 
-    // アイテムの順番に基づいて配置
+    // 名前行を生成
+    const nameLine = generateLabelLine(
+      sortedItems.map(item => ({
+        ...item,
+        startPos: item.offset,
+        endPos: item.offset + item.length / 8
+      })),
+      offsetStart,
+      offsetEnd,
+      isWrapped,
+      needsContinuation
+    )
+
+    // 名前行の下の区切り線を生成（ラベル区切り線）
+    // 名前行の実際の幅に合わせてダッシュを生成
+    let labelSeparatorLine = '|'
     for (let i = 0; i < sortedItems.length; i++) {
       const item = sortedItems[i]
-
-      // アイテムの名前を表示
-      let displayName = item.name
-
-      // 部分的なアイテムの場合の特別処理
-      if (item.isPartial) {
-        // 折り返し行の先頭アイテムは名前を表示する
-        if (i === 0 && lineIndex > 0) {
-          displayName = item.name
-        } else if (
-          i === sortedItems.length - 1 &&
-          lineIndex === 0 &&
-          needsContinuation
-        ) {
-          // 最初の行の最後のフィールドで折り返しがある場合は名前を表示する
-          displayName = item.name
-        } else {
-          // それ以外の部分的なアイテムは名前を表示しない
-          displayName = ''
-        }
+      const fieldBytes = Math.ceil(item.length / 8)
+      let fieldWidth = fieldBytes * 4 + Math.max(0, fieldBytes - 1)
+      
+      // 最後のフィールドで折り返しがある場合は幅を調整
+      if (i === sortedItems.length - 1 && needsContinuation) {
+        fieldWidth = fieldWidth - 1
       }
-
-      // 名前の幅を調整
-      const nameWidth = Math.max(0, itemWidths[i] - displayName.length)
-
-      // 名前行に追加
-      nameLine += pad(displayName, displayName.length + nameWidth) + '|'
+      
+      // 1バイトフィールドは特別な計算
+      if (fieldBytes === 1) {
+        labelSeparatorLine += '-'.repeat(9) + '+'
+      } else if (fieldBytes === 2) {
+        labelSeparatorLine += '-'.repeat(5) + '+'
+      } else {
+        labelSeparatorLine += '-'.repeat(fieldWidth) + '+'
+      }
     }
-
-    // 折り返しが必要な場合は最後の|を:に置き換え
-    if (needsContinuation) {
-      nameLine = nameLine.slice(0, -1) + ':'
+    
+    // 最後の+を削除（折り返しがない場合）
+    if (!needsContinuation) {
+      labelSeparatorLine = labelSeparatorLine.slice(0, -1)
     }
-
-    return `${offsetLine}\n${separatorLine}\n${nameLine}\n${separatorLine}`
+    
+    return `${offsetLine}\n${separatorLine}\n${nameLine}\n${labelSeparatorLine}`
   })
 
   // 説明部分
