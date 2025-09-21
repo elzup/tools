@@ -138,15 +138,19 @@ export const generateLabelLine = (
 
   for (let i = 0; i < sortedItems.length; i++) {
     const item = sortedItems[i]
-    const fieldBytes = Math.ceil(item.length / 8)
-    
+    const fieldBytes = item.endPos - item.startPos
+
     // アイテムの名前を表示
     let displayName = item.name
 
     // 部分的なアイテムの場合の特別処理
     if (item.isPartial) {
-      // 折り返し行の先頭アイテムは名前を表示する
+      // 継続行の先頭アイテム（前の行から継続）は名前を表示する
       if (i === 0 && isWrapped) {
+        displayName = item.name
+      }
+      // 行の最後で次の行に継続する場合は名前を表示する（最初の部分）
+      else if (i === sortedItems.length - 1 && needsContinuation) {
         displayName = item.name
       } else {
         // それ以外の部分的なアイテムは名前を表示しない
@@ -154,29 +158,32 @@ export const generateLabelLine = (
       }
     }
 
-    // フィールドの幅を計算
-    let fieldWidth
-    if (fieldBytes === 1) {
-      fieldWidth = 4 // 1バイトフィールドは4文字
-    } else if (fieldBytes === 2) {
-      fieldWidth = 9 // 2バイトフィールドは9文字
-    } else {
-      // 4バイト以上は通常の計算
-      fieldWidth = fieldBytes * 4 + Math.max(0, fieldBytes - 1)
-    }
-    
+    // フィールドの幅を計算: N * 5 - 1
+    let fieldWidth = fieldBytes * 5 - 1
+
     // 最後のフィールドで折り返しがある場合は幅を調整
-    if (i === sortedItems.length - 1 && needsContinuation) {
-      // 継続する場合は最後の | を除く
-      fieldWidth = fieldWidth - 1
+    if (
+      i === sortedItems.length - 1 &&
+      needsContinuation &&
+      item.endPos > endOffset
+    ) {
+      // 実際にこの行に含まれるバイト数で計算 (フィールドが実際に行境界を跨ぐ場合のみ)
+      const actualBytesInThisLine =
+        Math.min(item.endPos, endOffset) - item.startPos
+
+      fieldWidth = actualBytesInThisLine * 5 - 1
     }
-    
+
     // 名前を適切な幅で配置
-    if (displayName.length <= fieldWidth) {
+    let maxNameLength = fieldWidth
+
+    if (displayName.length <= maxNameLength) {
       nameLine += displayName.padEnd(fieldWidth) + '|'
     } else {
       // 名前が長すぎる場合は切り詰める
-      nameLine += displayName.substring(0, fieldWidth) + '|'
+      const truncatedName = displayName.substring(0, maxNameLength)
+
+      nameLine += truncatedName.padEnd(fieldWidth) + '|'
     }
   }
 
@@ -198,7 +205,6 @@ export const generateDiagram = (
 ): string => {
   // 定数定義
   const maxBytesPerLine = 12 // 1行あたりの最大バイト数
-
 
   // データを最大バイト数ごとに分割
   const splitData: ExtendedData[][] = []
@@ -299,11 +305,22 @@ export const generateDiagram = (
     // オフセット行
     const offsetStart = lineData[0]?.startPos || 0
 
-    // 通常の処理
-    const offsetEnd = Math.min(
-      lineData[lineData.length - 1]?.endPos || offsetStart + maxBytesPerLine,
-      offsetStart + maxBytesPerLine
-    )
+    // この行で実際に表示されるフィールドの最後のバイト位置を計算
+    let actualOffsetEnd = offsetStart
+
+    for (const item of lineData) {
+      if (item.startPos < offsetStart + maxBytesPerLine) {
+        // このラインに表示される部分の終了位置
+        const itemEndInThisLine = Math.min(
+          item.endPos,
+          offsetStart + maxBytesPerLine
+        )
+
+        actualOffsetEnd = Math.max(actualOffsetEnd, itemEndInThisLine)
+      }
+    }
+
+    const offsetEnd = actualOffsetEnd
 
     // 1行に表示するアイテムを決定
     // 1行あたりの最大バイト数（12バイト）に基づいて、適切なアイテムを表示
@@ -328,10 +345,10 @@ export const generateDiagram = (
 
     // 名前行を生成
     const nameLine = generateLabelLine(
-      sortedItems.map(item => ({
+      sortedItems.map((item) => ({
         ...item,
         startPos: item.offset,
-        endPos: item.offset + item.length / 8
+        endPos: item.offset + item.length / 8,
       })),
       offsetStart,
       offsetEnd,
@@ -340,33 +357,25 @@ export const generateDiagram = (
     )
 
     // 名前行の下の区切り線を生成（ラベル区切り線）
-    // 名前行の実際の幅に合わせてダッシュを生成
-    let labelSeparatorLine = '|'
-    for (let i = 0; i < sortedItems.length; i++) {
-      const item = sortedItems[i]
-      const fieldBytes = Math.ceil(item.length / 8)
-      let fieldWidth = fieldBytes * 4 + Math.max(0, fieldBytes - 1)
-      
-      // 最後のフィールドで折り返しがある場合は幅を調整
-      if (i === sortedItems.length - 1 && needsContinuation) {
-        fieldWidth = fieldWidth - 1
-      }
-      
-      // 1バイトフィールドは特別な計算
-      if (fieldBytes === 1) {
-        labelSeparatorLine += '-'.repeat(9) + '+'
-      } else if (fieldBytes === 2) {
-        labelSeparatorLine += '-'.repeat(5) + '+'
-      } else {
-        labelSeparatorLine += '-'.repeat(fieldWidth) + '+'
-      }
+    // line1から奇数byte位置の+を-に変換
+    const lineBytes = offsetEnd - offsetStart
+    const targetLength = lineBytes * 5 + 1
+
+    const getSeparatorChar = (pos: number, isLast: boolean): string => {
+      if (pos === 0) return '|' // 開始位置
+      if (pos % 5 !== 0) return '-' // byte境界でない
+
+      const bytePos = pos / 5
+      // 4byte境界(4,8,12...)では|、それ以外のbyte境界では+ or -
+
+      if (bytePos % 4 === 0) return '|' // 4byte境界
+      return bytePos % 2 === 0 ? '+' : '-' // 偶数byte位置は+、奇数byte位置は-
     }
-    
-    // 最後の+を削除（折り返しがない場合）
-    if (!needsContinuation) {
-      labelSeparatorLine = labelSeparatorLine.slice(0, -1)
-    }
-    
+
+    const labelSeparatorLine = Array.from({ length: targetLength }, (_, i) =>
+      getSeparatorChar(i, i === targetLength - 1)
+    ).join('')
+
     return `${offsetLine}\n${separatorLine}\n${nameLine}\n${labelSeparatorLine}`
   })
 
