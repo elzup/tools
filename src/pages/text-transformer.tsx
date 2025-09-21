@@ -1,49 +1,74 @@
-import {
-  Box,
-  Button,
-  InputLabel,
-  MenuItem,
-  Select,
-  Switch,
-  TextField,
-} from '@mui/material'
-import { useEffect, useState } from 'react'
+import { Box, Button, InputLabel, Switch, TextField } from '@mui/material'
+import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
-import { generateTextDiagramTransformer } from '../lib/text-transformer/binaryPacketDiagramTransformer'
+import { createTextDiagramTransformer } from '../lib/text-transformer/binaryPacketDiagramTransformer'
 import { TextTransformer } from '../lib/text-transformer/index'
 import { TransformResult } from '../lib/text-transformer/transformer'
+
+const BINARY_PACKET_MODE_NAME = 'binaryPacketDiagram'
+const DEFAULT_MAX_BYTES_PER_LINE = 12
 
 const TextTransformerPage = () => {
   const [inputText, setInputText] = useState('')
   const [outputText, setOutputText] = useState('')
   const [selectedTransformer, setSelectedTransformer] = useState<string>(
-    'generateTextDiagram'
+    BINARY_PACKET_MODE_NAME
   )
   const [outputFontMono, setOutputFontMono] = useState(false)
+  const [maxBytesPerLine, setMaxBytesPerLine] = useState<number>(
+    DEFAULT_MAX_BYTES_PER_LINE
+  )
 
-  const transformers: TextTransformer[] = [
-    {
-      name: 'toUpperCase',
-      transform: (text: string): TransformResult => ({
-        success: true,
-        diagram: text.toUpperCase(),
-      }),
-    },
-    {
-      name: 'toLowerCase',
-      transform: (text: string): TransformResult => ({
-        success: true,
-        diagram: text.toLowerCase(),
-      }),
-    },
-    { name: 'generateTextDiagram', transform: generateTextDiagramTransformer },
-  ]
+  const binaryPacketTransformer = useMemo(
+    () => createTextDiagramTransformer({ maxBytesPerLine }),
+    [maxBytesPerLine]
+  )
 
-  // 変換処理を行う関数
-  const transformText = () => {
-    // 選択された変換器に基づいてテキストを変換
-    const transformer = transformers.find((t) => t.name === selectedTransformer)
+  const transformers: TextTransformer[] = useMemo(
+    () => [
+      {
+        name: 'toUpperCase',
+        transform: (text: string): TransformResult => ({
+          success: true,
+          diagram: text.toUpperCase(),
+        }),
+      },
+      {
+        name: 'toLowerCase',
+        transform: (text: string): TransformResult => ({
+          success: true,
+          diagram: text.toLowerCase(),
+        }),
+      },
+      { name: BINARY_PACKET_MODE_NAME, transform: binaryPacketTransformer },
+    ],
+    [binaryPacketTransformer]
+  )
+
+  const handleMaxBytesPerLineChange = (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const nextValue = parseInt(event.target.value, 10)
+
+    if (Number.isNaN(nextValue)) {
+      setMaxBytesPerLine(DEFAULT_MAX_BYTES_PER_LINE)
+      return
+    }
+
+    setMaxBytesPerLine(nextValue > 0 ? nextValue : DEFAULT_MAX_BYTES_PER_LINE)
+  }
+
+  // inputTextまたはselectedTransformerが変更されたときに変換を実行
+  useEffect(() => {
+    if (!inputText) {
+      setOutputText('')
+      return
+    }
+
+    const transformer = transformers.find(
+      (item) => item.name === selectedTransformer
+    )
 
     if (!transformer) {
       setOutputText('Transformer not found')
@@ -54,21 +79,16 @@ const TextTransformerPage = () => {
 
     if (typeof result === 'string') {
       setOutputText(result)
-    } else if (result && typeof result === 'object' && 'diagram' in result) {
-      setOutputText(result.diagram || '')
-    } else {
-      setOutputText('変換に失敗しました')
+      return
     }
-  }
 
-  // inputTextまたはselectedTransformerが変更されたときに変換を実行
-  useEffect(() => {
-    if (inputText) {
-      transformText()
-    } else {
-      setOutputText('')
+    if (!result.success) {
+      setOutputText(result.error || '変換に失敗しました')
+      return
     }
-  }, [inputText, selectedTransformer])
+
+    setOutputText(result.diagram || '')
+  }, [inputText, selectedTransformer, transformers])
 
   return (
     <Layout title="テキスト変換ツール">
@@ -110,6 +130,17 @@ const TextTransformerPage = () => {
           ))}
         </Box>
       </Box>
+      {selectedTransformer === BINARY_PACKET_MODE_NAME && (
+        <Box mt={2}>
+          <TextField
+            label="maxBytesPerLine"
+            type="number"
+            inputProps={{ min: 1 }}
+            value={maxBytesPerLine}
+            onChange={handleMaxBytesPerLineChange}
+          />
+        </Box>
+      )}
       {/* 変換はリアルタイムで行われるため、ボタンは不要 */}
       <Box mt={2}>
         <Box display="flex" alignItems="center" mb={1}>
