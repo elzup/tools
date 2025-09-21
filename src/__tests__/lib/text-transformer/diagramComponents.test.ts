@@ -1,6 +1,6 @@
 import {
   generateNumberLine,
-  generateSeparatorLine,
+  generateLine1,
   generateLabelLine,
 } from '../../../lib/text-transformer/binaryPacketDiagramTransformer'
 
@@ -53,7 +53,7 @@ describe('generateSeparatorLine', () => {
   ])(
     'オフセット%dから%dまでの区切り線を生成できること',
     (start, end, isWrapped, expected) => {
-      const result = generateSeparatorLine(start, end, isWrapped)
+      const result = generateLine1(start, end, isWrapped)
 
       expect(result).toBe(expected)
     }
@@ -61,7 +61,7 @@ describe('generateSeparatorLine', () => {
 
   // 折り返し行のテスト
   it('折り返し用の区切り線を生成できること', () => {
-    const result = generateSeparatorLine(12, 19, true)
+    const result = generateLine1(12, 19, true)
 
     expect(result).toBe('+-------------------+---------------')
   })

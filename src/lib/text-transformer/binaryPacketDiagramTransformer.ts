@@ -1,3 +1,5 @@
+import { ListItem } from '@mui/material'
+import { range } from 'lodash'
 import { Transformer, TransformResult } from './transformer'
 
 // バイナリパケットダイアグラム変換器の仕様
@@ -85,34 +87,17 @@ export const generateNumberLine = (
 }
 
 // 区切り線を生成する関数
-export const generateSeparatorLine = (
-  startOffset: number,
-  endOffset: number,
-  isWrapped = false
-): string => {
-  const totalBytes = endOffset - startOffset
-  const groupSize = 4 // 4バイトごとに区切り
+const lineTmp1 = '|----+----+----+----'
+const lineTmp2 = '|---------+---------'
 
-  let line = '|'
+const generateLine = (byte: number, template: string): string =>
+  template.repeat(Math.ceil(byte / 4) + 1).slice(0, byte * 5 + 1)
 
-  // 4バイトグループの数と余り
-  const fullGroups = Math.floor(totalBytes / groupSize)
-  const remainder = totalBytes % groupSize
+export const generateLine1 = (byte: number): string =>
+  generateLine(byte, lineTmp1)
 
-  // 各4バイトグループを処理
-  for (let i = 0; i < fullGroups; i++) {
-    line += '----+----+----+----|'
-  }
-
-  // 余りのバイト数に応じて処理
-  if (remainder > 0) {
-    for (let i = 0; i < remainder; i++) {
-      line += '----+'
-    }
-  }
-
-  return line
-}
+export const generateLine2 = (byte: number): string =>
+  generateLine(byte, lineTmp2)
 
 // ラベル行を生成する関数
 export const generateLabelLine = (
@@ -133,11 +118,8 @@ export const generateLabelLine = (
   // 名前行の先頭文字
   let nameLine = isWrapped ? ':' : '|'
 
-  // アイテムをオフセット順にソート
-  const sortedItems = [...data].sort((a, b) => a.startPos - b.startPos)
-
-  for (let i = 0; i < sortedItems.length; i++) {
-    const item = sortedItems[i]
+  for (let i = 0; i < data.length; i++) {
+    const item = data[i]
     const fieldBytes = item.endPos - item.startPos
 
     // アイテムの名前を表示
@@ -150,7 +132,7 @@ export const generateLabelLine = (
         displayName = item.name
       }
       // 行の最後で次の行に継続する場合は名前を表示する（最初の部分）
-      else if (i === sortedItems.length - 1 && needsContinuation) {
+      else if (i === data.length - 1 && needsContinuation) {
         displayName = item.name
       } else {
         // それ以外の部分的なアイテムは名前を表示しない
@@ -162,11 +144,7 @@ export const generateLabelLine = (
     let fieldWidth = fieldBytes * 5 - 1
 
     // 最後のフィールドで折り返しがある場合は幅を調整
-    if (
-      i === sortedItems.length - 1 &&
-      needsContinuation &&
-      item.endPos > endOffset
-    ) {
+    if (i === data.length - 1 && needsContinuation && item.endPos > endOffset) {
       // 実際にこの行に含まれるバイト数で計算 (フィールドが実際に行境界を跨ぐ場合のみ)
       const actualBytesInThisLine =
         Math.min(item.endPos, endOffset) - item.startPos
@@ -324,7 +302,7 @@ export const generateDiagram = (
 
     // 1行に表示するアイテムを決定
     // 1行あたりの最大バイト数（12バイト）に基づいて、適切なアイテムを表示
-    const displayItems = lineData.filter(
+    const rowItems = lineData.filter(
       (item) =>
         item.startPos < offsetStart + maxBytesPerLine &&
         item.startPos >= offsetStart
@@ -334,49 +312,27 @@ export const generateDiagram = (
     const offsetLine = generateNumberLine(offsetStart, offsetEnd)
 
     // 区切り線の生成
-    let separatorLine = generateSeparatorLine(offsetStart, offsetEnd)
+    const lineBytes = offsetEnd - offsetStart
+    const line1 = generateLine1(lineBytes)
+    const line2 = generateLine2(lineBytes)
 
     // アイテムをオフセット順にソート
-    const sortedItems = [...displayItems].sort((a, b) => a.offset - b.offset)
-
-    // 折り返し判定
-    const needsContinuation = lineIndex < splitData.length - 1
-    const isWrapped = lineIndex > 0
+    // const displayItems = [...displayItems].sort((a, b) => a.offset - b.offset)
 
     // 名前行を生成
     const nameLine = generateLabelLine(
-      sortedItems.map((item) => ({
+      rowItems.map((item) => ({
         ...item,
         startPos: item.offset,
         endPos: item.offset + item.length / 8,
       })),
       offsetStart,
       offsetEnd,
-      isWrapped,
-      needsContinuation
+      rowItems[0].isPartial,
+      rowItems[rowItems.length - 1].isPartial
     )
 
-    // 名前行の下の区切り線を生成（ラベル区切り線）
-    // line1から奇数byte位置の+を-に変換
-    const lineBytes = offsetEnd - offsetStart
-    const targetLength = lineBytes * 5 + 1
-
-    const getSeparatorChar = (pos: number, isLast: boolean): string => {
-      if (pos === 0) return '|' // 開始位置
-      if (pos % 5 !== 0) return '-' // byte境界でない
-
-      const bytePos = pos / 5
-      // 4byte境界(4,8,12...)では|、それ以外のbyte境界では+ or -
-
-      if (bytePos % 4 === 0) return '|' // 4byte境界
-      return bytePos % 2 === 0 ? '+' : '-' // 偶数byte位置は+、奇数byte位置は-
-    }
-
-    const labelSeparatorLine = Array.from({ length: targetLength }, (_, i) =>
-      getSeparatorChar(i, i === targetLength - 1)
-    ).join('')
-
-    return `${offsetLine}\n${separatorLine}\n${nameLine}\n${labelSeparatorLine}`
+    return `${offsetLine}\n${line1}\n${nameLine}\n${line2}`
   })
 
   // 説明部分
