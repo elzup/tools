@@ -1,35 +1,13 @@
-import { ListItem } from '@mui/material'
-import { range } from 'lodash'
 import { Transformer, TransformResult } from './transformer'
 
-// バイナリパケットダイアグラム変換器の仕様
-// 現在認識している仕様は以下の通りです：
-
-// 入力形式
-// 入力は name:offset:type:length 形式のフィールド定義が空白で区切られた文字列
-// 例: SQ:0:sequence:8 val1:1:mpa:32 val2:5:tmp:32 val3:9:voltage:32 val4:13:mm:32 CSQ:17:csq:16
-// 各フィールドの構成要素：
-// name: フィールド名（例: SQ, val1, seq）
-// offset: バイトオフセット（例: 0, 1, 5）
-// type: データ型（例: sequence, mpa, int, float）
-// length: ビット長（例: 8, 16, 32）
-// 出力形式
-// ダイアグラム構造:
-
-// オフセット行: バイト位置を示す数字の行（例: 0 1 2 3 4...）
-// 区切り線: +-------------------+ のような区切り
-// 名前行: フィールド名を表示する行（例: |SQ |val1 |...）
-// 説明部分: 各フィールドの詳細情報（例: SQ: SQ 1byte）
-// 表示の特徴:
-
-// 1行あたり最大12バイトまで表示
-// 12バイトを超える場合は折り返し表示
-// 折り返し行の先頭は「:」で始まる
-// 折り返し行の区切り線は、最後のセグメントが不完全になる可能性がある
-// バイト表現:
-
-// 各フィールドの幅はビット長に比例
-// 4バイトごとにセグメント化されている
+// バイナリパケットダイアグラム変換器の仕様（テストケースより）
+//
+// 入力: "name:offset:type:length" を空白区切りで並べた文字列。
+//       length はビット長、offset はバイトオフセットで評価する。
+// 出力: 1 行あたり maxBytesPerLine バイト分の図を描画し、末尾にフィールド要約を続ける。
+//       既定値は 12 バイト。折り返し発生時は先頭を ":"、継続時は行末を ":" とする。
+//       数字行・区切り線・ラベル行を順に出力し、複数行がある場合は 1 行ずつ空行で区切る。
+//       ラベルはフィールド幅に合わせて描画し、折り返し区間では名前表示を抑制する場合がある。
 
 /**
  * バイナリパケットを図にする変換器
@@ -46,7 +24,7 @@ export const parseInput = (
     return [{ name: '', offset: NaN, type: undefined, length: NaN }]
   }
 
-  const entries = input.split(' ')
+  const entries = input.trim().split(/\s+/)
 
   return entries.map((entry) => {
     const parts = entry.split(':')
@@ -68,309 +46,336 @@ export const parseInput = (
 }
 
 // 数字行（オフセット行）を生成する関数
+const DEFAULT_MAX_BYTES_PER_LINE = 12
+const BYTE_CELL_WIDTH = 5
+const LINE_TEMPLATE_1 = '|----+----+----+----'
+const LINE_TEMPLATE_2 = '|---------+---------'
+
+export type DiagramOptions = {
+  maxBytesPerLine?: number
+}
+
+type BinaryField = {
+  name: string
+  offset: number
+  type: string | undefined
+  length: number
+}
+
+type FieldWithLayout = BinaryField & {
+  startByte: number
+  endByte: number
+}
+
+type FieldSegment = BinaryField & {
+  startByte: number
+  endByte: number
+  continuesFromPrevious: boolean
+  continuesToNext: boolean
+}
+
+type DiagramLine = {
+  offsetStart: number
+  offsetEnd: number
+  segments: FieldSegment[]
+}
+
+type LegacyLabelItem = {
+  name: string
+  offset: number
+  type: string | undefined
+  length: number
+  startPos: number
+  endPos: number
+  isPartial?: boolean
+}
+
+const sanitizeMaxBytesPerLine = (value?: number): number => {
+  const numeric = Math.floor(Number(value))
+
+  return Number.isFinite(numeric) && numeric > 0
+    ? numeric
+    : DEFAULT_MAX_BYTES_PER_LINE
+}
+
+const toFieldWithLayout = (field: BinaryField): FieldWithLayout => {
+  const byteLength = field.length / 8
+
+  return {
+    ...field,
+    startByte: field.offset,
+    endByte: field.offset + byteLength,
+  }
+}
+
+const resolveOptions = (
+  options?: number | DiagramOptions
+): Required<DiagramOptions> => {
+  if (typeof options === 'number') {
+    return {
+      maxBytesPerLine: sanitizeMaxBytesPerLine(options),
+    }
+  }
+
+  return { maxBytesPerLine: sanitizeMaxBytesPerLine(options?.maxBytesPerLine) }
+}
+
 export const generateNumberLine = (
   startOffset: number,
   endOffset: number
 ): string => {
-  // テストケースの期待値に合わせて、正確な幅で文字列をパディングする
-  const pad = (str: string, len: number) => str.padEnd(len)
-
   let offsetLine = ''
 
-  // 表示するバイト数を計算
-  for (let i = startOffset; i <= endOffset; i++) {
-    offsetLine += pad(i.toString(), 5)
+  for (let offset = startOffset; offset <= endOffset; offset++) {
+    offsetLine += offset.toString().padEnd(BYTE_CELL_WIDTH)
   }
 
-  // 余分な空白を削除
   return offsetLine.trimEnd()
 }
 
-// 区切り線を生成する関数
-const lineTmp1 = '|----+----+----+----'
-const lineTmp2 = '|---------+---------'
+const generateDividerLine = (byteCount: number, template: string): string =>
+  template
+    .repeat(Math.ceil(byteCount / 4) + 1)
+    .slice(0, byteCount * BYTE_CELL_WIDTH + 1)
 
-const generateLine = (byte: number, template: string): string =>
-  template.repeat(Math.ceil(byte / 4) + 1).slice(0, byte * 5 + 1)
+export const generateLine1 = (byteCount: number): string =>
+  generateDividerLine(byteCount, LINE_TEMPLATE_1)
 
-export const generateLine1 = (byte: number): string =>
-  generateLine(byte, lineTmp1)
+export const generateLine2 = (byteCount: number): string =>
+  generateDividerLine(byteCount, LINE_TEMPLATE_2)
 
-export const generateLine2 = (byte: number): string =>
-  generateLine(byte, lineTmp2)
+const createLineSegments = (
+  fields: FieldWithLayout[],
+  maxBytesPerLine: number
+): DiagramLine[] => {
+  if (fields.length === 0) {
+    return []
+  }
 
-// ラベル行を生成する関数
-export const generateLabelLine = (
-  data: {
-    name: string
-    offset: number
-    type: string | undefined
-    length: number
-    startPos: number
-    endPos: number
-    isPartial?: boolean
-  }[],
-  startOffset: number,
-  endOffset: number,
-  isWrapped = false,
-  needsContinuation = false
-): string => {
-  // 名前行の先頭文字
-  let nameLine = isWrapped ? ':' : '|'
+  const sorted = [...fields].sort((a, b) => a.startByte - b.startByte)
+  const firstStart = sorted[0].startByte
+  const lastEnd = sorted.reduce((acc, field) => Math.max(acc, field.endByte), 0)
 
-  for (let i = 0; i < data.length; i++) {
-    const item = data[i]
-    const fieldBytes = item.endPos - item.startPos
+  const lines: DiagramLine[] = []
 
-    // アイテムの名前を表示
-    let displayName = item.name
-
-    // 部分的なアイテムの場合の特別処理
-    if (item.isPartial) {
-      // 継続行の先頭アイテム（前の行から継続）は名前を表示する
-      if (i === 0 && isWrapped) {
-        displayName = item.name
+  for (
+    let offsetStart = firstStart;
+    offsetStart < lastEnd;
+    offsetStart += maxBytesPerLine
+  ) {
+    const offsetUpperBound = offsetStart + maxBytesPerLine
+    const segments = sorted.reduce<FieldSegment[]>((acc, field) => {
+      if (field.endByte <= offsetStart || field.startByte >= offsetUpperBound) {
+        return acc
       }
-      // 行の最後で次の行に継続する場合は名前を表示する（最初の部分）
-      else if (i === data.length - 1 && needsContinuation) {
-        displayName = item.name
+
+      const startByte = Math.max(field.startByte, offsetStart)
+      const endByte = Math.min(field.endByte, offsetUpperBound)
+
+      if (endByte <= startByte) {
+        return acc
+      }
+
+      acc.push({
+        ...field,
+        startByte,
+        endByte,
+        continuesFromPrevious: startByte > field.startByte,
+        continuesToNext: endByte < field.endByte,
+      })
+
+      return acc
+    }, [])
+
+    if (segments.length === 0) {
+      continue
+    }
+
+    const offsetEnd = segments.reduce(
+      (acc, segment) => Math.max(acc, segment.endByte),
+      offsetStart
+    )
+
+    lines.push({ offsetStart, offsetEnd, segments })
+  }
+
+  return lines
+}
+
+const renderLabelLine = (line: DiagramLine): string => {
+  const { segments } = line
+
+  if (segments.length === 0) {
+    return '|'
+  }
+
+  const isWrapped = segments[0].continuesFromPrevious
+  const needsContinuation = segments[segments.length - 1].continuesToNext
+
+  let labelLine = isWrapped ? ':' : '|'
+
+  segments.forEach((segment, index) => {
+    const byteSpan = segment.endByte - segment.startByte
+    const fieldWidth = Math.max(Math.floor(byteSpan * BYTE_CELL_WIDTH) - 1, 0)
+    const maxNameLength = fieldWidth
+    const isPartial = segment.continuesFromPrevious || segment.continuesToNext
+    const isFirst = index === 0
+    const isLast = index === segments.length - 1
+
+    let displayName = segment.name
+
+    if (isPartial) {
+      if (isFirst && isWrapped) {
+        displayName = segment.name
+      } else if (isLast && needsContinuation) {
+        displayName = segment.name
       } else {
-        // それ以外の部分的なアイテムは名前を表示しない
         displayName = ''
       }
     }
 
-    // フィールドの幅を計算: N * 5 - 1
-    let fieldWidth = fieldBytes * 5 - 1
-
-    // 最後のフィールドで折り返しがある場合は幅を調整
-    if (i === data.length - 1 && needsContinuation && item.endPos > endOffset) {
-      // 実際にこの行に含まれるバイト数で計算 (フィールドが実際に行境界を跨ぐ場合のみ)
-      const actualBytesInThisLine =
-        Math.min(item.endPos, endOffset) - item.startPos
-
-      fieldWidth = actualBytesInThisLine * 5 - 1
+    if (displayName.length > maxNameLength) {
+      displayName = displayName.substring(0, maxNameLength)
     }
 
-    // 名前を適切な幅で配置
-    let maxNameLength = fieldWidth
+    labelLine += displayName.padEnd(maxNameLength)
+    labelLine += '|'
+  })
 
-    if (displayName.length <= maxNameLength) {
-      nameLine += displayName.padEnd(fieldWidth) + '|'
-    } else {
-      // 名前が長すぎる場合は切り詰める
-      const truncatedName = displayName.substring(0, maxNameLength)
-
-      nameLine += truncatedName.padEnd(fieldWidth) + '|'
-    }
+  if (needsContinuation && labelLine.endsWith('|')) {
+    labelLine = labelLine.slice(0, -1) + ':'
   }
 
-  // 折り返しが必要な場合は最後の|を:に置き換え
-  if (needsContinuation) {
-    nameLine = nameLine.slice(0, -1) + ':'
+  return labelLine
+}
+
+export function generateLabelLine(
+  lineOrData: DiagramLine | LegacyLabelItem[],
+  startOffset?: number,
+  endOffset?: number,
+  isWrapped = false,
+  needsContinuation = false
+): string {
+  if (!Array.isArray(lineOrData)) {
+    return renderLabelLine(lineOrData)
   }
 
-  return nameLine
+  const offsetStart =
+    startOffset ?? (lineOrData.length > 0 ? lineOrData[0].startPos : 0)
+  const tentativeOffsetEnd =
+    endOffset ??
+    lineOrData.reduce((acc, item) => Math.max(acc, item.endPos), offsetStart)
+  const lineEnd = endOffset ?? tentativeOffsetEnd
+
+  const segments = lineOrData
+    .map<FieldSegment | null>((item, index) => {
+      const segmentStart = Math.max(item.startPos, offsetStart)
+      const segmentEnd = Math.min(item.endPos, lineEnd)
+
+      if (!(segmentEnd > segmentStart)) {
+        return null
+      }
+
+      const continuesFromPrevious =
+        (isWrapped && index === 0) ||
+        (item.isPartial === true && item.startPos < offsetStart)
+      const continuesToNext =
+        (needsContinuation && index === lineOrData.length - 1) ||
+        (item.isPartial === true && item.endPos > lineEnd)
+
+      return {
+        ...item,
+        startByte: segmentStart,
+        endByte: segmentEnd,
+        continuesFromPrevious,
+        continuesToNext,
+      }
+    })
+    .filter((segment): segment is FieldSegment => segment !== null)
+
+  const offsetEnd = segments.reduce(
+    (acc, segment) => Math.max(acc, segment.endByte),
+    offsetStart
+  )
+
+  return renderLabelLine({
+    offsetStart,
+    offsetEnd,
+    segments,
+  })
 }
 
 export const generateDiagram = (
-  data: {
-    name: string
-    offset: number
-    type: string | undefined
-    length: number
-  }[]
+  data: BinaryField[],
+  options?: number | DiagramOptions
 ): string => {
-  // 定数定義
-  const maxBytesPerLine = 12 // 1行あたりの最大バイト数
+  const { maxBytesPerLine } = resolveOptions(options)
+  const fields = data
+    .map(toFieldWithLayout)
+    .filter(
+      (field) =>
+        Number.isFinite(field.startByte) && Number.isFinite(field.endByte)
+    )
+  const lines = createLineSegments(fields, maxBytesPerLine)
 
-  // データを最大バイト数ごとに分割
-  const splitData: ExtendedData[][] = []
+  const lineBlocks = lines.map((line) => {
+    const numberLine = generateNumberLine(line.offsetStart, line.offsetEnd)
+    const byteCount = line.offsetEnd - line.offsetStart
+    const divider1 = generateLine1(byteCount)
+    const labelLine = generateLabelLine(line)
+    const divider2 = generateLine2(byteCount)
 
-  // 拡張データ型の定義
-  type ExtendedData = {
-    name: string
-    offset: number
-    type: string
-    length: number
-    startPos: number
-    endPos: number
-    isPartial?: boolean
-    originalIndex?: number
-  }
-
-  // データに開始位置と終了位置を追加
-  const dataWithPos = data.map((item, index) => {
-    const startPos = item.offset
-    const endPos = item.offset + item.length / 8 // バイト単位に変換
-
-    return { ...item, startPos, endPos, originalIndex: index } as ExtendedData
+    return `${numberLine}\n${divider1}\n${labelLine}\n${divider2}`
   })
 
-  // 最大バイト数ごとに分割
-  let currentLine: ExtendedData[] = []
-  let currentLineStart = 0
-  let currentLineEnd = maxBytesPerLine
-
-  // 無限ループ防止のためのカウンター
-  let loopCount = 0
-  const maxLoops = 1000 // 安全のための最大ループ回数
-
-  while (
-    (dataWithPos.length > 0 || currentLine.length > 0) &&
-    loopCount < maxLoops
-  ) {
-    loopCount++
-
-    // 現在の行に含まれるデータを抽出
-    for (let i = 0; i < dataWithPos.length; i++) {
-      const item = dataWithPos[i]
-
-      // アイテムが現在の行に完全に含まれる場合
-      if (item.startPos >= currentLineStart && item.endPos <= currentLineEnd) {
-        currentLine.push(item)
-        dataWithPos.splice(i, 1)
-        i--
-        continue
-      }
-
-      // アイテムが現在の行にまたがる場合
-      if (item.startPos < currentLineEnd && item.endPos > currentLineEnd) {
-        // 前半部分
-        const firstPartLength = (currentLineEnd - item.startPos) * 8 // ビット単位に変換
-
-        currentLine.push({
-          ...item,
-          length: firstPartLength,
-          endPos: currentLineEnd,
-          isPartial: true,
-        })
-
-        // 後半部分（次の行用に残す）
-        dataWithPos[i] = {
-          ...item,
-          offset: currentLineEnd,
-          startPos: currentLineEnd,
-          length: item.length - firstPartLength,
-          isPartial: true,
-        }
-      }
-    }
-
-    // 無限ループ防止: 何も処理されなかった場合は強制的に次の行へ
-    if (currentLine.length === 0 && dataWithPos.length > 0) {
-      currentLineStart = currentLineEnd
-      currentLineEnd += maxBytesPerLine
-      continue
-    }
-
-    // 現在の行をソート（オフセット順）
-    currentLine.sort((a, b) => a.startPos - b.startPos)
-
-    // 現在の行を追加
-    if (currentLine.length > 0) {
-      splitData.push([...currentLine])
-    }
-
-    // 次の行の準備
-    currentLine = []
-    currentLineStart = currentLineEnd
-    currentLineEnd += maxBytesPerLine
-  }
-
-  // 各行の図を生成
-  const diagrams = splitData.map((lineData, lineIndex) => {
-    // オフセット行
-    const offsetStart = lineData[0]?.startPos || 0
-
-    // この行で実際に表示されるフィールドの最後のバイト位置を計算
-    let actualOffsetEnd = offsetStart
-
-    for (const item of lineData) {
-      if (item.startPos < offsetStart + maxBytesPerLine) {
-        // このラインに表示される部分の終了位置
-        const itemEndInThisLine = Math.min(
-          item.endPos,
-          offsetStart + maxBytesPerLine
-        )
-
-        actualOffsetEnd = Math.max(actualOffsetEnd, itemEndInThisLine)
-      }
-    }
-
-    const offsetEnd = actualOffsetEnd
-
-    // 1行に表示するアイテムを決定
-    // 1行あたりの最大バイト数（12バイト）に基づいて、適切なアイテムを表示
-    const rowItems = lineData.filter(
-      (item) =>
-        item.startPos < offsetStart + maxBytesPerLine &&
-        item.startPos >= offsetStart
-    )
-
-    // オフセット行の生成
-    const offsetLine = generateNumberLine(offsetStart, offsetEnd)
-
-    // 区切り線の生成
-    const lineBytes = offsetEnd - offsetStart
-    const line1 = generateLine1(lineBytes)
-    const line2 = generateLine2(lineBytes)
-
-    // アイテムをオフセット順にソート
-    // const displayItems = [...displayItems].sort((a, b) => a.offset - b.offset)
-
-    // 名前行を生成
-    const nameLine = generateLabelLine(
-      rowItems.map((item) => ({
-        ...item,
-        startPos: item.offset,
-        endPos: item.offset + item.length / 8,
-      })),
-      offsetStart,
-      offsetEnd,
-      rowItems[0].isPartial,
-      rowItems[rowItems.length - 1].isPartial
-    )
-
-    return `${offsetLine}\n${line1}\n${nameLine}\n${line2}`
-  })
-
-  // 説明部分
-  const descriptions = data
-    .map((item) => `${item.name}: ${item.name} ${item.length / 8}byte`)
+  const descriptionBlock = data
+    .filter((field) => Number.isFinite(field.length))
+    .map((field) => `${field.name}: ${field.name} ${field.length / 8}byte`)
     .join('\n')
 
-  return `${diagrams.join('\n\n')}\n${descriptions}`
+  const sections = [lineBlocks.join('\n\n'), descriptionBlock].filter(
+    (section) => section.trim() !== ''
+  )
+
+  return sections.join('\n')
 }
 
-export const generateTextDiagramTransformer: Transformer = (
-  input: string
-): TransformResult => {
-  try {
-    if (!input) {
-      return {
-        success: false,
-        error:
-          '入力が空です。正しい形式で入力してください。例: name:offset:type:length',
+export const createTextDiagramTransformer = (
+  options?: number | DiagramOptions
+): Transformer => {
+  const resolved = resolveOptions(options)
+
+  return (input: string): TransformResult => {
+    try {
+      if (!input) {
+        return {
+          success: false,
+          error:
+            '入力が空です。正しい形式で入力してください。例: name:offset:type:length',
+        }
       }
-    }
 
-    const parsedData = parseInput(input)
+      const parsedData = parseInput(input)
 
-    if (parsedData.length === 0) {
-      return {
-        success: false,
-        error:
-          '有効なデータが見つかりませんでした。正しい形式で入力してください。例: name:offset:type:length',
+      if (parsedData.length === 0) {
+        return {
+          success: false,
+          error:
+            '有効なデータが見つかりませんでした。正しい形式で入力してください。例: name:offset:type:length',
+        }
       }
+
+      const diagram = generateDiagram(parsedData, resolved)
+
+      return { success: true, diagram }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+
+      return { success: false, error: errorMessage }
     }
-
-    const diagram = generateDiagram(parsedData)
-
-    return { success: true, diagram }
-  } catch (e) {
-    const errorMessage = e instanceof Error ? e.message : String(e)
-
-    return { success: false, error: errorMessage }
   }
 }
+
+export const generateTextDiagramTransformer: Transformer =
+  createTextDiagramTransformer()
