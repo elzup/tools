@@ -1,6 +1,5 @@
 import { Box, Button, Container, TextField, Typography } from '@mui/material'
-import CryptoJS from 'crypto-js'
-import React, { useState } from 'react'
+import { ChangeEvent, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useMagironic } from '../../lib/magironic/useMagironic'
 
@@ -9,17 +8,12 @@ type FormData = {
   age: number
   description: string
 }
-const secretKey = ''
-const encryptData = (text: string) => {
-  return CryptoJS.AES.encrypt(text, secretKey).toString()
-}
 const maxChar = 1000
 
 const Magironic = () => {
   const {
     getValues,
     register,
-    handleSubmit,
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
@@ -31,9 +25,7 @@ const Magironic = () => {
   const magi = useMagironic(getValues().description)
 
   const [descriptionLength, setDescriptionLength] = useState(0)
-  const handleDescriptionChange = (
-    e: React.ChangeEvent<HTMLTextAreaElement>
-  ) => {
+  const handleDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setDescriptionLength(e.target.value.length)
   }
 

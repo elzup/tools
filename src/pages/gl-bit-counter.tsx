@@ -392,14 +392,6 @@ function Scene() {
   )
 }
 
-const style = {
-  color: 'white',
-  fontSize: '1.2em',
-  left: 50,
-  position: 'absolute',
-  top: 20,
-} as const
-
 const title = 'BitCounter'
 
 const CodeExplorerPage = () => {

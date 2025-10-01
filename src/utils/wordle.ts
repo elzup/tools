@@ -6,7 +6,7 @@ export const TRY_LIMIT = 6
 
 const resultTypes = ['non', 'nea', 'hit'] as const
 
-export type CharJudge = typeof resultTypes[number]
+export type CharJudge = (typeof resultTypes)[number]
 export type CharResult = {
   char: string
   judge: CharJudge

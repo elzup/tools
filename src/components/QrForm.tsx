@@ -1,4 +1,4 @@
-import React, { Suspense, useState } from 'react'
+import { Suspense, useState, ChangeEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { QRCodeSVG } from 'qrcode.react'
 import CryptoJS from 'crypto-js'
@@ -15,9 +15,8 @@ const encryptData = (text: string) => {
 }
 const maxChar = 1000
 
-const QRForm: React.FC = () => {
+const QRForm = () => {
   const {
-    getValues,
     register,
     handleSubmit,
     formState: { errors },
@@ -35,9 +34,7 @@ const QRForm: React.FC = () => {
     setQRValue(encrypted) // QRコードに表示するJSONデータ
   }
   const [descriptionLength, setDescriptionLength] = useState(0)
-  const handleDescriptionChange = (
-    e: React.ChangeEvent<HTMLTextAreaElement>
-  ) => {
+  const handleDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setDescriptionLength(e.target.value.length)
   }
 

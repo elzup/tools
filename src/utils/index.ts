@@ -1,5 +1,4 @@
 import through from 'through'
-import ReactDOM from 'react-dom'
 import React, { PropsWithChildren } from 'react'
 import { createRoot } from 'react-dom/client'
 

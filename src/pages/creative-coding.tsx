@@ -9,7 +9,7 @@ const Sketch = dynamic(import('react-p5'), {
   ssr: false,
 })
 
-const preload = (p5: p5Types) => {}
+const preload = (_p5: p5Types) => {}
 
 const setup = (p5: p5Types, canvasParentRef: Element) => {
   p5.createCanvas(p5.windowWidth, p5.windowHeight).parent(canvasParentRef)
@@ -26,7 +26,7 @@ const barWidth = 20
 let lastBar = -1
 
 const draw = (p5: p5Types) => {
-  const { width: w, height: h, mouseX: mx, mouseY: my } = p5
+  const { width: _w, height: h, mouseX: mx, mouseY: my } = p5
   const whichBar = mx / barWidth
 
   if (whichBar === lastBar) return
