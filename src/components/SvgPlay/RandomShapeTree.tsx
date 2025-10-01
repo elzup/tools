@@ -1,4 +1,4 @@
-import _, { fill, random, range, sample, sampleSize } from 'lodash'
+import { fill, random, range, sample, sampleSize } from 'lodash'
 import { useMemo } from 'react'
 import {
   Circle,
@@ -49,8 +49,8 @@ const baseShapeRate = {
   triangle: 10,
 }
 
-type Shape = typeof shapes[number]
-type Anime = typeof animes[number]
+type Shape = (typeof shapes)[number]
+type Anime = (typeof animes)[number]
 type ChildPos = 't' | 'b' | 'l' | 'r' | 'c' | 'it' | 'id' | 'il' | 'ir'
 type Pos = { sx: number; sy: number }
 const positions: Record<ChildPos, Pos> = {

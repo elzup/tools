@@ -14,12 +14,12 @@ export const sketchRens = (p: P5) => {
   const { background, push, pop } = b
   const { beginShape, endShape, vertex, map } = b
   const { noStroke, noFill, stroke, strokeWeight, strokeCap } = b
-  const { lerpColor, color } = b
+  const { lerpColor } = b
 
   const { translate, rotate } = b
   const { sin, cos, sqrt, max, min, radians, abs, arc } = b
   const { random, randomSeed, noise } = b
-  const { TWO_PI, PI, SQUARE } = p
+  const { TWO_PI, SQUARE } = p
 
   p.setup = () => {
     p.createCanvas(p.windowWidth, p.windowHeight)
@@ -206,15 +206,6 @@ export const sketchRens = (p: P5) => {
     pop()
   }
 
-  function getColorByTheta(theta: number, time: number) {
-    let th = 8.0 * theta + time * 5.0
-    let r = 0.5 + 0.5 * sin(th)
-
-    const g = 0.5 + 0.5 * sin(th - PI / 3)
-    const b = 0.5 + 0.5 * sin(th - (PI * 2) / 3)
-
-    return color(r * 255, g * 255, b * 255)
-  }
   function easeInOutCirc(x: number) {
     return x < 0.5
       ? (1 - Math.sqrt(1 - Math.pow(2 * x, 2))) / 2

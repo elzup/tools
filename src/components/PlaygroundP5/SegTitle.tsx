@@ -65,7 +65,7 @@ export const SegTitle = () => {
         </marker>
       </defs>
 
-      {list.map(([...seg], i) =>
+      {list.map(([..._seg], i) =>
         coods.map(([[x1, y1], [x2, y2]], j) => (
           <line
             key={j}

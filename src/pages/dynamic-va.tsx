@@ -1,7 +1,7 @@
-import { range } from '@elzup/kit/lib/range'
 import { randRange } from '@elzup/kit/lib/rand/randRange'
+import { range } from '@elzup/kit/lib/range'
 import { FormControlLabel, Slider, Switch, Typography } from '@mui/material'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useInterval } from 'react-use'
 import styled from 'styled-components'
 import Layout from '../components/Layout'
@@ -62,7 +62,10 @@ const RandInspect = () => {
             <Slider
               defaultValue={speedMs}
               valueLabelDisplay="auto"
-              onChangeCommitted={(e, v) => setSpeedMs(Number(v))}
+              onChangeCommitted={(
+                _: React.SyntheticEvent | Event,
+                v: number | number[]
+              ) => setSpeedMs(Number(v))}
               step={100}
               marks
               min={200}
@@ -74,7 +77,10 @@ const RandInspect = () => {
             <Slider
               defaultValue={n}
               valueLabelDisplay="auto"
-              onChangeCommitted={(e, v) => setN(Number(v))}
+              onChangeCommitted={(
+                _: React.SyntheticEvent | Event,
+                v: number | number[]
+              ) => setN(Number(v))}
               marks
               min={1}
               max={5}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Html5QrcodeScanner } from 'html5-qrcode'
 import { Html5QrcodeScannerConfig } from 'html5-qrcode/esm/html5-qrcode-scanner'
 
@@ -31,7 +31,7 @@ const Html5QrcodePlugin = (
     }
     const html5QrcodeScanner = new Html5QrcodeScanner(
       qrcodeRegionId,
-      config: props.config,
+      props.config,
       verbose
     )
 

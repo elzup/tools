@@ -69,7 +69,7 @@ const Chart = () => {
               )
             })}
         </div>
-        {nms.map(({ n, m, hit, p }, i) => (
+        {nms.map(({ n, m, hit, p }) => (
           <div key={p} data-hit={hit}>
             {p}{' '}
             {hit && (

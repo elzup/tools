@@ -2,8 +2,7 @@ import { Typography } from '@mui/material'
 import 'devtools-detect'
 import { useEvent } from 'react-use'
 import styled from 'styled-components'
-import NoSSR from 'react-no-ssr'
-import { useEffect, useRef } from 'react'
+import { PropsWithChildren, useEffect, useRef, useState } from 'react'
 import { useMutationObserver } from 'rooks'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
@@ -47,13 +46,23 @@ const useTask = () => {
 }
 
 const title = 'DevTools Camp'
+const ClientOnly = ({ children }: PropsWithChildren) => {
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  if (!isMounted) return null
+  return <>{children}</>
+}
 const DevToolsCampPage = () => {
   return (
     <Layout title={title}>
       <Title>{title}</Title>
-      <NoSSR>
+      <ClientOnly>
         <DevToolsCamp />
-      </NoSSR>
+      </ClientOnly>
     </Layout>
   )
 }
@@ -231,7 +240,7 @@ const TaskBox5 = ({ task, setTask }: TaskBoxProps) => {
   useMutationObserver(ref, (_e) => {
     if (ref1.current === null || ref2.current === null) return
     const c1 = window.getComputedStyle(ref1.current).backgroundColor
-    const c2 = window.getComputedStyle(ref1.current).backgroundColor
+    const c2 = window.getComputedStyle(ref2.current).backgroundColor
 
     if (c1 === c2) {
       setTask({ done: true, mem: {} })
@@ -260,19 +269,58 @@ const TaskBox5 = ({ task, setTask }: TaskBoxProps) => {
   )
 }
 
+const normalizeColor = (value: string) => {
+  const lower = value.trim().toLowerCase()
+
+  if (lower.startsWith('#')) {
+    const hex = lower.slice(1)
+    const expanded =
+      hex.length === 3
+        ? hex
+            .split('')
+            .map((c) => c + c)
+            .join('')
+        : hex
+    const int = parseInt(expanded, 16)
+    const r = (int >> 16) & 255
+    const g = (int >> 8) & 255
+    const b = int & 255
+
+    return `rgb(${r}, ${g}, ${b})`
+  }
+
+  if (lower.startsWith('rgba')) {
+    const match = lower.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9.]+)\)/)
+
+    if (match && Number(match[4]) === 1) {
+      return `rgb(${match[1]}, ${match[2]}, ${match[3]})`
+    }
+  }
+
+  return lower
+}
+
+const isSameColor = (a: string | null, b: string | null) => {
+  if (!a || !b) return false
+  return normalizeColor(a) === normalizeColor(b)
+}
+
 const TaskBox6 = ({ task, setTask }: TaskBoxProps) => {
-  const ref = useRef<HTMLDivElement>(null)
   const ref1 = useRef<HTMLDivElement>(null)
 
-  useMutationObserver(ref1, (e) => {
+  useMutationObserver(ref1, () => {
     if (ref1.current === null) return
-    const c1 = window.getComputedStyle(ref1.current)
 
-    console.log(e)
+    const inlineColor =
+      ref1.current.style.background || ref1.current.style.backgroundColor
+    const computedColor = window.getComputedStyle(ref1.current).backgroundColor
 
-    // if (c1 === c2) {
-    //   setTask({ done: true, mem: {} })
-    // }
+    if (
+      isSameColor(inlineColor, colors.sub) ||
+      isSameColor(computedColor, colors.sub)
+    ) {
+      setTask({ done: true, mem: {} })
+    }
   })
 
   return (
@@ -281,15 +329,13 @@ const TaskBox6 = ({ task, setTask }: TaskBoxProps) => {
       desc={`:hover で background を ${colors.sub} にする`}
       dones={[task.done]}
     >
-      <div ref={ref}>
-        <TargetWrap>
-          <Box display="flex" gap={'1rem'}>
-            <div ref={ref1} data-hov-bad>
-              blue on hover
-            </div>
-          </Box>
-        </TargetWrap>
-      </div>
+      <TargetWrap>
+        <Box display="flex" gap={'1rem'}>
+          <div ref={ref1} data-hov-bad>
+            blue on hover
+          </div>
+        </Box>
+      </TargetWrap>
     </TaskBoxWrap>
   )
 }

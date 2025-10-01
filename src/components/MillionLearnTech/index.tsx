@@ -1,4 +1,3 @@
-import { Typography } from '@mui/material'
 import { Box } from '../common/mui'
 import { MlEmily } from './MlEmily'
 

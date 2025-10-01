@@ -230,7 +230,6 @@ describe('generateLabelLine', () => {
     // 期待される separator line を手動で検証
     const expected1 =
       '|---------+---------|---------+---------|---------+---------|'
-    const expected2 = '|---------+-----'
 
     // 実際に生成される値をテスト
     const data1 = [
