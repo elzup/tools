@@ -5,7 +5,13 @@
       "Bash(node:*)",
       "Bash(yarn node:*)",
       "Bash(yarn test:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(yarn install)",
+      "Bash(yarn test:e2e:*)",
+      "Bash(cat:*)",
+      "Bash(npx tsc:*)",
+      "Bash(yarn dlx:*)",
+      "Bash(yarn tsc:*)"
     ],
     "deny": [],
     "ask": []

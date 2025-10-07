@@ -1,2 +1,15 @@
 node_modules
 .next
+
+# Yarn PnP
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Test results
+playwright-report/
+test-results/
