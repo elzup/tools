@@ -39,8 +39,11 @@ const CONFIG = {
   SCALE_LENGTH: 20,
   DATE_FONT_SIZE: 'clamp(1.5rem, 4vw, 3rem)',
   MAIN_TIME_FONT_SIZE: 'clamp(3rem, 8vw, 8rem)',
+  MAIN_TIME_UNIT_FONT_SIZE: 'clamp(1rem, 2.5vw, 2.5rem)',
   SECOND_MS_FONT_SIZE: 'clamp(6rem, 20vw, 25rem)',
+  SECOND_MS_UNIT_FONT_SIZE: 'clamp(2rem, 6vw, 8rem)',
   SUB_MS_FONT_SIZE: 'clamp(2rem, 6vw, 6rem)',
+  SUB_MS_UNIT_FONT_SIZE: 'clamp(0.8rem, 2vw, 2rem)',
   DATE_OPACITY: 0.7,
   TIME_OPACITY: 0.8,
   DEFAULT_THEME: 'whiteOnBlack' as const,
@@ -265,9 +268,119 @@ const ScopeTimer = () => {
             fontFamily: 'monospace',
             fontVariantNumeric: 'tabular-nums',
             opacity: CONFIG.TIME_OPACITY,
+            display: 'flex',
+            alignItems: 'flex-end',
+            lineHeight: 1,
           }}
         >
-          {`${hours}:${minutes}:${seconds}.${milliseconds}`}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+            }}
+          >
+            <span>{hours}</span>
+            <span
+              style={{
+                fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
+                opacity: 0.6,
+                lineHeight: 1,
+              }}
+            >
+              h
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span>:</span>
+            <span
+              style={{
+                fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
+                opacity: 0,
+                lineHeight: 1,
+              }}
+            >
+              _
+            </span>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+            }}
+          >
+            <span>{minutes}</span>
+            <span
+              style={{
+                fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
+                opacity: 0.6,
+                lineHeight: 1,
+              }}
+            >
+              m
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span>:</span>
+            <span
+              style={{
+                fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
+                opacity: 0,
+                lineHeight: 1,
+              }}
+            >
+              _
+            </span>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+            }}
+          >
+            <span>{seconds}</span>
+            <span
+              style={{
+                fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
+                opacity: 0.6,
+                lineHeight: 1,
+              }}
+            >
+              s
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span>.</span>
+            <span
+              style={{
+                fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
+                opacity: 0,
+                lineHeight: 1,
+              }}
+            >
+              _
+            </span>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+            }}
+          >
+            <span>{milliseconds}</span>
+            <span
+              style={{
+                fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
+                opacity: 0.6,
+                lineHeight: 1,
+              }}
+            >
+              ms
+            </span>
+          </div>
         </div>
 
         {/* 巨大秒.ミリ秒表示 */}
@@ -276,7 +389,7 @@ const ScopeTimer = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '0.5rem',
+            gap: '1rem',
           }}
         >
           <div
@@ -291,9 +404,58 @@ const ScopeTimer = () => {
                   : 'none',
               letterSpacing: '0.1em',
               lineHeight: 1,
+              display: 'flex',
+              alignItems: 'flex-start',
             }}
           >
-            {seconds}.{milliseconds}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+              }}
+            >
+              <span>{seconds}</span>
+              <span
+                style={{
+                  fontSize: CONFIG.SECOND_MS_UNIT_FONT_SIZE,
+                  opacity: 0.6,
+                  lineHeight: 1,
+                }}
+              >
+                s
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span>.</span>
+              <span
+                style={{
+                  fontSize: CONFIG.SECOND_MS_UNIT_FONT_SIZE,
+                  opacity: 0,
+                  lineHeight: 1,
+                }}
+              >
+                _
+              </span>
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+              }}
+            >
+              <span>{milliseconds}</span>
+              <span
+                style={{
+                  fontSize: CONFIG.SECOND_MS_UNIT_FONT_SIZE,
+                  opacity: 0.6,
+                  lineHeight: 1,
+                }}
+              >
+                ms
+              </span>
+            </div>
           </div>
           {/* サブミリ秒（小さく表示） */}
           <div
@@ -303,11 +465,42 @@ const ScopeTimer = () => {
               fontFamily: 'monospace',
               fontVariantNumeric: 'tabular-nums',
               opacity: 0.8,
-              textStroke: '1px currentColor',
               WebkitTextStroke: '1px currentColor',
+              display: 'flex',
+              alignItems: 'flex-end',
+              lineHeight: 1,
             }}
           >
-            .{subMilliseconds}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span>.</span>
+              <span
+                style={{
+                  fontSize: CONFIG.SUB_MS_UNIT_FONT_SIZE,
+                  opacity: 0,
+                  lineHeight: 1,
+                }}
+              >
+                _
+              </span>
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+              }}
+            >
+              <span>{subMilliseconds}0</span>
+              <span
+                style={{
+                  fontSize: CONFIG.SUB_MS_UNIT_FONT_SIZE,
+                  opacity: 0.6,
+                  lineHeight: 1,
+                }}
+              >
+                μs
+              </span>
+            </div>
           </div>
         </div>
       </div>
