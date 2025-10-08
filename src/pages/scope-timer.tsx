@@ -1,3 +1,4 @@
+import Head from 'next/head'
 import { useEffect, useRef, useState } from 'react'
 
 // カラーテーマ定義
@@ -31,22 +32,23 @@ const THEMES: Record<string, Theme> = {
 
 // 設定定数
 const CONFIG = {
-  MARGIN_PERCENT: 5,
-  BAR_THICKNESS: 6,
-  BAR_OFFSET: 4,
+  MARGIN_PERCENT: 2,
+  BAR_THICKNESS: 4,
+  BAR_OFFSET: 2,
   SCALE_DIVISIONS: 10,
   SCALE_WIDTH: 2,
-  SCALE_LENGTH: 20,
-  DATE_FONT_SIZE: 'clamp(1.5rem, 4vw, 3rem)',
-  MAIN_TIME_FONT_SIZE: 'clamp(3rem, 8vw, 8rem)',
-  MAIN_TIME_UNIT_FONT_SIZE: 'clamp(1rem, 2.5vw, 2.5rem)',
-  SECOND_MS_FONT_SIZE: 'clamp(6rem, 20vw, 25rem)',
-  SECOND_MS_UNIT_FONT_SIZE: 'clamp(2rem, 6vw, 8rem)',
-  SUB_MS_FONT_SIZE: 'clamp(2rem, 6vw, 6rem)',
-  SUB_MS_UNIT_FONT_SIZE: 'clamp(0.8rem, 2vw, 2rem)',
+  SCALE_LENGTH: 10,
+  DATE_FONT_SIZE: 'clamp(0.8rem, 3vw, 3rem)',
+  MAIN_TIME_FONT_SIZE: 'clamp(1.5rem, 6vw, 8rem)',
+  MAIN_TIME_UNIT_FONT_SIZE: 'clamp(0.5rem, 2vw, 2.5rem)',
+  SECOND_MS_FONT_SIZE: 'clamp(3rem, 15vw, 25rem)',
+  SECOND_MS_UNIT_FONT_SIZE: 'clamp(1rem, 4vw, 8rem)',
+  SUB_MS_FONT_SIZE: 'clamp(1rem, 4vw, 6rem)',
+  SUB_MS_UNIT_FONT_SIZE: 'clamp(0.4rem, 1.5vw, 2rem)',
   DATE_OPACITY: 0.7,
   TIME_OPACITY: 0.8,
   DEFAULT_THEME: 'whiteOnBlack' as const,
+  UPDATE_FPS: 30, // カメラ撮影時の残像を減らすため30FPSに制限
 } as const
 
 // 型定義
@@ -83,18 +85,27 @@ function calculateProgress(timestamp: number): number {
   return (timestamp % 1000) / 1000
 }
 
-// カスタムフック: アニメーションループ管理
-function useAnimationLoop(callback: () => void) {
+// カスタムフック: アニメーションループ管理（FPS制限付き）
+function useAnimationLoop(callback: () => void, fps: number) {
   const animationRef = useRef<number>()
   const callbackRef = useRef(callback)
+  const lastTimeRef = useRef(0)
 
   useEffect(() => {
     callbackRef.current = callback
   }, [callback])
 
   useEffect(() => {
-    const animate = () => {
-      callbackRef.current()
+    const frameInterval = 1000 / fps
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - lastTimeRef.current
+
+      if (elapsed >= frameInterval) {
+        callbackRef.current()
+        lastTimeRef.current = currentTime - (elapsed % frameInterval)
+      }
+
       animationRef.current = requestAnimationFrame(animate)
     }
 
@@ -105,7 +116,7 @@ function useAnimationLoop(callback: () => void) {
         cancelAnimationFrame(animationRef.current)
       }
     }
-  }, [])
+  }, [fps])
 }
 
 // カスタムフック: プログレスバーの更新
@@ -175,11 +186,20 @@ function ScaleMarks({
 }
 
 const ScopeTimer = () => {
-  const [currentTime, setCurrentTime] = useState(Date.now())
+  const [currentTime, setCurrentTime] = useState(0)
   const [theme, setTheme] = useState<keyof typeof THEMES>(CONFIG.DEFAULT_THEME)
+  const [fps, setFps] = useState<number>(CONFIG.UPDATE_FPS)
+  const [mounted, setMounted] = useState(false)
   const { topBarRef, leftBarRef, updateProgress } = useProgressBars()
-  const startTimeRef = useRef(Date.now())
-  const startPerfRef = useRef(performance.now())
+  const startTimeRef = useRef(0)
+  const startPerfRef = useRef(0)
+
+  useEffect(() => {
+    startTimeRef.current = Date.now()
+    startPerfRef.current = performance.now()
+    setCurrentTime(startTimeRef.current)
+    setMounted(true)
+  }, [])
 
   useAnimationLoop(() => {
     // performance.now() を使って高精度な経過時間を計算し、起点時刻に加算
@@ -187,11 +207,16 @@ const ScopeTimer = () => {
     const now = startTimeRef.current + elapsed
     setCurrentTime(now)
     updateProgress(calculateProgress(now))
-  })
+  }, fps)
 
   const currentTheme = THEMES[theme]
   const { dateStr, hours, minutes, seconds, milliseconds, subMilliseconds } =
     formatTimeData(currentTime)
+
+  // SSRハイドレーションエラーを防ぐため、マウント前は表示しない
+  if (!mounted) {
+    return null
+  }
 
   const cycleTheme = () => {
     const themeKeys = Object.keys(THEMES) as Array<keyof typeof THEMES>
@@ -200,327 +225,433 @@ const ScopeTimer = () => {
     setTheme(themeKeys[nextIndex])
   }
 
+  const cycleFps = () => {
+    const fpsOptions = [15, 24, 30, 60]
+    const currentIndex = fpsOptions.indexOf(fps)
+    const nextIndex = (currentIndex + 1) % fpsOptions.length
+    setFps(fpsOptions[nextIndex])
+  }
+
+  const getThemeName = () => {
+    const names = {
+      whiteOnBlack: 'W/B',
+      blackOnWhite: 'B/W',
+      greenMatrix: 'GRN',
+    }
+    return names[theme] ?? 'N/A'
+  }
+
   return (
-    <div
-      onClick={cycleTheme}
-      style={{
-        width: '100vw',
-        height: '100vh',
-        backgroundColor: currentTheme.BG_COLOR,
-        color: currentTheme.TEXT_COLOR,
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative',
-        overflow: 'hidden',
-        cursor: 'pointer',
-      }}
-    >
-      {/* 上端プログレスバー */}
+    <>
+      <Head>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+        />
+        <style>{`
+          @media screen and (orientation: portrait) {
+            html {
+              transform: rotate(-90deg);
+              transform-origin: left top;
+              width: 100vh;
+              height: 100vw;
+              overflow-x: hidden;
+              position: absolute;
+              top: 100%;
+              left: 0;
+            }
+          }
+        `}</style>
+      </Head>
       <div
         style={{
-          position: 'absolute',
-          top: `${CONFIG.BAR_OFFSET}px`,
-          left: `${CONFIG.BAR_OFFSET}px`,
-          height: `${CONFIG.BAR_THICKNESS}px`,
-          backgroundColor: currentTheme.BAR_COLOR,
-          transition: 'none',
-          borderRadius: `${CONFIG.BAR_THICKNESS / 2}px`,
-        }}
-        ref={topBarRef}
-      />
-
-      {/* 上端スケール */}
-      <ScaleMarks orientation="horizontal" theme={currentTheme} />
-
-      {/* 左端プログレスバー */}
-      <div
-        style={{
-          position: 'absolute',
-          top: `${CONFIG.BAR_OFFSET}px`,
-          left: `${CONFIG.BAR_OFFSET}px`,
-          width: `${CONFIG.BAR_THICKNESS}px`,
-          backgroundColor: currentTheme.BAR_COLOR,
-          transition: 'none',
-          borderRadius: `${CONFIG.BAR_THICKNESS / 2}px`,
-        }}
-        ref={leftBarRef}
-      />
-
-      {/* 左端スケール */}
-      <ScaleMarks orientation="vertical" theme={currentTheme} />
-
-      {/* コンテンツエリア */}
-      <div
-        style={{
-          flex: 1,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: currentTheme.BG_COLOR,
+          color: currentTheme.TEXT_COLOR,
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: `${CONFIG.MARGIN_PERCENT}%`,
-          gap: '2rem',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
-        {/* 時刻表示: HH:MM:SS.xxx */}
+        {/* 上端プログレスバー */}
         <div
           style={{
-            fontSize: CONFIG.MAIN_TIME_FONT_SIZE,
-            fontFamily: 'monospace',
-            fontVariantNumeric: 'tabular-nums',
-            opacity: CONFIG.TIME_OPACITY,
-            display: 'flex',
-            alignItems: 'flex-start',
-            lineHeight: 1,
-            gap: '0.5ch',
+            position: 'absolute',
+            top: `${CONFIG.BAR_OFFSET}px`,
+            left: `${CONFIG.BAR_OFFSET}px`,
+            height: `${CONFIG.BAR_THICKNESS}px`,
+            backgroundColor: currentTheme.BAR_COLOR,
+            transition: 'none',
+            borderRadius: `${CONFIG.BAR_THICKNESS / 2}px`,
           }}
-        >
-          <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-end',
-              }}
-            >
-              <span>{hours}</span>
-            <span
-              style={{
-                fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
-                opacity: 0.6,
-                lineHeight: 1,
-              }}
-            >
-              h
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span>:</span>
-            <span
-              style={{
-                fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
-                opacity: 0,
-                lineHeight: 1,
-              }}
-            >
-              _
-            </span>
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-end',
-            }}
-          >
-            <span>{minutes}</span>
-            <span
-              style={{
-                fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
-                opacity: 0.6,
-                lineHeight: 1,
-              }}
-            >
-              m
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span>:</span>
-            <span
-              style={{
-                fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
-                opacity: 0,
-                lineHeight: 1,
-              }}
-            >
-              _
-            </span>
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-end',
-            }}
-          >
-            <span>{seconds}</span>
-            <span
-              style={{
-                fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
-                opacity: 0.6,
-                lineHeight: 1,
-              }}
-            >
-              s
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span>.</span>
-            <span
-              style={{
-                fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
-                opacity: 0,
-                lineHeight: 1,
-              }}
-            >
-              _
-            </span>
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-end',
-            }}
-          >
-            <span>{milliseconds}</span>
-            <span
-              style={{
-                fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
-                opacity: 0.6,
-                lineHeight: 1,
-              }}
-            >
-              ms
-            </span>
-          </div>
-          </div>
+          ref={topBarRef}
+        />
 
-          {/* サブミリ秒表示 */}
-          <div
-            style={{
-              fontSize: `calc(${CONFIG.MAIN_TIME_FONT_SIZE} * 0.8)`,
-              fontFamily: 'monospace',
-              fontVariantNumeric: 'tabular-nums',
-              opacity: 0.8,
-              display: 'flex',
-              alignItems: 'flex-start',
-              lineHeight: 1,
-            }}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span>.</span>
-              <span
-                style={{
-                  fontSize: `calc(${CONFIG.MAIN_TIME_UNIT_FONT_SIZE} * 0.8)`,
-                  opacity: 0,
-                  lineHeight: 1,
-                }}
-              >
-                _
-              </span>
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-end',
-              }}
-            >
-              <span>{subMilliseconds}0</span>
-              <span
-                style={{
-                  fontSize: `calc(${CONFIG.MAIN_TIME_UNIT_FONT_SIZE} * 0.8)`,
-                  opacity: 0.6,
-                  lineHeight: 1,
-                }}
-              >
-                μs
-              </span>
-            </div>
-          </div>
-        </div>
+        {/* 上端スケール */}
+        <ScaleMarks orientation="horizontal" theme={currentTheme} />
 
-        {/* 巨大秒.ミリ秒表示 */}
+        {/* 左端プログレスバー */}
         <div
           style={{
+            position: 'absolute',
+            top: `${CONFIG.BAR_OFFSET}px`,
+            left: `${CONFIG.BAR_OFFSET}px`,
+            width: `${CONFIG.BAR_THICKNESS}px`,
+            backgroundColor: currentTheme.BAR_COLOR,
+            transition: 'none',
+            borderRadius: `${CONFIG.BAR_THICKNESS / 2}px`,
+          }}
+          ref={leftBarRef}
+        />
+
+        {/* 左端スケール */}
+        <ScaleMarks orientation="vertical" theme={currentTheme} />
+
+        {/* コンテンツエリア */}
+        <div
+          style={{
+            flex: 1,
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
-            gap: '1rem',
+            justifyContent: 'space-between',
+            padding: `${CONFIG.MARGIN_PERCENT}%`,
           }}
         >
+          {/* 中央コンテンツ */}
           <div
             style={{
-              fontSize: CONFIG.SECOND_MS_FONT_SIZE,
-              fontWeight: 'bold',
-              fontFamily: 'monospace',
-              fontVariantNumeric: 'tabular-nums',
-              textShadow:
-                currentTheme.TEXT_COLOR === '#0f0'
-                  ? '0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0, 2px 2px 4px #000'
-                  : 'none',
-              letterSpacing: '0.1em',
-              lineHeight: 1,
+              flex: 1,
               display: 'flex',
-              alignItems: 'flex-start',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '2rem',
             }}
           >
+            {/* 時刻表示: HH:MM:SS.xxx */}
+            <div
+              style={{
+                fontSize: CONFIG.MAIN_TIME_FONT_SIZE,
+                fontFamily: 'monospace',
+                fontVariantNumeric: 'tabular-nums',
+                opacity: CONFIG.TIME_OPACITY,
+                display: 'flex',
+                alignItems: 'flex-start',
+                lineHeight: 1,
+                gap: '0.5ch',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                  }}
+                >
+                  <span>{hours}</span>
+                  <span
+                    style={{
+                      fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
+                      opacity: 0.6,
+                      lineHeight: 1,
+                    }}
+                  >
+                    h
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span>:</span>
+                  <span
+                    style={{
+                      fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
+                      opacity: 0,
+                      lineHeight: 1,
+                    }}
+                  >
+                    _
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                  }}
+                >
+                  <span>{minutes}</span>
+                  <span
+                    style={{
+                      fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
+                      opacity: 0.6,
+                      lineHeight: 1,
+                    }}
+                  >
+                    m
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span>:</span>
+                  <span
+                    style={{
+                      fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
+                      opacity: 0,
+                      lineHeight: 1,
+                    }}
+                  >
+                    _
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                  }}
+                >
+                  <span>{seconds}</span>
+                  <span
+                    style={{
+                      fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
+                      opacity: 0.6,
+                      lineHeight: 1,
+                    }}
+                  >
+                    s
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span>.</span>
+                  <span
+                    style={{
+                      fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
+                      opacity: 0,
+                      lineHeight: 1,
+                    }}
+                  >
+                    _
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                  }}
+                >
+                  <span>{milliseconds}</span>
+                  <span
+                    style={{
+                      fontSize: CONFIG.MAIN_TIME_UNIT_FONT_SIZE,
+                      opacity: 0.6,
+                      lineHeight: 1,
+                    }}
+                  >
+                    ms
+                  </span>
+                </div>
+              </div>
+
+              {/* サブミリ秒表示 */}
+              <div
+                style={{
+                  fontSize: `calc(${CONFIG.MAIN_TIME_FONT_SIZE} * 0.8)`,
+                  fontFamily: 'monospace',
+                  fontVariantNumeric: 'tabular-nums',
+                  opacity: 0.8,
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  lineHeight: 1,
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span>.</span>
+                  <span
+                    style={{
+                      fontSize: `calc(${CONFIG.MAIN_TIME_UNIT_FONT_SIZE} * 0.8)`,
+                      opacity: 0,
+                      lineHeight: 1,
+                    }}
+                  >
+                    _
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                  }}
+                >
+                  <span>{subMilliseconds}0</span>
+                  <span
+                    style={{
+                      fontSize: `calc(${CONFIG.MAIN_TIME_UNIT_FONT_SIZE} * 0.8)`,
+                      opacity: 0.6,
+                      lineHeight: 1,
+                    }}
+                  >
+                    μs
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 巨大秒.ミリ秒表示 */}
             <div
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'flex-end',
+                alignItems: 'center',
+                gap: '1rem',
               }}
             >
-              <span>{seconds}</span>
-              <span
+              <div
                 style={{
-                  fontSize: CONFIG.SECOND_MS_UNIT_FONT_SIZE,
-                  opacity: 0.6,
+                  fontSize: CONFIG.SECOND_MS_FONT_SIZE,
+                  fontWeight: 'bold',
+                  fontFamily: 'monospace',
+                  fontVariantNumeric: 'tabular-nums',
+                  textShadow:
+                    currentTheme.TEXT_COLOR === '#0f0'
+                      ? '0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0, 2px 2px 4px #000'
+                      : 'none',
+                  letterSpacing: '0.1em',
                   lineHeight: 1,
+                  display: 'flex',
+                  alignItems: 'flex-start',
                 }}
               >
-                s
-              </span>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                  }}
+                >
+                  <span>{seconds}</span>
+                  <span
+                    style={{
+                      fontSize: CONFIG.SECOND_MS_UNIT_FONT_SIZE,
+                      opacity: 0.6,
+                      lineHeight: 1,
+                    }}
+                  >
+                    s
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span>.</span>
+                  <span
+                    style={{
+                      fontSize: CONFIG.SECOND_MS_UNIT_FONT_SIZE,
+                      opacity: 0,
+                      lineHeight: 1,
+                    }}
+                  >
+                    _
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                  }}
+                >
+                  <span>{milliseconds}</span>
+                  <span
+                    style={{
+                      fontSize: CONFIG.SECOND_MS_UNIT_FONT_SIZE,
+                      opacity: 0.6,
+                      lineHeight: 1,
+                    }}
+                  >
+                    ms
+                  </span>
+                </div>
+              </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span>.</span>
-              <span
-                style={{
-                  fontSize: CONFIG.SECOND_MS_UNIT_FONT_SIZE,
-                  opacity: 0,
-                  lineHeight: 1,
-                }}
-              >
-                _
-              </span>
+          </div>
+
+          {/* Footer */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
+              gap: '0.5rem',
+              flexWrap: 'wrap',
+            }}
+          >
+            {/* 日付表示（左下） */}
+            <div
+              style={{
+                fontSize: CONFIG.DATE_FONT_SIZE,
+                opacity: CONFIG.DATE_OPACITY,
+                fontFamily: 'monospace',
+                minWidth: 'fit-content',
+              }}
+            >
+              {dateStr}
             </div>
+
+            {/* コントロールボタン（右下） */}
             <div
               style={{
                 display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-end',
+                gap: '0.5rem',
+                fontSize: CONFIG.DATE_FONT_SIZE,
+                fontFamily: 'monospace',
+                flexShrink: 0,
               }}
             >
-              <span>{milliseconds}</span>
-              <span
+              {/* テーマ切り替えボタン */}
+              <div
+                onClick={cycleTheme}
                 style={{
-                  fontSize: CONFIG.SECOND_MS_UNIT_FONT_SIZE,
-                  opacity: 0.6,
-                  lineHeight: 1,
+                  padding:
+                    'clamp(0.3rem, 2vw, 0.5rem) clamp(0.5rem, 3vw, 1rem)',
+                  border: `2px solid ${currentTheme.TEXT_COLOR}`,
+                  borderRadius: '4px',
+                  opacity: 0.7,
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  transition: 'opacity 0.2s',
+                  whiteSpace: 'nowrap',
                 }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
               >
-                ms
-              </span>
+                {getThemeName()}
+              </div>
+
+              {/* FPS切り替えボタン */}
+              <div
+                onClick={cycleFps}
+                style={{
+                  padding:
+                    'clamp(0.3rem, 2vw, 0.5rem) clamp(0.5rem, 3vw, 1rem)',
+                  border: `2px solid ${currentTheme.TEXT_COLOR}`,
+                  borderRadius: '4px',
+                  opacity: 0.7,
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  transition: 'opacity 0.2s',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
+              >
+                {fps}fps
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* 日付表示（左下） */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: `${CONFIG.MARGIN_PERCENT}%`,
-          left: `${CONFIG.MARGIN_PERCENT}%`,
-          fontSize: CONFIG.DATE_FONT_SIZE,
-          opacity: CONFIG.DATE_OPACITY,
-          fontFamily: 'monospace',
-        }}
-      >
-        {dateStr}
-      </div>
-    </div>
+    </>
   )
 }
 
