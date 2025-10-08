@@ -17,6 +17,7 @@
 | time-clip.tsx           | Tool/Game   | 時間クリップツール                            | @mui/material, styled-components              | 現在           | CSR          | ローカルストレージ使用 | 5               |
 | script-buttons.tsx      | Tool/Game   | スクリプトボタン実行ツール                    | @mui/material, styled-components              | 現在           | CSR          | ローカルストレージ使用 | 5               |
 | text-transformer.tsx    | Tool/Game   | テキスト変換ツール                            | @mui/material, カスタムライブラリ             | 現在           | CSR          | 複数変換機能           | 6               |
+| scope-timer.tsx         | Tool/Game   | スコープタイマー - ミリ秒精度の実験用タイマー | React 基本機能のみ                            | 現在           | CSR          | ミリ秒表示             | 7               |
 | 1px.tsx                 | DevTool     | 1px の画像データ URL 生成ツール               | react-color, @mui/material                    | 現在           | CSR          | カラーピッカー使用     | 4               |
 | global-ip.tsx           | DevTool     | グローバルパブリック IP 取得ツール            | fetch API                                     | 現在           | CSR          | 外部 API 使用          | 3               |
 | pi-lab.tsx              | Math        | モンテカルロ法による π 計算実験               | @mui/material                                 | 現在           | CSR          | 数学シミュレーション   | 4               |
