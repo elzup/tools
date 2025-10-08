@@ -1,21 +1,49 @@
 import { useEffect, useRef, useState } from 'react'
 
+// カラーテーマ定義
+type Theme = {
+  BG_COLOR: string
+  TEXT_COLOR: string
+  BAR_COLOR: string
+  SCALE_COLOR: string
+}
+
+const THEMES: Record<string, Theme> = {
+  whiteOnBlack: {
+    BG_COLOR: '#000',
+    TEXT_COLOR: '#fff',
+    BAR_COLOR: '#ff4040',
+    SCALE_COLOR: '#ff4040',
+  },
+  blackOnWhite: {
+    BG_COLOR: '#fff',
+    TEXT_COLOR: '#000',
+    BAR_COLOR: '#4080ff',
+    SCALE_COLOR: '#4080ff',
+  },
+  greenMatrix: {
+    BG_COLOR: '#000',
+    TEXT_COLOR: '#0f0',
+    BAR_COLOR: '#0f0',
+    SCALE_COLOR: '#0f0',
+  },
+}
+
 // 設定定数
 const CONFIG = {
-  MARGIN_PERCENT: 10,
-  BAR_THICKNESS: 4,
-  BAR_COLOR: '#0f0',
+  MARGIN_PERCENT: 5,
+  BAR_THICKNESS: 6,
+  BAR_OFFSET: 4,
   SCALE_DIVISIONS: 10,
-  SCALE_COLOR: '#0f0',
   SCALE_WIDTH: 2,
   SCALE_LENGTH: 20,
-  BG_COLOR: '#000',
-  TEXT_COLOR: '#fff',
   DATE_FONT_SIZE: 'clamp(1.5rem, 4vw, 3rem)',
-  MS_FONT_SIZE: 'clamp(4rem, 15vw, 20rem)',
-  TIME_FONT_SIZE: 'clamp(2rem, 6vw, 5rem)',
+  MAIN_TIME_FONT_SIZE: 'clamp(3rem, 8vw, 8rem)',
+  SECOND_MS_FONT_SIZE: 'clamp(6rem, 20vw, 25rem)',
+  SUB_MS_FONT_SIZE: 'clamp(2rem, 6vw, 6rem)',
   DATE_OPACITY: 0.7,
   TIME_OPACITY: 0.8,
+  DEFAULT_THEME: 'whiteOnBlack' as const,
 } as const
 
 // 型定義
@@ -25,19 +53,25 @@ type TimeData = {
   minutes: string
   seconds: string
   milliseconds: string
+  subMilliseconds: string
 }
 
 // 純関数: 現在時刻から表示用データを生成
 function formatTimeData(timestamp: number): TimeData {
-  const date = new Date()
+  const date = new Date(Math.floor(timestamp))
   const ms = timestamp % 1000
+  const msStr = ms.toFixed(3).padStart(7, '0')
 
   return {
-    dateStr: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`,
+    dateStr: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      '0'
+    )}-${String(date.getDate()).padStart(2, '0')}`,
     hours: String(date.getHours()).padStart(2, '0'),
     minutes: String(date.getMinutes()).padStart(2, '0'),
     seconds: String(date.getSeconds()).padStart(2, '0'),
-    milliseconds: ms.toFixed(0).padStart(3, '0'),
+    milliseconds: msStr.substring(0, 3), // 最初の3桁
+    subMilliseconds: msStr.substring(4, 5), // 小数点以下1桁目
   }
 }
 
@@ -47,13 +81,17 @@ function calculateProgress(timestamp: number): number {
 }
 
 // カスタムフック: アニメーションループ管理
-function useAnimationLoop(callback: (timestamp: number) => void) {
+function useAnimationLoop(callback: () => void) {
   const animationRef = useRef<number>()
+  const callbackRef = useRef(callback)
+
+  useEffect(() => {
+    callbackRef.current = callback
+  }, [callback])
 
   useEffect(() => {
     const animate = () => {
-      const now = performance.now()
-      callback(now)
+      callbackRef.current()
       animationRef.current = requestAnimationFrame(animate)
     }
 
@@ -64,7 +102,7 @@ function useAnimationLoop(callback: (timestamp: number) => void) {
         cancelAnimationFrame(animationRef.current)
       }
     }
-  }, [callback])
+  }, [])
 }
 
 // カスタムフック: プログレスバーの更新
@@ -74,7 +112,7 @@ function useProgressBars() {
 
   const updateProgress = (progress: number) => {
     if (topBarRef.current) {
-      topBarRef.current.style.width = `${(1 - progress) * 100}%`
+      topBarRef.current.style.width = `${progress * 100}%`
     }
     if (leftBarRef.current) {
       leftBarRef.current.style.height = `${progress * 100}%`
@@ -85,7 +123,13 @@ function useProgressBars() {
 }
 
 // コンポーネント: スケールマーク
-function ScaleMarks({ orientation }: { orientation: 'horizontal' | 'vertical' }) {
+function ScaleMarks({
+  orientation,
+  theme,
+}: {
+  orientation: 'horizontal' | 'vertical'
+  theme: Theme
+}) {
   const marks = Array.from({ length: CONFIG.SCALE_DIVISIONS + 1 }, (_, i) => i)
 
   if (orientation === 'horizontal') {
@@ -100,7 +144,7 @@ function ScaleMarks({ orientation }: { orientation: 'horizontal' | 'vertical' })
               right: `${(i / CONFIG.SCALE_DIVISIONS) * 100}%`,
               width: `${CONFIG.SCALE_WIDTH}px`,
               height: `${CONFIG.SCALE_LENGTH}px`,
-              backgroundColor: CONFIG.SCALE_COLOR,
+              backgroundColor: theme.SCALE_COLOR,
             }}
           />
         ))}
@@ -110,7 +154,7 @@ function ScaleMarks({ orientation }: { orientation: 'horizontal' | 'vertical' })
 
   return (
     <>
-      {marks.map((i) => (
+      {marks.slice(1).map((i) => (
         <div
           key={i}
           style={{
@@ -119,7 +163,7 @@ function ScaleMarks({ orientation }: { orientation: 'horizontal' | 'vertical' })
             left: 0,
             width: `${CONFIG.SCALE_LENGTH}px`,
             height: `${CONFIG.SCALE_WIDTH}px`,
-            backgroundColor: CONFIG.SCALE_COLOR,
+            backgroundColor: theme.SCALE_COLOR,
           }}
         />
       ))}
@@ -128,60 +172,79 @@ function ScaleMarks({ orientation }: { orientation: 'horizontal' | 'vertical' })
 }
 
 const ScopeTimer = () => {
-  const [currentTime, setCurrentTime] = useState(0)
+  const [currentTime, setCurrentTime] = useState(Date.now())
+  const [theme, setTheme] = useState<keyof typeof THEMES>(CONFIG.DEFAULT_THEME)
   const { topBarRef, leftBarRef, updateProgress } = useProgressBars()
+  const startTimeRef = useRef(Date.now())
+  const startPerfRef = useRef(performance.now())
 
-  useAnimationLoop((timestamp) => {
-    setCurrentTime(timestamp)
-    updateProgress(calculateProgress(timestamp))
+  useAnimationLoop(() => {
+    // performance.now() を使って高精度な経過時間を計算し、起点時刻に加算
+    const elapsed = performance.now() - startPerfRef.current
+    const now = startTimeRef.current + elapsed
+    setCurrentTime(now)
+    updateProgress(calculateProgress(now))
   })
 
-  const { dateStr, hours, minutes, seconds, milliseconds } = formatTimeData(currentTime)
+  const currentTheme = THEMES[theme]
+  const { dateStr, hours, minutes, seconds, milliseconds, subMilliseconds } =
+    formatTimeData(currentTime)
+
+  const cycleTheme = () => {
+    const themeKeys = Object.keys(THEMES) as Array<keyof typeof THEMES>
+    const currentIndex = themeKeys.indexOf(theme)
+    const nextIndex = (currentIndex + 1) % themeKeys.length
+    setTheme(themeKeys[nextIndex])
+  }
 
   return (
     <div
+      onClick={cycleTheme}
       style={{
         width: '100vw',
         height: '100vh',
-        backgroundColor: CONFIG.BG_COLOR,
-        color: CONFIG.TEXT_COLOR,
+        backgroundColor: currentTheme.BG_COLOR,
+        color: currentTheme.TEXT_COLOR,
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
         overflow: 'hidden',
+        cursor: 'pointer',
       }}
     >
       {/* 上端プログレスバー */}
       <div
         style={{
           position: 'absolute',
-          top: 0,
-          right: 0,
+          top: `${CONFIG.BAR_OFFSET}px`,
+          left: `${CONFIG.BAR_OFFSET}px`,
           height: `${CONFIG.BAR_THICKNESS}px`,
-          backgroundColor: CONFIG.BAR_COLOR,
+          backgroundColor: currentTheme.BAR_COLOR,
           transition: 'none',
+          borderRadius: `${CONFIG.BAR_THICKNESS / 2}px`,
         }}
         ref={topBarRef}
       />
 
       {/* 上端スケール */}
-      <ScaleMarks orientation="horizontal" />
+      <ScaleMarks orientation="horizontal" theme={currentTheme} />
 
       {/* 左端プログレスバー */}
       <div
         style={{
           position: 'absolute',
-          top: 0,
-          left: 0,
+          top: `${CONFIG.BAR_OFFSET}px`,
+          left: `${CONFIG.BAR_OFFSET}px`,
           width: `${CONFIG.BAR_THICKNESS}px`,
-          backgroundColor: CONFIG.BAR_COLOR,
+          backgroundColor: currentTheme.BAR_COLOR,
           transition: 'none',
+          borderRadius: `${CONFIG.BAR_THICKNESS / 2}px`,
         }}
         ref={leftBarRef}
       />
 
       {/* 左端スケール */}
-      <ScaleMarks orientation="vertical" />
+      <ScaleMarks orientation="vertical" theme={currentTheme} />
 
       {/* コンテンツエリア */}
       <div
@@ -192,47 +255,75 @@ const ScopeTimer = () => {
           justifyContent: 'center',
           alignItems: 'center',
           padding: `${CONFIG.MARGIN_PERCENT}%`,
+          gap: '2rem',
         }}
       >
-        {/* 日付表示 */}
+        {/* 時刻表示: HH:MM:SS.xxx */}
         <div
           style={{
-            fontSize: CONFIG.DATE_FONT_SIZE,
-            marginBottom: '2rem',
-            opacity: CONFIG.DATE_OPACITY,
-            fontFamily: 'monospace',
-          }}
-        >
-          {dateStr}
-        </div>
-
-        {/* 巨大ミリ秒表示 */}
-        <div
-          style={{
-            fontSize: CONFIG.MS_FONT_SIZE,
-            fontWeight: 'bold',
-            fontFamily: 'monospace',
-            fontVariantNumeric: 'tabular-nums',
-            textShadow: '0 0 10px #fff, 0 0 20px #fff, 0 0 30px #0f0, 2px 2px 4px #000',
-            letterSpacing: '0.1em',
-            lineHeight: 1,
-          }}
-        >
-          {milliseconds}
-        </div>
-
-        {/* 副表示: 時:分:秒 */}
-        <div
-          style={{
-            fontSize: CONFIG.TIME_FONT_SIZE,
-            marginTop: '2rem',
+            fontSize: CONFIG.MAIN_TIME_FONT_SIZE,
             fontFamily: 'monospace',
             fontVariantNumeric: 'tabular-nums',
             opacity: CONFIG.TIME_OPACITY,
           }}
         >
-          {hours}:{minutes}:{seconds}
+          {`${hours}:${minutes}:${seconds}.${milliseconds}`}
         </div>
+
+        {/* 巨大秒.ミリ秒表示 */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}
+        >
+          <div
+            style={{
+              fontSize: CONFIG.SECOND_MS_FONT_SIZE,
+              fontWeight: 'bold',
+              fontFamily: 'monospace',
+              fontVariantNumeric: 'tabular-nums',
+              textShadow:
+                currentTheme.TEXT_COLOR === '#0f0'
+                  ? '0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0, 2px 2px 4px #000'
+                  : 'none',
+              letterSpacing: '0.1em',
+              lineHeight: 1,
+            }}
+          >
+            {seconds}.{milliseconds}
+          </div>
+          {/* サブミリ秒（小さく表示） */}
+          <div
+            style={{
+              fontSize: CONFIG.SUB_MS_FONT_SIZE,
+              fontWeight: '900',
+              fontFamily: 'monospace',
+              fontVariantNumeric: 'tabular-nums',
+              opacity: 0.8,
+              textStroke: '1px currentColor',
+              WebkitTextStroke: '1px currentColor',
+            }}
+          >
+            .{subMilliseconds}
+          </div>
+        </div>
+      </div>
+
+      {/* 日付表示（右下） */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: `${CONFIG.MARGIN_PERCENT}%`,
+          right: `${CONFIG.MARGIN_PERCENT}%`,
+          fontSize: CONFIG.DATE_FONT_SIZE,
+          opacity: CONFIG.DATE_OPACITY,
+          fontFamily: 'monospace',
+        }}
+      >
+        {dateStr}
       </div>
     </div>
   )
