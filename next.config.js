@@ -10,6 +10,10 @@ const withPWA = withPWAfn({
   disable: process.env.NODE_ENV === 'development',
   buildExcludes: [/middleware-manifest.json$/],
 })
-const withTm = require('next-transpile-modules')(['three'])
 
-module.exports = withTm(withBundleAnalyzer(withPWA({})))
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  transpilePackages: ['three'],
+}
+
+module.exports = withBundleAnalyzer(withPWA(nextConfig))

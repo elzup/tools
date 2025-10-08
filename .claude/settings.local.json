@@ -11,7 +11,11 @@
       "Bash(cat:*)",
       "Bash(npx tsc:*)",
       "Bash(yarn dlx:*)",
-      "Bash(yarn tsc:*)"
+      "Bash(yarn tsc:*)",
+      "Bash(yarn npm info:*)",
+      "Bash(yarn info:*)",
+      "Bash(curl:*)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []
