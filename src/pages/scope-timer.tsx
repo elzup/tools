@@ -505,12 +505,12 @@ const ScopeTimer = () => {
         </div>
       </div>
 
-      {/* 日付表示（右下） */}
+      {/* 日付表示（左下） */}
       <div
         style={{
           position: 'absolute',
           bottom: `${CONFIG.MARGIN_PERCENT}%`,
-          right: `${CONFIG.MARGIN_PERCENT}%`,
+          left: `${CONFIG.MARGIN_PERCENT}%`,
           fontSize: CONFIG.DATE_FONT_SIZE,
           opacity: CONFIG.DATE_OPACITY,
           fontFamily: 'monospace',
