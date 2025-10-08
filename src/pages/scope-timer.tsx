@@ -244,24 +244,15 @@ const ScopeTimer = () => {
   return (
     <>
       <Head>
+        <title>Scope Timer - 高精度ミリ秒タイマー</title>
+        <meta
+          name="description"
+          content="ミリ秒タイマー・時計ツール。カメラ撮影実験用の高精度タイマー"
+        />
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
         />
-        <style>{`
-          @media screen and (orientation: portrait) {
-            html {
-              transform: rotate(-90deg);
-              transform-origin: left top;
-              width: 100vh;
-              height: 100vw;
-              overflow-x: hidden;
-              position: absolute;
-              top: 100%;
-              left: 0;
-            }
-          }
-        `}</style>
       </Head>
       <div
         style={{
