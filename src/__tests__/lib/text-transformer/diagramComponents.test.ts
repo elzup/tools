@@ -31,29 +31,29 @@ describe('generateNumberLine', () => {
 describe('generateSeparatorLine', () => {
   // 1から12までのすべての長さのテストケース
   it.each([
-    [0, 1, false, '+-----'],
-    [0, 2, false, '+----------'],
-    [0, 3, false, '+---------------'],
-    [0, 4, false, '+-------------------+'],
-    [0, 5, false, '+-------------------+-----'],
-    [0, 6, false, '+-------------------+----------'],
-    [0, 7, false, '+-------------------+---------------'],
-    [0, 8, false, '+-------------------+-------------------+'],
-    [0, 9, false, '+-------------------+-------------------+-----'],
+    [0, 1, false, '|----+'],
+    [0, 2, false, '|----+----+'],
+    [0, 3, false, '|----+----+----+'],
+    [0, 4, false, '|----+----+----+----|'],
+    [0, 5, false, '|----+----+----+----|----+'],
+    [0, 6, false, '|----+----+----+----|----+----+'],
+    [0, 7, false, '|----+----+----+----|----+----+----+'],
+    [0, 8, false, '|----+----+----+----|----+----+----+----|'],
+    [0, 9, false, '|----+----+----+----|----+----+----+----|----+'],
     //             12   13   14   15   16   17   18   19   20   21   22   23   24
     //              12   13   14   15   16   17   18   19   20   21   22   23   24
-    [0, 10, false, '+-------------------+-------------------+----------'],
-    [0, 11, false, '+-------------------+-------------------+---------------'],
+    [0, 10, false, '|----+----+----+----|----+----+----+----|----+----+'],
+    [0, 11, false, '|----+----+----+----|----+----+----+----|----+----+----+'],
     [
       0,
       12,
       false,
-      '+-------------------+-------------------+-------------------+',
+      '|----+----+----+----|----+----+----+----|----+----+----+----|',
     ],
   ])(
     'オフセット%dから%dまでの区切り線を生成できること',
     (start, end, isWrapped, expected) => {
-      const result = generateLine1(start, end, isWrapped)
+      const result = generateLine1(end - start)
 
       expect(result).toBe(expected)
     }
@@ -61,9 +61,9 @@ describe('generateSeparatorLine', () => {
 
   // 折り返し行のテスト
   it('折り返し用の区切り線を生成できること', () => {
-    const result = generateLine1(12, 19, true)
+    const result = generateLine1(19 - 12)
 
-    expect(result).toBe('+-------------------+---------------')
+    expect(result).toBe('|----+----+----+----|----+----+----+')
   })
 })
 
@@ -106,7 +106,7 @@ describe('generateLabelLine', () => {
     const result = generateLabelLine(data, 0, 12, false, true)
 
     expect(result).toBe(
-      '|header|command            |length              |payload       :'
+      '|head|command            |length             |payload       :'
     )
   })
 
@@ -140,6 +140,6 @@ describe('generateLabelLine', () => {
     ]
     const result = generateLabelLine(data, 12, 19, true, false)
 
-    expect(result).toBe(':payload|status             |checksum  |')
+    expect(result).toBe(':payl|status             |checksum |')
   })
 })
