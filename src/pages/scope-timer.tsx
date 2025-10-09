@@ -10,17 +10,17 @@ type Theme = {
 }
 
 const THEMES: Record<string, Theme> = {
-  whiteOnBlack: {
-    BG_COLOR: '#000',
-    TEXT_COLOR: '#fff',
-    BAR_COLOR: '#ff4040',
-    SCALE_COLOR: '#ff4040',
-  },
   blackOnWhite: {
     BG_COLOR: '#fff',
     TEXT_COLOR: '#000',
     BAR_COLOR: '#4080ff',
     SCALE_COLOR: '#4080ff',
+  },
+  whiteOnBlack: {
+    BG_COLOR: '#000',
+    TEXT_COLOR: '#fff',
+    BAR_COLOR: '#ff4040',
+    SCALE_COLOR: '#ff4040',
   },
   greenMatrix: {
     BG_COLOR: '#000',
@@ -47,8 +47,8 @@ const CONFIG = {
   SUB_MS_UNIT_FONT_SIZE: 'clamp(0.4rem, 1.5vw, 2rem)',
   DATE_OPACITY: 0.7,
   TIME_OPACITY: 0.8,
-  DEFAULT_THEME: 'whiteOnBlack' as const,
-  UPDATE_FPS: 30, // カメラ撮影時の残像を減らすため30FPSに制限
+  DEFAULT_THEME: 'blackOnWhite' as const,
+  UPDATE_FPS: 15, // カメラ撮影時の残像を減らすため30FPSに制限
 } as const
 
 // 型定義
@@ -78,11 +78,6 @@ function formatTimeData(timestamp: number): TimeData {
     milliseconds: msStr.substring(0, 3), // 最初の3桁
     subMilliseconds: msStr.substring(4, 5), // 小数点以下1桁目
   }
-}
-
-// 純関数: プログレスバーの進捗率を計算
-function calculateProgress(timestamp: number): number {
-  return (timestamp % 1000) / 1000
 }
 
 // カスタムフック: アニメーションループ管理（FPS制限付き）
@@ -119,21 +114,41 @@ function useAnimationLoop(callback: () => void, fps: number) {
   }, [fps])
 }
 
-// カスタムフック: プログレスバーの更新
-function useProgressBars() {
+// カスタムフック: プログレスバーの更新（60fps固定）
+function useProgressBars(
+  startTimeRef: React.RefObject<number>,
+  startPerfRef: React.RefObject<number>
+) {
   const topBarRef = useRef<HTMLDivElement>(null)
   const leftBarRef = useRef<HTMLDivElement>(null)
+  const animationRef = useRef<number>()
 
-  const updateProgress = (progress: number) => {
-    if (topBarRef.current) {
-      topBarRef.current.style.width = `${progress * 100}%`
-    }
-    if (leftBarRef.current) {
-      leftBarRef.current.style.height = `${progress * 100}%`
-    }
-  }
+  useEffect(() => {
+    const animate = () => {
+      const elapsed = performance.now() - startPerfRef.current!
+      const now = startTimeRef.current! + elapsed
+      const progress = (now % 1000) / 1000
 
-  return { topBarRef, leftBarRef, updateProgress }
+      if (topBarRef.current) {
+        topBarRef.current.style.width = `${progress * 100}%`
+      }
+      if (leftBarRef.current) {
+        leftBarRef.current.style.height = `${progress * 100}%`
+      }
+
+      animationRef.current = requestAnimationFrame(animate)
+    }
+
+    animationRef.current = requestAnimationFrame(animate)
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
+    }
+  }, [startTimeRef, startPerfRef])
+
+  return { topBarRef, leftBarRef }
 }
 
 // コンポーネント: スケールマーク
@@ -190,9 +205,9 @@ const ScopeTimer = () => {
   const [theme, setTheme] = useState<keyof typeof THEMES>(CONFIG.DEFAULT_THEME)
   const [fps, setFps] = useState<number>(CONFIG.UPDATE_FPS)
   const [mounted, setMounted] = useState(false)
-  const { topBarRef, leftBarRef, updateProgress } = useProgressBars()
   const startTimeRef = useRef(0)
   const startPerfRef = useRef(0)
+  const { topBarRef, leftBarRef } = useProgressBars(startTimeRef, startPerfRef)
 
   useEffect(() => {
     startTimeRef.current = Date.now()
@@ -206,7 +221,6 @@ const ScopeTimer = () => {
     const elapsed = performance.now() - startPerfRef.current
     const now = startTimeRef.current + elapsed
     setCurrentTime(now)
-    updateProgress(calculateProgress(now))
   }, fps)
 
   const currentTheme = THEMES[theme]
@@ -274,7 +288,6 @@ const ScopeTimer = () => {
             left: `${CONFIG.BAR_OFFSET}px`,
             height: `${CONFIG.BAR_THICKNESS}px`,
             backgroundColor: currentTheme.BAR_COLOR,
-            transition: 'none',
             borderRadius: `${CONFIG.BAR_THICKNESS / 2}px`,
           }}
           ref={topBarRef}
@@ -291,7 +304,6 @@ const ScopeTimer = () => {
             left: `${CONFIG.BAR_OFFSET}px`,
             width: `${CONFIG.BAR_THICKNESS}px`,
             backgroundColor: currentTheme.BAR_COLOR,
-            transition: 'none',
             borderRadius: `${CONFIG.BAR_THICKNESS / 2}px`,
           }}
           ref={leftBarRef}
