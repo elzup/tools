@@ -1,9 +1,8 @@
 module.exports = {
-  preset: 'ts-jest',
   testEnvironment: 'node',
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',
+    '^.+\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
   },
-  testPathIgnorePatterns: ['.qawolf/'],
+  testPathIgnorePatterns: ['.qawolf/', 'e2e'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
 }
