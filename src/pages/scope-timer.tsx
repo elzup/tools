@@ -252,7 +252,7 @@ const ScopeTimer = () => {
       blackOnWhite: 'B/W',
       greenMatrix: 'GRN',
     }
-    return names[theme] ?? 'N/A'
+    return names[theme as keyof typeof names] ?? 'N/A'
   }
 
   return (
