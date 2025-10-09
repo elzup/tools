@@ -1,5 +1,5 @@
 {
-  "engines": {
-    "node": "22.x"
+  "functions": {
+    "nodeVersion": "22.x"
   }
 }
