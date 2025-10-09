@@ -1,5 +1,4 @@
 {
-  "functions": {
-    "nodeVersion": "22.x"
-  }
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true
 }
