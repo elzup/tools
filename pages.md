@@ -33,7 +33,6 @@
 | svg-play.tsx            | Art         | SVG プレイグラウンド                          | React 基本機能のみ                            | 現在           | CSR          | SVG 実験               | 4               |
 | divergence-meter.tsx    | Art         | ダイバージェンスメーター表示                  | @mui/material                                 | 現在           | CSR          | アニメ風表示           | 5               |
 | shingeki.tsx            | Art         | 進撃プロット可視化                            | dynamic import, styled-components             | 現在           | **SSR 無効** | データ可視化           | 5               |
-| time.tsx                | Art         | 3D タイムアノゾン表示                         | @react-three/drei, @react-three/fiber, three  | **要更新**     | CSR          | 3D 可視化              | 4               |
 | million-learn-tech.tsx  | Art         | ミリオン学習技術デモ                          | dynamic import                                | 現在           | **SSR 無効** | 教育技術               | 5               |
 | gl-bit-counter.tsx      | Graphical   | 3D ビットカウンター                           | @react-three/drei, @react-three/fiber, three  | **要更新**     | CSR          | 3D グラフィックス      | 4               |
 | creative-coding.tsx     | Graphical   | クリエイティブコーディングプレイグラウンド    | dynamic import, react-p5, p5                  | **要更新**     | **SSR 無効** | P5.js 使用             | 4               |

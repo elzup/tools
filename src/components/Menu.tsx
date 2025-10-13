@@ -215,11 +215,6 @@ const routings: RoutingGroup[] = [
         path: '/shingeki',
       },
       {
-        icon: faTimes,
-        label: '3d Time anozon',
-        path: '/time',
-      },
-      {
         icon: faGraduationCap,
         label: 'Milion Learning Technology',
         path: '/million-lean-tech',
