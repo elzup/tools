@@ -34,7 +34,6 @@
 | divergence-meter.tsx    | Art         | ダイバージェンスメーター表示                  | @mui/material                                 | 現在           | CSR          | アニメ風表示           | 5               |
 | shingeki.tsx            | Art         | 進撃プロット可視化                            | dynamic import, styled-components             | 現在           | **SSR 無効** | データ可視化           | 5               |
 | million-learn-tech.tsx  | Art         | ミリオン学習技術デモ                          | dynamic import                                | 現在           | **SSR 無効** | 教育技術               | 5               |
-| gl-bit-counter.tsx      | Graphical   | 3D ビットカウンター                           | @react-three/drei, @react-three/fiber, three  | **要更新**     | CSR          | 3D グラフィックス      | 4               |
 | creative-coding.tsx     | Graphical   | クリエイティブコーディングプレイグラウンド    | dynamic import, react-p5, p5                  | **要更新**     | **SSR 無効** | P5.js 使用             | 4               |
 | word-search.tsx         | ProtoType   | 単語検索ゲーム                                | @mui/material                                 | 現在           | CSR          | ゲームプロトタイプ     | 5               |
 | ellip-billiards.tsx     | ProtoType   | 楕円ビリヤードシミュレーション                | matter-js                                     | **要更新**     | CSR          | 物理シミュレーション   | 4               |

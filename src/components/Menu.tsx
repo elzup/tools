@@ -225,11 +225,6 @@ const routings: RoutingGroup[] = [
     label: 'Graphical',
     routings: [
       {
-        icon: faPortrait,
-        label: '3d Bitcounter',
-        path: '/gl-bit-counter',
-      },
-      {
         icon: faPaintBrush,
         label: 'Creative Coding playground',
         path: '/creative-coding',
