@@ -27,11 +27,6 @@
     "@mui/material": "5.14.14",
     "@mui/styled-engine-sc": "^5.8.0",
     "@mui/system": "^7.3.3",
-    "@pmndrs/cannon-worker-api": "^2.3.2",
-    "@react-three/cannon": "^6.6.0",
-    "@react-three/drei": "^10.7.6",
-    "@react-three/fiber": "9.0.0-rc.7",
-    "@types/three": "^0.180.0",
     "babel-plugin-styled-components": "^2.0.6",
     "clipboardy": "^3.0.0",
     "crypto-js": "4.2.0",
@@ -69,8 +64,6 @@
     "styled-components": "^6.1.19",
     "swr": "^1.2.2",
     "tequery": "^2.5.0",
-    "three": "^0.180.0",
-    "three-stdlib": "^2.23.12",
     "through": "^2.3.8"
   },
   "devDependencies": {
