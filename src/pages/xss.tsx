@@ -1,7 +1,6 @@
 import { Button, TextField, Typography } from '@mui/material'
 import Link from 'next/link'
-import prettier from 'prettier'
-import parserHtml from 'prettier/parser-html'
+import formatHtml from '../lib/htmlFormatter'
 import * as React from 'react'
 import styled from 'styled-components'
 import Code from '../components/Code'
@@ -18,9 +17,7 @@ const NoOpener = () => {
   React.useEffect(() => {
     const component = React.createElement(ProfileCard, { name })
 
-    getComponentHtmlCode(component).then((html) =>
-      setHtml(prettier.format(html, { plugins: [parserHtml], parser: 'html' }))
-    )
+    getComponentHtmlCode(component).then((html) => setHtml(formatHtml(html)))
   }, [name])
 
   return (

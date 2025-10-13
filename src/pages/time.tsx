@@ -1,14 +1,14 @@
 import { Text } from '@react-three/drei'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Suspense, useRef } from 'react'
-import { Vector3 } from 'three'
+import { Line, Vector3 } from 'three'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 import { useAnotime } from '../lib/time/useAnotime'
 
 function Spring() {
-  const lineRef = useRef<SVGLineElement>(null)
-  const lineRef2 = useRef<SVGLineElement>(null)
+  const lineRef = useRef<Line>(null)
+  const lineRef2 = useRef<Line>(null)
   const { frame, current } = useAnotime()
 
   return (
@@ -22,13 +22,7 @@ function Spring() {
             itemSize={3}
           />
         </bufferGeometry>
-        <lineBasicMaterial
-          attach="material"
-          color={'#9c88ff'}
-          linewidth={10}
-          linecap={'round'}
-          linejoin={'round'}
-        />
+        <lineBasicMaterial attach="material" color={'#9c88ff'} />
       </line>
       <line ref={lineRef2}>
         <bufferGeometry>
@@ -39,13 +33,7 @@ function Spring() {
             itemSize={3}
           />
         </bufferGeometry>
-        <lineBasicMaterial
-          attach="material"
-          color={'#ff8800'}
-          linewidth={10}
-          linecap={'round'}
-          linejoin={'round'}
-        />
+        <lineBasicMaterial attach="material" color={'#ff8800'} />
       </line>
     </group>
   )
