@@ -242,31 +242,7 @@ describe('generateLabelLine', () => {
     const lines1 = result1.split('\n')
     const separatorLine1 = lines1[3] // 4行目がseparator line
 
-    console.log(
-      `Expected1 length: ${expected1.length}, actual: ${separatorLine1.length}`
-    )
-    console.log(`Expected1: "${expected1}"`)
-    console.log(`Actual1:   "${separatorLine1}"`)
-
-    // 文字ごとに比較
-    for (
-      let i = 0;
-      i < Math.max(expected1.length, separatorLine1.length);
-      i++
-    ) {
-      const expectedChar = expected1[i] || 'END'
-      const actualChar = separatorLine1[i] || 'END'
-
-      if (expectedChar !== actualChar) {
-        console.log(
-          `Difference at position ${i}: expected '${expectedChar}' (${expectedChar.charCodeAt(
-            0
-          )}), actual '${actualChar}' (${actualChar.charCodeAt(0)})`
-        )
-      }
-    }
-
-    expect(true).toBe(true) // dummy assertion
+    expect(separatorLine1).toBe(expected1)
   })
 
   it('標準的なラベル行を生成できること', () => {
