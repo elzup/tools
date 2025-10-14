@@ -33,7 +33,11 @@ function view(
       const z = { x: 0, y: 0 }
 
       range(rep).some((k) => {
-        ;[z.x, z.y] = [z.x * z.x - z.y * z.y + a, 2 * z.x * z.y + b]
+        const newX = z.x * z.x - z.y * z.y + a
+        const newY = 2 * z.x * z.y + b
+
+        z.x = newX
+        z.y = newY
         // z^2+Cの計算（実部）
         // z^2+Cの計算（虚部）
         if (z.x * z.x + z.y * z.y > 4) {

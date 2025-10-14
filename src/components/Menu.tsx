@@ -32,7 +32,6 @@ import {
   faShieldVirus,
   faSortNumericAsc,
   faSpider,
-  faTimes,
   faWandSparkles,
   faWindowMinimize,
   faWindowRestore,
