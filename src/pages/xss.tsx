@@ -1,11 +1,12 @@
 import { Button, TextField, Typography } from '@mui/material'
 import Link from 'next/link'
-import formatHtml from '../lib/htmlFormatter'
 import * as React from 'react'
 import styled from 'styled-components'
+
 import Code from '../components/Code'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
+import { formatHtml } from '../lib/htmlFormatter'
 import { getComponentHtmlCode } from '../utils'
 
 const title = 'XSSデモ'
