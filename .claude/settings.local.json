@@ -16,7 +16,9 @@
       "Bash(yarn info:*)",
       "Bash(curl:*)",
       "Bash(timeout:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(yarn build:*)",
+      "Bash(yarn add:*)"
     ],
     "deny": [],
     "ask": []
