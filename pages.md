@@ -55,6 +55,7 @@
 | splatoonament-cost.tsx  | リンクなし  | スプラトゥーンメント費用計算                  | @mui/material, styled-components              | 現在           | CSR          | ゲーム関連計算         | 3               |
 | qr-form.tsx             | リンクなし  | QR フォーム生成                               | カスタムコンポーネント                        | 現在           | CSR          | QR コード生成          | 4               |
 | continus-scan.tsx       | リンクなし  | 連続スキャンツール                            | html5-qrcode                                  | **要更新**     | CSR          | QR コードスキャン      | 3               |
+| flow2chat.tsx           | リンクなし  | フロー to チャット変換                        | react-flow-renderer, elkjs                    | 現在           | CSR          | フローチャート         | 4               |
 | noopener-attacker.tsx   | リンクなし  | noopener 攻撃者ページ                         | @mui/material                                 | 現在           | CSR          | セキュリティ実験       | 2               |
 
 ## 依存関係の状態について
@@ -62,18 +63,17 @@
 ### レガシー・要更新モジュール
 
 - **mermaid (8.13.6 → 11.12.0)**: メジャーバージョンアップ必要
-- **prettier (2.8.8 → 3.6.2)**: メジャーバージョンアップ必要
-- **react-google-charts (4.0.7 → 5.2.1)**: マイナーアップデート推奨
+- **prettier (2.5.1 → 3.6.2)**: メジャーバージョンアップ必要
+- **react-google-charts (4.0.0 → 5.2.1)**: マイナーアップデート推奨
 - **matter-js (0.18.0 → 0.20.0)**: マイナーアップデート推奨
 - **p5/react-p5 (1.9.0 → 2.0.5)**: メジャーバージョンアップ必要
-- **three.js (0.154.0 → 0.180.0)**: アップデート推奨
 - **react-webcam**: バージョン確認推奨
 - **html5-qrcode**: バージョン確認推奨
 
 ### Next.js 関連
 
-- **Next.js (13.0.2 → 15.5.4)**: メジャーアップデート必要
-- **React (18.2.0 → 19.2.0)**: メジャーアップデート検討
+- **Next.js (15.5.4)**: 最新版
+- **React (18.2.0)**: 安定版使用中
 
 ### SSR 無効化されているページ
 
@@ -92,12 +92,12 @@
 - creative-coding.tsx
 - cryptowat-chart.tsx
 
-これらはブラウザ API や重いライブラリ（P5.js、Three.js 等）を使用するため、SSR が無効化されています。
+これらはブラウザ API や重いライブラリ（P5.js 等）を使用するため、SSR が無効化されています。
 
 ## アーキテクチャ上の特徴
 
 1. **PWA 対応**: pikbl-memo.tsx, clipsh.tsx, code-explorer.tsx, kotobaru.tsx
-2. **3D/Canvas**: Three.js、P5.js 使用ページ群
+2. **Canvas/グラフィックス**: P5.js 使用ページ群
 3. **外部 API 使用**: global-ip.tsx（ipify API）
 4. **ローカルストレージ活用**: 複数のツールページ
 5. **セキュリティ教育**: XSS、noopener 関連のデモページ群
