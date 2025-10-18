@@ -1,6 +1,7 @@
 import { makeRand } from '@elzup/kit/lib/rand/make'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
+import dynamic from 'next/dynamic'
 
 const title = 'random inspect'
 
