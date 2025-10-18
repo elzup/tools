@@ -9,6 +9,7 @@ import {
 import {
   IconDefinition,
   faBowlingBall,
+  faBug,
   faCalculator,
   faChartLine,
   faClipboard,
@@ -30,8 +31,10 @@ import {
   faShapes,
   faShieldAlt,
   faShieldVirus,
+  faSkull,
   faSortNumericAsc,
   faSpider,
+  faUserSecret,
   faWandSparkles,
   faWindowMinimize,
   faWindowRestore,
@@ -39,6 +42,8 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Typography } from '@mui/material'
 import Link from 'next/link'
+import { useState } from 'react'
+import useKey from 'react-use/lib/useKey'
 import styled from 'styled-components'
 
 type Routing = {
@@ -228,6 +233,11 @@ const routings: RoutingGroup[] = [
         label: 'Creative Coding playground',
         path: '/creative-coding',
       },
+      {
+        icon: faCode,
+        label: 'D3 Playground',
+        path: '/d3-play',
+      },
     ],
   },
   {
@@ -242,11 +252,6 @@ const routings: RoutingGroup[] = [
         icon: faBowlingBall,
         label: '楕円ビリヤード',
         path: '/ellip-billiards',
-      },
-      {
-        icon: faChartLine,
-        label: 'Cch',
-        path: '/cryptowat-chart',
       },
       {
         icon: faSpider,
@@ -292,6 +297,60 @@ const routings: RoutingGroup[] = [
   // },
 ]
 
+// デバッグ
+const secretRoutings: RoutingGroup[] = [
+  {
+    label: 'Secret Tools',
+    routings: [
+      {
+        icon: faSkull,
+        label: 'Debug Console',
+        path: '/debug',
+      },
+      {
+        icon: faUserSecret,
+        label: 'Random Generator',
+        path: '/random',
+      },
+      {
+        icon: faCalculator,
+        label: 'Normal Distribution',
+        path: '/normal-distribution',
+      },
+      {
+        icon: faChartLine,
+        label: 'Custom Ratio Graph',
+        path: '/custom-ratio-graph',
+      },
+      {
+        icon: faPaintBrush,
+        label: 'P5 Playground',
+        path: '/playground-p5',
+      },
+      {
+        icon: faKeyboard,
+        label: 'Kotobaru',
+        path: '/kotobaru',
+      },
+      {
+        icon: faClipboard,
+        label: 'QR Form',
+        path: '/qr-form',
+      },
+      {
+        icon: faChartLine,
+        label: 'Splatoon Cost',
+        path: '/splatoonament-cost',
+      },
+      {
+        icon: faChartLine,
+        label: 'Cch',
+        path: '/cryptowat-chart',
+      },
+    ],
+  },
+]
+
 function MenuItem({ routing, opened }: { routing: Routing; opened: boolean }) {
   return (
     <div className="item">
@@ -312,25 +371,41 @@ function MenuItem({ routing, opened }: { routing: Routing; opened: boolean }) {
 type Props = {
   currentPath: string
 }
-const Menu = ({ currentPath }: Props) => (
-  <nav>
-    <Style>
-      {routings.map((group) => (
-        <div key={group.label}>
-          <Typography>{group.label}</Typography>
-          {group.routings.map((routing) => (
-            <MenuItem
-              routing={routing}
-              data-qa={routing.path}
-              opened={routing.path === currentPath}
-              key={routing.path}
-            />
-          ))}
-        </div>
-      ))}
-    </Style>
-  </nav>
-)
+
+const Menu = ({ currentPath }: Props) => {
+  const [showSecret, setShowSecret] = useState(false)
+
+  // show secret while Alt is pressed
+  const toggleSecret = () => setShowSecret((prev) => !prev)
+  useKey('Alt', toggleSecret)
+
+  const allRoutings = showSecret ? [...routings, ...secretRoutings] : routings
+
+  return (
+    <nav>
+      <Style>
+        {allRoutings.map((group) => (
+          <div
+            key={group.label}
+            className={
+              showSecret && group.label === 'Secret Tools' ? 'secret-group' : ''
+            }
+          >
+            <Typography>{group.label}</Typography>
+            {group.routings.map((routing) => (
+              <MenuItem
+                routing={routing}
+                data-qa={routing.path}
+                opened={routing.path === currentPath}
+                key={routing.path}
+              />
+            ))}
+          </div>
+        ))}
+      </Style>
+    </nav>
+  )
+}
 
 const Style = styled.div`
   display: grid;
