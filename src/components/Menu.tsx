@@ -78,19 +78,9 @@ const routings: RoutingGroup[] = [
         path: '/nigate-typing',
       },
       {
-        icon: faClipboard,
-        label: 'Clipsh',
-        path: '/clipsh',
-      },
-      {
         icon: faEye,
         label: '動体視力トレ',
         path: '/dynamic-va',
-      },
-      {
-        icon: faCode,
-        label: 'Code Explorer',
-        path: '/code-explorer',
       },
       {
         icon: faDev,
@@ -98,19 +88,9 @@ const routings: RoutingGroup[] = [
         path: '/devtools-camp',
       },
       {
-        icon: faShapes,
-        label: 'Time Clip',
-        path: '/time-clip',
-      },
-      {
         icon: faMobileButton,
         label: 'Script buttons',
         path: '/script-buttons',
-      },
-      {
-        icon: faExchangeAlt,
-        label: 'テキスト変換',
-        path: '/text-transformer',
       },
       {
         icon: faClock,
@@ -131,6 +111,26 @@ const routings: RoutingGroup[] = [
         icon: faGlobe,
         label: 'Global Public IP',
         path: '/global-ip',
+      },
+      {
+        icon: faCode,
+        label: 'Code Explorer',
+        path: '/code-explorer',
+      },
+      {
+        icon: faClipboard,
+        label: 'Clipsh',
+        path: '/clipsh',
+      },
+      {
+        icon: faShapes,
+        label: 'Time Clip',
+        path: '/time-clip',
+      },
+      {
+        icon: faExchangeAlt,
+        label: 'テキスト変換',
+        path: '/text-transformer',
       },
     ],
   },
@@ -156,6 +156,16 @@ const routings: RoutingGroup[] = [
         icon: faCalculator,
         label: 'Frag simuration',
         path: '/frag-problab',
+      },
+      {
+        icon: faCalculator,
+        label: '正規分布ツール',
+        path: '/normal-distribution',
+      },
+      {
+        icon: faChartLine,
+        label: 'Custom Pi Ratio Graph',
+        path: '/custom-ratio-graph',
       },
     ],
   },
@@ -198,6 +208,11 @@ const routings: RoutingGroup[] = [
         label: 'mermaid UI',
         path: '/mermaid-ui',
       },
+      {
+        icon: faUserSecret,
+        label: 'Random Generator',
+        path: '/random',
+      },
     ],
   },
   {
@@ -217,11 +232,6 @@ const routings: RoutingGroup[] = [
         icon: faFeatherAlt,
         label: '進撃プロット',
         path: '/shingeki',
-      },
-      {
-        icon: faGraduationCap,
-        label: 'Milion Learning Technology',
-        path: '/million-lean-tech',
       },
     ],
   },
@@ -290,11 +300,6 @@ const routings: RoutingGroup[] = [
       },
     ],
   },
-  // {
-  //   icon: 'calculator',
-  //   label: '正規分布ツール',
-  //   path: '/normal-distribution',
-  // },
 ]
 
 // デバッグ
@@ -306,21 +311,6 @@ const secretRoutings: RoutingGroup[] = [
         icon: faSkull,
         label: 'Debug Console',
         path: '/debug',
-      },
-      {
-        icon: faUserSecret,
-        label: 'Random Generator',
-        path: '/random',
-      },
-      {
-        icon: faCalculator,
-        label: 'Normal Distribution',
-        path: '/normal-distribution',
-      },
-      {
-        icon: faChartLine,
-        label: 'Custom Ratio Graph',
-        path: '/custom-ratio-graph',
       },
       {
         icon: faPaintBrush,
@@ -346,6 +336,11 @@ const secretRoutings: RoutingGroup[] = [
         icon: faChartLine,
         label: 'Cch',
         path: '/cryptowat-chart',
+      },
+      {
+        icon: faGraduationCap,
+        label: 'Milion Learning Technology',
+        path: '/million-learn-tech',
       },
     ],
   },
