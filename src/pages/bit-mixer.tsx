@@ -65,12 +65,18 @@ const title = 'Bit Mixer - 8bit合成ツール'
 const BitMixer = () => {
   const [inputA, setInputA] = useState<number>(0)
   const [inputB, setInputB] = useState<number>(0)
+  const [inputAText, setInputAText] = useState<string>('')
+  const [inputBText, setInputBText] = useState<string>('')
   const [seeds, setSeeds] = useState<number[]>([])
 
   // 初期化
   useEffect(() => {
-    setInputA(getInitialValue('bit-mixer-a'))
-    setInputB(getInitialValue('bit-mixer-b'))
+    const a = getInitialValue('bit-mixer-a')
+    const b = getInitialValue('bit-mixer-b')
+    setInputA(a)
+    setInputB(b)
+    setInputAText(toBinary8(a))
+    setInputBText(toBinary8(b))
     const s1 = getInitialValue('bit-mixer-seed-0')
     const s2 = getInitialValue('bit-mixer-seed-1')
     const s3 = getInitialValue('bit-mixer-seed-2')
@@ -92,20 +98,42 @@ const BitMixer = () => {
     })
   }, [seeds])
 
-  const handleInputChange =
-    (setter: (v: number) => void) =>
+  const handleBinaryInputChange =
+    (
+      textSetter: (v: string) => void,
+      numSetter: (v: number) => void
+    ) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const val = parseInt(e.target.value, 10)
-      if (!isNaN(val) && val >= 0 && val <= 255) {
-        setter(val)
-      } else if (e.target.value === '') {
-        setter(0)
+      const binary = e.target.value
+      textSetter(binary)
+      // バリデーション：8桁の0/1のみの場合に数値を更新
+      const num = binaryToNumber(binary)
+      if (num !== null) {
+        numSetter(num)
       }
     }
 
-  const handleRandomizeInput = (setter: (v: number) => void) => () => {
-    setter(randomByte())
-  }
+  const handleRandomizeInput =
+    (numSetter: (v: number) => void, textSetter: (v: string) => void) =>
+    () => {
+      const rand = randomByte()
+      numSetter(rand)
+      textSetter(toBinary8(rand))
+    }
+
+  const handleSeedChange =
+    (index: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = parseInt(e.target.value, 10)
+      if (!isNaN(val) && val >= 0 && val <= 255) {
+        const newSeeds = [...seeds]
+        newSeeds[index] = val
+        setSeeds(newSeeds)
+      } else if (e.target.value === '') {
+        const newSeeds = [...seeds]
+        newSeeds[index] = 0
+        setSeeds(newSeeds)
+      }
+    }
 
   const handleRandomizeSeed = (index: number) => () => {
     const newSeeds = [...seeds]
@@ -114,6 +142,10 @@ const BitMixer = () => {
   }
 
   const results = seeds.map((seed) => mix8(inputA, inputB, seed))
+
+  // バリデーション状態
+  const isValidA = binaryToNumber(inputAText) !== null
+  const isValidB = binaryToNumber(inputBText) !== null
 
   return (
     <Layout title={title}>
@@ -136,19 +168,29 @@ const BitMixer = () => {
           <Stack direction="row" spacing={2} alignItems="center">
             <Typography sx={{ minWidth: 80 }}>Input A:</Typography>
             <TextField
-              type="number"
-              value={inputA}
-              onChange={handleInputChange(setInputA)}
-              inputProps={{ min: 0, max: 255, step: 1 }}
+              value={inputAText}
+              onChange={handleBinaryInputChange(setInputAText, setInputA)}
+              placeholder="00000000"
               size="small"
-              sx={{ width: 100 }}
+              error={!isValidA}
+              helperText={!isValidA ? '8桁の0/1を入力してください' : ''}
+              sx={{
+                width: 180,
+                fontFamily: 'monospace',
+                '& input': { fontFamily: 'monospace', letterSpacing: '0.1em' },
+              }}
             />
-            <IconButton onClick={handleRandomizeInput(setInputA)} size="small">
+            <IconButton
+              onClick={handleRandomizeInput(setInputA, setInputAText)}
+              size="small"
+            >
               <FaDice />
             </IconButton>
-            <Typography variant="body2" sx={{ fontFamily: 'monospace', ml: 2 }}>
-              {toBinary8(inputA)}
-            </Typography>
+            {isValidA && (
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                (= {inputA})
+              </Typography>
+            )}
           </Stack>
         </Paper>
 
@@ -157,19 +199,29 @@ const BitMixer = () => {
           <Stack direction="row" spacing={2} alignItems="center">
             <Typography sx={{ minWidth: 80 }}>Input B:</Typography>
             <TextField
-              type="number"
-              value={inputB}
-              onChange={handleInputChange(setInputB)}
-              inputProps={{ min: 0, max: 255, step: 1 }}
+              value={inputBText}
+              onChange={handleBinaryInputChange(setInputBText, setInputB)}
+              placeholder="00000000"
               size="small"
-              sx={{ width: 100 }}
+              error={!isValidB}
+              helperText={!isValidB ? '8桁の0/1を入力してください' : ''}
+              sx={{
+                width: 180,
+                fontFamily: 'monospace',
+                '& input': { fontFamily: 'monospace', letterSpacing: '0.1em' },
+              }}
             />
-            <IconButton onClick={handleRandomizeInput(setInputB)} size="small">
+            <IconButton
+              onClick={handleRandomizeInput(setInputB, setInputBText)}
+              size="small"
+            >
               <FaDice />
             </IconButton>
-            <Typography variant="body2" sx={{ fontFamily: 'monospace', ml: 2 }}>
-              {toBinary8(inputB)}
-            </Typography>
+            {isValidB && (
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                (= {inputB})
+              </Typography>
+            )}
           </Stack>
         </Paper>
 
@@ -180,42 +232,33 @@ const BitMixer = () => {
         {results.map((result, idx) => (
           <Paper key={idx} sx={{ p: 2, bgcolor: 'grey.50' }}>
             <Stack direction="row" spacing={2} alignItems="center">
-              <Typography sx={{ minWidth: 80 }}>Seed {idx + 1}:</Typography>
-              <TextField
-                type="number"
-                value={seeds[idx]}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value, 10)
-                  if (!isNaN(val) && val >= 0 && val <= 255) {
-                    const newSeeds = [...seeds]
-                    newSeeds[idx] = val
-                    setSeeds(newSeeds)
-                  } else if (e.target.value === '') {
-                    const newSeeds = [...seeds]
-                    newSeeds[idx] = 0
-                    setSeeds(newSeeds)
-                  }
-                }}
-                inputProps={{ min: 0, max: 255, step: 1 }}
-                size="small"
-                sx={{ width: 100 }}
-              />
-              <IconButton onClick={handleRandomizeSeed(idx)} size="small">
-                <FaDice />
-              </IconButton>
-              <Typography sx={{ minWidth: 80 }}>→ Result:</Typography>
               <Typography
                 variant="body1"
-                sx={{ fontWeight: 'bold', minWidth: 50 }}
-              >
-                {result}
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ fontFamily: 'monospace', ml: 2 }}
+                sx={{
+                  fontFamily: 'monospace',
+                  letterSpacing: '0.1em',
+                  fontSize: '1.2rem',
+                  fontWeight: 'bold',
+                }}
               >
                 {toBinary8(result)}
               </Typography>
+              <Box sx={{ ml: 'auto', display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  Seed:
+                </Typography>
+                <TextField
+                  type="number"
+                  value={seeds[idx]}
+                  onChange={handleSeedChange(idx)}
+                  inputProps={{ min: 0, max: 255, step: 1 }}
+                  size="small"
+                  sx={{ width: 80 }}
+                />
+                <IconButton onClick={handleRandomizeSeed(idx)} size="small">
+                  <FaDice />
+                </IconButton>
+              </Box>
             </Stack>
           </Paper>
         ))}
