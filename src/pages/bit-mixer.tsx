@@ -8,11 +8,13 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 import { mix8 } from '../lib/mix8'
 import { FaDice } from 'react-icons/fa'
+import { useLocalStorage } from '../utils/useLocalStorage'
+import { range } from 'lodash'
 
 /**
  * 0〜255のランダム整数を生成
@@ -36,96 +38,55 @@ function binaryToNumber(binary: string): number | null {
   return parseInt(binary, 2)
 }
 
-/**
- * LocalStorageから値を取得（初回はランダム）
- */
-function getInitialValue(key: string): number {
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem(key)
-    if (stored !== null) {
-      const parsed = parseInt(stored, 10)
-      if (!isNaN(parsed) && parsed >= 0 && parsed <= 255) {
-        return parsed
-      }
-    }
-  }
-  return randomByte()
-}
-
-/**
- * LocalStorageに値を保存
- */
-function saveValue(key: string, value: number) {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(key, value.toString())
-  }
-}
-
 const title = 'Bit Mixer - 8bit合成ツール'
 
 type ColorTheme = 'none' | 'red-black' | 'blue-yellow'
 
-const BitMixer = () => {
-  const [inputA, setInputA] = useState<number>(0)
-  const [inputB, setInputB] = useState<number>(0)
-  const [inputAText, setInputAText] = useState<string>('')
-  const [inputBText, setInputBText] = useState<string>('')
-  const [seeds, setSeeds] = useState<number[]>([])
-  const [colorTheme, setColorTheme] = useState<ColorTheme>('none')
-  const [resultCount, setResultCount] = useState<number>(10)
+/**
+ * LocalStorage連携付きバイナリ入力のカスタムフック
+ */
+function useBinaryInput(storageKey: string) {
+  const [value, setValue] = useLocalStorage<number>(storageKey, randomByte())
+  const [text, setText] = useState<string>(() => toBinary8(value))
 
-  // 初期化
-  useEffect(() => {
-    const a = getInitialValue('bit-mixer-a')
-    const b = getInitialValue('bit-mixer-b')
-    setInputA(a)
-    setInputB(b)
-    setInputAText(toBinary8(a))
-    setInputBText(toBinary8(b))
-    // 結果を10個生成
-    const newSeeds = Array.from({ length: resultCount }, (_, i) =>
-      getInitialValue(`bit-mixer-seed-${i}`)
-    )
-    setSeeds(newSeeds)
-  }, [])
-
-  // 値を保存
-  useEffect(() => {
-    saveValue('bit-mixer-a', inputA)
-  }, [inputA])
-
-  useEffect(() => {
-    saveValue('bit-mixer-b', inputB)
-  }, [inputB])
-
-  useEffect(() => {
-    seeds.forEach((seed, idx) => {
-      saveValue(`bit-mixer-seed-${idx}`, seed)
-    })
-  }, [seeds])
-
-  const handleBinaryInputChange =
-    (
-      textSetter: (v: string) => void,
-      numSetter: (v: number) => void
-    ) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const binary = e.target.value
-      textSetter(binary)
-      // バリデーション：8桁の0/1のみの場合に数値を更新
-      const num = binaryToNumber(binary)
-      if (num !== null) {
-        numSetter(num)
-      }
+  const handleChange = (newText: string) => {
+    setText(newText)
+    const num = binaryToNumber(newText)
+    if (num !== null) {
+      setValue(num)
     }
+  }
 
-  const handleRandomizeInput =
-    (numSetter: (v: number) => void, textSetter: (v: string) => void) =>
-    () => {
-      const rand = randomByte()
-      numSetter(rand)
-      textSetter(toBinary8(rand))
-    }
+  const randomize = () => {
+    const rand = randomByte()
+    setValue(rand)
+    setText(toBinary8(rand))
+  }
+
+  const isValid = binaryToNumber(text) !== null
+
+  return { value, text, handleChange, randomize, isValid }
+}
+
+/**
+ * 結果リストコンポーネント
+ */
+type MixResultListProps = {
+  inputA: number
+  inputB: number
+  colorTheme: ColorTheme
+  initialCount?: number
+}
+
+function MixResultList({
+  inputA,
+  inputB,
+  colorTheme,
+  initialCount = 10,
+}: MixResultListProps) {
+  const [seeds, setSeeds] = useState<number[]>(() =>
+    range(initialCount).map(() => randomByte())
+  )
 
   const handleSeedChange =
     (index: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,22 +109,14 @@ const BitMixer = () => {
   }
 
   const handleAddResult = () => {
-    const newSeeds = [...seeds, randomByte()]
-    setSeeds(newSeeds)
-    setResultCount(newSeeds.length)
+    setSeeds([...seeds, randomByte()])
   }
 
   const handleGenerateResults = (count: number) => {
-    const newSeeds = Array.from({ length: count }, () => randomByte())
-    setSeeds(newSeeds)
-    setResultCount(count)
+    setSeeds(range(count).map(() => randomByte()))
   }
 
   const results = seeds.map((seed) => mix8(inputA, inputB, seed))
-
-  // バリデーション状態
-  const isValidA = binaryToNumber(inputAText) !== null
-  const isValidB = binaryToNumber(inputBText) !== null
 
   // カラーテーマに応じたスタイル（背景色）
   const getBitStyle = (bit: string): React.CSSProperties => {
@@ -194,6 +147,97 @@ const BitMixer = () => {
   }
 
   return (
+    <>
+      <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+        <Button size="small" variant="outlined" onClick={handleAddResult}>
+          +1
+        </Button>
+        <Button
+          size="small"
+          variant="contained"
+          onClick={() => handleGenerateResults(10)}
+          sx={{ bgcolor: 'primary.main' }}
+        >
+          10個生成
+        </Button>
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => handleGenerateResults(50)}
+        >
+          50個生成
+        </Button>
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => handleGenerateResults(100)}
+        >
+          100個生成
+        </Button>
+      </Stack>
+      <Stack spacing={0.5}>
+        {results.map((result, idx) => (
+          <Box
+            key={idx}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              py: 0.5,
+              px: 1,
+              bgcolor: idx % 2 === 0 ? 'grey.100' : 'grey.50',
+              borderRadius: 1,
+            }}
+          >
+            <Box
+              sx={{
+                fontSize: '1.1rem',
+                flex: 1,
+                display: 'flex',
+                gap: 0.25,
+              }}
+            >
+              {toBinary8(result)
+                .split('')
+                .map((bit, i) => (
+                  <span key={i} style={getBitStyle(bit)}>
+                    {bit}
+                  </span>
+                ))}
+            </Box>
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <TextField
+                type="number"
+                value={seeds[idx]}
+                onChange={handleSeedChange(idx)}
+                inputProps={{ min: 0, max: 255, step: 1 }}
+                size="small"
+                sx={{
+                  width: 70,
+                  '& input': { fontSize: '0.75rem', py: 0.5 },
+                }}
+              />
+              <IconButton
+                onClick={handleRandomizeSeed(idx)}
+                size="small"
+                sx={{ p: 0.5 }}
+              >
+                <FaDice size={14} />
+              </IconButton>
+            </Stack>
+          </Box>
+        ))}
+      </Stack>
+    </>
+  )
+}
+
+const BitMixer = () => {
+  const inputA = useBinaryInput('bit-mixer-a')
+  const inputB = useBinaryInput('bit-mixer-b')
+  const [colorTheme, setColorTheme] = useState<ColorTheme>('none')
+
+  return (
     <Layout title={title}>
       <Title>{title}</Title>
 
@@ -209,72 +253,100 @@ const BitMixer = () => {
       </Box>
 
       <Stack spacing={3}>
-        {/* Input A */}
+        {/* Input A & B */}
         <Paper sx={{ p: 2 }}>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Typography sx={{ minWidth: 80 }}>Input A:</Typography>
-            <TextField
-              value={inputAText}
-              onChange={handleBinaryInputChange(setInputAText, setInputA)}
-              placeholder="00000000"
-              size="small"
-              error={!isValidA}
-              helperText={!isValidA ? '8桁の0/1を入力してください' : ''}
-              sx={{
-                width: 180,
-                fontFamily: 'monospace',
-                '& input': { fontFamily: 'monospace', letterSpacing: '0.1em' },
-              }}
-            />
-            <IconButton
-              onClick={handleRandomizeInput(setInputA, setInputAText)}
-              size="small"
-            >
-              <FaDice />
-            </IconButton>
-            {isValidA && (
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                (= {inputA})
-              </Typography>
-            )}
-          </Stack>
-        </Paper>
+          <Stack direction="row" spacing={3} alignItems="flex-start">
+            {/* Input A */}
+            <Box sx={{ flex: 1 }}>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Typography sx={{ minWidth: 60 }}>Input A:</Typography>
+                <TextField
+                  value={inputA.text}
+                  onChange={(e) => inputA.handleChange(e.target.value)}
+                  placeholder="00000000"
+                  size="small"
+                  error={!inputA.isValid}
+                  FormHelperTextProps={{
+                    sx: { minHeight: '20px', margin: 0 },
+                  }}
+                  helperText={!inputA.isValid ? '8桁の0/1を入力' : ' '}
+                  sx={{
+                    width: 180,
+                    fontFamily: 'monospace',
+                    '& input': {
+                      fontFamily: 'monospace',
+                      letterSpacing: '0.1em',
+                    },
+                  }}
+                />
+                <IconButton onClick={inputA.randomize} size="small">
+                  <FaDice />
+                </IconButton>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'text.secondary',
+                    minWidth: 50,
+                    visibility: inputA.isValid ? 'visible' : 'hidden',
+                  }}
+                >
+                  (= {inputA.value})
+                </Typography>
+              </Stack>
+            </Box>
 
-        {/* Input B */}
-        <Paper sx={{ p: 2 }}>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Typography sx={{ minWidth: 80 }}>Input B:</Typography>
-            <TextField
-              value={inputBText}
-              onChange={handleBinaryInputChange(setInputBText, setInputB)}
-              placeholder="00000000"
-              size="small"
-              error={!isValidB}
-              helperText={!isValidB ? '8桁の0/1を入力してください' : ''}
-              sx={{
-                width: 180,
-                fontFamily: 'monospace',
-                '& input': { fontFamily: 'monospace', letterSpacing: '0.1em' },
-              }}
-            />
-            <IconButton
-              onClick={handleRandomizeInput(setInputB, setInputBText)}
-              size="small"
-            >
-              <FaDice />
-            </IconButton>
-            {isValidB && (
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                (= {inputB})
-              </Typography>
-            )}
+            {/* Input B */}
+            <Box sx={{ flex: 1 }}>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Typography sx={{ minWidth: 60 }}>Input B:</Typography>
+                <TextField
+                  value={inputB.text}
+                  onChange={(e) => inputB.handleChange(e.target.value)}
+                  placeholder="00000000"
+                  size="small"
+                  error={!inputB.isValid}
+                  FormHelperTextProps={{
+                    sx: { minHeight: '20px', margin: 0 },
+                  }}
+                  helperText={!inputB.isValid ? '8桁の0/1を入力' : ' '}
+                  sx={{
+                    width: 180,
+                    fontFamily: 'monospace',
+                    '& input': {
+                      fontFamily: 'monospace',
+                      letterSpacing: '0.1em',
+                    },
+                  }}
+                />
+                <IconButton onClick={inputB.randomize} size="small">
+                  <FaDice />
+                </IconButton>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'text.secondary',
+                    minWidth: 50,
+                    visibility: inputB.isValid ? 'visible' : 'hidden',
+                  }}
+                >
+                  (= {inputB.value})
+                </Typography>
+              </Stack>
+            </Box>
           </Stack>
         </Paper>
 
         <Divider sx={{ my: 2 }} />
 
         {/* Results */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
+        >
           <Typography variant="h6">合成結果</Typography>
           <Stack direction="row" spacing={1} alignItems="center">
             <Typography variant="caption">色:</Typography>
@@ -301,86 +373,12 @@ const BitMixer = () => {
             </Button>
           </Stack>
         </Box>
-        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-          <Button size="small" variant="outlined" onClick={handleAddResult}>
-            +1
-          </Button>
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => handleGenerateResults(10)}
-            sx={{ bgcolor: 'primary.main' }}
-          >
-            10個生成
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={() => handleGenerateResults(50)}
-          >
-            50個生成
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={() => handleGenerateResults(100)}
-          >
-            100個生成
-          </Button>
-        </Stack>
-        <Stack spacing={0.5}>
-          {results.map((result, idx) => (
-            <Box
-              key={idx}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                py: 0.5,
-                px: 1,
-                bgcolor: idx % 2 === 0 ? 'grey.100' : 'grey.50',
-                borderRadius: 1,
-              }}
-            >
-              <Box
-                sx={{
-                  fontSize: '1.1rem',
-                  flex: 1,
-                  display: 'flex',
-                  gap: 0.25,
-                }}
-              >
-                {toBinary8(result)
-                  .split('')
-                  .map((bit, i) => (
-                    <span key={i} style={getBitStyle(bit)}>
-                      {bit}
-                    </span>
-                  ))}
-              </Box>
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                <TextField
-                  type="number"
-                  value={seeds[idx]}
-                  onChange={handleSeedChange(idx)}
-                  inputProps={{ min: 0, max: 255, step: 1 }}
-                  size="small"
-                  sx={{
-                    width: 70,
-                    '& input': { fontSize: '0.75rem', py: 0.5 },
-                  }}
-                />
-                <IconButton
-                  onClick={handleRandomizeSeed(idx)}
-                  size="small"
-                  sx={{ p: 0.5 }}
-                >
-                  <FaDice size={14} />
-                </IconButton>
-              </Stack>
-            </Box>
-          ))}
-        </Stack>
+        <MixResultList
+          key={`${inputA.value}-${inputB.value}`}
+          inputA={inputA.value}
+          inputB={inputB.value}
+          colorTheme={colorTheme}
+        />
       </Stack>
 
       <Box sx={{ mt: 4 }}>
