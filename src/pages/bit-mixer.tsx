@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Divider,
   IconButton,
   Paper,
@@ -62,12 +63,16 @@ function saveValue(key: string, value: number) {
 
 const title = 'Bit Mixer - 8bit合成ツール'
 
+type ColorTheme = 'none' | 'red-black' | 'blue-yellow'
+
 const BitMixer = () => {
   const [inputA, setInputA] = useState<number>(0)
   const [inputB, setInputB] = useState<number>(0)
   const [inputAText, setInputAText] = useState<string>('')
   const [inputBText, setInputBText] = useState<string>('')
   const [seeds, setSeeds] = useState<number[]>([])
+  const [colorTheme, setColorTheme] = useState<ColorTheme>('none')
+  const [resultCount, setResultCount] = useState<number>(10)
 
   // 初期化
   useEffect(() => {
@@ -77,10 +82,11 @@ const BitMixer = () => {
     setInputB(b)
     setInputAText(toBinary8(a))
     setInputBText(toBinary8(b))
-    const s1 = getInitialValue('bit-mixer-seed-0')
-    const s2 = getInitialValue('bit-mixer-seed-1')
-    const s3 = getInitialValue('bit-mixer-seed-2')
-    setSeeds([s1, s2, s3])
+    // 結果を10個生成
+    const newSeeds = Array.from({ length: resultCount }, (_, i) =>
+      getInitialValue(`bit-mixer-seed-${i}`)
+    )
+    setSeeds(newSeeds)
   }, [])
 
   // 値を保存
@@ -141,11 +147,51 @@ const BitMixer = () => {
     setSeeds(newSeeds)
   }
 
+  const handleAddResult = () => {
+    const newSeeds = [...seeds, randomByte()]
+    setSeeds(newSeeds)
+    setResultCount(newSeeds.length)
+  }
+
+  const handleGenerateResults = (count: number) => {
+    const newSeeds = Array.from({ length: count }, () => randomByte())
+    setSeeds(newSeeds)
+    setResultCount(count)
+  }
+
   const results = seeds.map((seed) => mix8(inputA, inputB, seed))
 
   // バリデーション状態
   const isValidA = binaryToNumber(inputAText) !== null
   const isValidB = binaryToNumber(inputBText) !== null
+
+  // カラーテーマに応じたスタイル（背景色）
+  const getBitStyle = (bit: string): React.CSSProperties => {
+    const baseStyle: React.CSSProperties = {
+      display: 'inline-block',
+      width: '1.2em',
+      textAlign: 'center',
+      fontFamily: 'monospace',
+      fontWeight: 'normal',
+    }
+
+    if (colorTheme === 'none') return baseStyle
+
+    if (colorTheme === 'red-black') {
+      return {
+        ...baseStyle,
+        backgroundColor: bit === '1' ? '#ffcdd2' : '#e0e0e0',
+        color: bit === '1' ? '#b71c1c' : '#212121',
+      }
+    }
+
+    // blue-yellow
+    return {
+      ...baseStyle,
+      backgroundColor: bit === '1' ? '#bbdefb' : '#fff9c4',
+      color: bit === '1' ? '#0d47a1' : '#f57f17',
+    }
+  }
 
   return (
     <Layout title={title}>
@@ -228,40 +274,113 @@ const BitMixer = () => {
         <Divider sx={{ my: 2 }} />
 
         {/* Results */}
-        <Typography variant="h6">合成結果</Typography>
-        {results.map((result, idx) => (
-          <Paper key={idx} sx={{ p: 2, bgcolor: 'grey.50' }}>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Typography
-                variant="body1"
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6">合成結果</Typography>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Typography variant="caption">色:</Typography>
+            <Button
+              size="small"
+              variant={colorTheme === 'none' ? 'contained' : 'outlined'}
+              onClick={() => setColorTheme('none')}
+            >
+              なし
+            </Button>
+            <Button
+              size="small"
+              variant={colorTheme === 'red-black' ? 'contained' : 'outlined'}
+              onClick={() => setColorTheme('red-black')}
+            >
+              赤黒
+            </Button>
+            <Button
+              size="small"
+              variant={colorTheme === 'blue-yellow' ? 'contained' : 'outlined'}
+              onClick={() => setColorTheme('blue-yellow')}
+            >
+              青黄
+            </Button>
+          </Stack>
+        </Box>
+        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+          <Button size="small" variant="outlined" onClick={handleAddResult}>
+            +1
+          </Button>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => handleGenerateResults(10)}
+            sx={{ bgcolor: 'primary.main' }}
+          >
+            10個生成
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => handleGenerateResults(50)}
+          >
+            50個生成
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => handleGenerateResults(100)}
+          >
+            100個生成
+          </Button>
+        </Stack>
+        <Stack spacing={0.5}>
+          {results.map((result, idx) => (
+            <Box
+              key={idx}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                py: 0.5,
+                px: 1,
+                bgcolor: idx % 2 === 0 ? 'grey.100' : 'grey.50',
+                borderRadius: 1,
+              }}
+            >
+              <Box
                 sx={{
-                  fontFamily: 'monospace',
-                  letterSpacing: '0.1em',
-                  fontSize: '1.2rem',
-                  fontWeight: 'bold',
+                  fontSize: '1.1rem',
+                  flex: 1,
+                  display: 'flex',
+                  gap: 0.25,
                 }}
               >
-                {toBinary8(result)}
-              </Typography>
-              <Box sx={{ ml: 'auto', display: 'flex', gap: 1, alignItems: 'center' }}>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  Seed:
-                </Typography>
+                {toBinary8(result)
+                  .split('')
+                  .map((bit, i) => (
+                    <span key={i} style={getBitStyle(bit)}>
+                      {bit}
+                    </span>
+                  ))}
+              </Box>
+              <Stack direction="row" spacing={0.5} alignItems="center">
                 <TextField
                   type="number"
                   value={seeds[idx]}
                   onChange={handleSeedChange(idx)}
                   inputProps={{ min: 0, max: 255, step: 1 }}
                   size="small"
-                  sx={{ width: 80 }}
+                  sx={{
+                    width: 70,
+                    '& input': { fontSize: '0.75rem', py: 0.5 },
+                  }}
                 />
-                <IconButton onClick={handleRandomizeSeed(idx)} size="small">
-                  <FaDice />
+                <IconButton
+                  onClick={handleRandomizeSeed(idx)}
+                  size="small"
+                  sx={{ p: 0.5 }}
+                >
+                  <FaDice size={14} />
                 </IconButton>
-              </Box>
-            </Stack>
-          </Paper>
-        ))}
+              </Stack>
+            </Box>
+          ))}
+        </Stack>
       </Stack>
 
       <Box sx={{ mt: 4 }}>
