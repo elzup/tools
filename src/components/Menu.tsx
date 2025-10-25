@@ -9,12 +9,12 @@ import {
 import {
   IconDefinition,
   faBowlingBall,
-  faBug,
   faCalculator,
   faChartLine,
   faClipboard,
   faClock,
   faCode,
+  faDna,
   faExchangeAlt,
   faFeatherAlt,
   faGlobe,
@@ -277,6 +277,11 @@ const routings: RoutingGroup[] = [
         icon: faWandSparkles,
         label: 'Magironic',
         path: '/magironic',
+      },
+      {
+        icon: faDna,
+        label: 'Bit Mixer',
+        path: '/bit-mixer',
       },
       {
         icon: faImage,

@@ -43,6 +43,7 @@
 | diginima.tsx            | ProtoType    | デジニマ - デジタル実験                       |                                       | 現在           |     | プロトタイプ           | 3    |
 | decimal.tsx             | ProtoType    | 十進数表示実験                                | @elzup/kit                            | 現在           |     | 数値表示               | 3    |
 | magironic.tsx           | ProtoType    | マジロニック - 魔法的インターフェース         |                                       | 現在           |     | UI 実験                | 4    |
+| bit-mixer.tsx           | ProtoType    | Bit Mixer - 8bit合成ツール                    | @mui                                  | 現在           |     | ビット演算実験         | 5    |
 | speecher.tsx            | ProtoType    | スピーチャー - 音声関連ツール                 |                                       | 現在           | \*  | 音声処理               | 7    |
 | mirror.tsx              | Closed       | ミラーカメラ - カメラミラーリング             | react-webcam, @mui                    | **要更新**     |     | カメラ使用             | 3    |
 | gha-badge-maker.tsx     | Closed       | GitHub Actions バッジメーカー                 | @mui                                  | 現在           |     | バッジ生成             | 4    |
