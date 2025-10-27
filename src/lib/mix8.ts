@@ -56,3 +56,22 @@ export function mix8(a: number, b: number, seedExtra = 0): number {
   }
   return result & 0xff
 }
+
+export function getBitMixDistributionGolden() {
+  const phi = (1 + Math.sqrt(5)) / 2
+  const totalRatio = [1, phi]
+  // 例: 総和 1:1.618 に収束するよう p1/p0 を動的スケーリング
+  // 実際のロジックはここに later 実装
+  return {
+    '00': {
+      p1: totalRatio[0] / (totalRatio[0] + totalRatio[1]),
+      p0: totalRatio[1] / (totalRatio[0] + totalRatio[1]),
+    },
+    '11': {
+      p1: totalRatio[1] / (totalRatio[0] + totalRatio[1]),
+      p0: totalRatio[0] / (totalRatio[0] + totalRatio[1]),
+    },
+    '01': { p1: 0.5, p0: 0.5 },
+    '10': { p1: 0.5, p0: 0.5 },
+  }
+}
