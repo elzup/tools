@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Checkbox,
   Divider,
   IconButton,
   Paper,
@@ -48,6 +49,7 @@ type ColorTheme = 'none' | 'red-black' | 'blue-yellow'
 function useBinaryInput(storageKey: string) {
   const [value, setValue] = useLocalStorage<number>(storageKey, randomByte())
   const [text, setText] = useState<string>(() => toBinary8(value))
+  const [editMode, setEditMode] = useState<'text' | 'checkbox'>('text')
 
   const handleChange = (newText: string) => {
     setText(newText)
@@ -57,15 +59,135 @@ function useBinaryInput(storageKey: string) {
     }
   }
 
+  const handleBitToggle = (index: number) => {
+    const newValue = value ^ (1 << index)
+    setValue(newValue)
+    setText(toBinary8(newValue))
+  }
+
   const randomize = () => {
     const rand = randomByte()
     setValue(rand)
     setText(toBinary8(rand))
   }
 
+  const toggleEditMode = () => {
+    setEditMode(editMode === 'text' ? 'checkbox' : 'text')
+    // テキストモードに戻るときに、現在の値でテキストを同期
+    if (editMode === 'checkbox') {
+      setText(toBinary8(value))
+    }
+  }
+
   const isValid = binaryToNumber(text) !== null
 
-  return { value, text, handleChange, randomize, isValid }
+  return {
+    value,
+    text,
+    handleChange,
+    randomize,
+    isValid,
+    editMode,
+    toggleEditMode,
+    handleBitToggle,
+  }
+}
+
+/**
+ * Bitエディターコンポーネント
+ */
+type BitEditorProps = {
+  label: string
+  input: ReturnType<typeof useBinaryInput>
+}
+
+function BitEditor({ label, input }: BitEditorProps) {
+  return (
+    <Box sx={{ flex: 1 }}>
+      <Stack spacing={1}>
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Typography sx={{ minWidth: 60 }}>{label}:</Typography>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={input.toggleEditMode}
+            sx={{ minWidth: 60 }}
+          >
+            {input.editMode === 'text' ? 'テキスト' : 'チェック'}
+          </Button>
+          <IconButton onClick={input.randomize} size="small">
+            <FaDice />
+          </IconButton>
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+              minWidth: 50,
+              visibility: input.isValid ? 'visible' : 'hidden',
+            }}
+          >
+            (= {input.value})
+          </Typography>
+        </Stack>
+        {input.editMode === 'text' ? (
+          <TextField
+            value={input.text}
+            onChange={(e) => input.handleChange(e.target.value)}
+            placeholder="00000000"
+            size="small"
+            error={!input.isValid}
+            FormHelperTextProps={{
+              sx: { minHeight: '20px', margin: 0 },
+            }}
+            helperText={!input.isValid ? '8桁の0/1を入力' : ' '}
+            sx={{
+              width: 180,
+              fontFamily: 'monospace',
+              '& input': {
+                fontFamily: 'monospace',
+                letterSpacing: '0.1em',
+              },
+            }}
+          />
+        ) : (
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: 0.5,
+              width: 'fit-content',
+            }}
+          >
+            {range(8)
+              .reverse()
+              .map((i) => (
+                <Box
+                  key={i}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{ minWidth: 20, fontSize: '0.7rem' }}
+                  >
+                    bit{i}:
+                  </Typography>
+                  <Checkbox
+                    checked={((input.value >> i) & 1) === 1}
+                    onChange={() => input.handleBitToggle(i)}
+                    size="small"
+                    sx={{ p: 0.5 }}
+                  />
+                </Box>
+              ))}
+          </Box>
+        )}
+      </Stack>
+    </Box>
+  )
 }
 
 /**
@@ -256,83 +378,8 @@ const BitMixer = () => {
         {/* Input A & B */}
         <Paper sx={{ p: 2 }}>
           <Stack direction="row" spacing={3} alignItems="flex-start">
-            {/* Input A */}
-            <Box sx={{ flex: 1 }}>
-              <Stack direction="row" spacing={2} alignItems="center">
-                <Typography sx={{ minWidth: 60 }}>Input A:</Typography>
-                <TextField
-                  value={inputA.text}
-                  onChange={(e) => inputA.handleChange(e.target.value)}
-                  placeholder="00000000"
-                  size="small"
-                  error={!inputA.isValid}
-                  FormHelperTextProps={{
-                    sx: { minHeight: '20px', margin: 0 },
-                  }}
-                  helperText={!inputA.isValid ? '8桁の0/1を入力' : ' '}
-                  sx={{
-                    width: 180,
-                    fontFamily: 'monospace',
-                    '& input': {
-                      fontFamily: 'monospace',
-                      letterSpacing: '0.1em',
-                    },
-                  }}
-                />
-                <IconButton onClick={inputA.randomize} size="small">
-                  <FaDice />
-                </IconButton>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: 'text.secondary',
-                    minWidth: 50,
-                    visibility: inputA.isValid ? 'visible' : 'hidden',
-                  }}
-                >
-                  (= {inputA.value})
-                </Typography>
-              </Stack>
-            </Box>
-
-            {/* Input B */}
-            <Box sx={{ flex: 1 }}>
-              <Stack direction="row" spacing={2} alignItems="center">
-                <Typography sx={{ minWidth: 60 }}>Input B:</Typography>
-                <TextField
-                  value={inputB.text}
-                  onChange={(e) => inputB.handleChange(e.target.value)}
-                  placeholder="00000000"
-                  size="small"
-                  error={!inputB.isValid}
-                  FormHelperTextProps={{
-                    sx: { minHeight: '20px', margin: 0 },
-                  }}
-                  helperText={!inputB.isValid ? '8桁の0/1を入力' : ' '}
-                  sx={{
-                    width: 180,
-                    fontFamily: 'monospace',
-                    '& input': {
-                      fontFamily: 'monospace',
-                      letterSpacing: '0.1em',
-                    },
-                  }}
-                />
-                <IconButton onClick={inputB.randomize} size="small">
-                  <FaDice />
-                </IconButton>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: 'text.secondary',
-                    minWidth: 50,
-                    visibility: inputB.isValid ? 'visible' : 'hidden',
-                  }}
-                >
-                  (= {inputB.value})
-                </Typography>
-              </Stack>
-            </Box>
+            <BitEditor label="Input A" input={inputA} />
+            <BitEditor label="Input B" input={inputB} />
           </Stack>
         </Paper>
 
