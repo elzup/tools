@@ -62,14 +62,30 @@ const CONSONANTS: Record<string, ConsonantInfo> = {
 
 const VOWELS = new Set(['a', 'i', 'u', 'e', 'o'])
 
+// 母音の調音情報
+type VowelInfo = {
+  frontBack: number // 前後位置: 1=前舌, 2=中舌, 3=後舌
+  height: number // 開口度: 1=狭, 2=中, 3=広
+}
+
+const VOWEL_INFO: Record<string, VowelInfo> = {
+  i: { frontBack: 1, height: 1 }, // 前舌・狭
+  e: { frontBack: 1, height: 2 }, // 前舌・中
+  a: { frontBack: 2, height: 3 }, // 中舌・広
+  o: { frontBack: 3, height: 2 }, // 後舌・中
+  u: { frontBack: 3, height: 1 }, // 後舌・狭
+}
+
 // ローマ字を解析する
 function parseRomaji(input: string): {
   consonants: string[]
+  vowels: string[]
   vowelCount: number
   syllables: string[]
 } {
   const name = input.toLowerCase().replace(/[^a-z]/g, '')
   const consonants: string[] = []
+  const vowels: string[] = []
   const syllables: string[] = []
   let currentSyllable = ''
   let vowelCount = 0
@@ -77,6 +93,7 @@ function parseRomaji(input: string): {
   for (const ch of name) {
     if (VOWELS.has(ch)) {
       vowelCount++
+      vowels.push(ch)
       currentSyllable += ch
       syllables.push(currentSyllable)
       currentSyllable = ''
@@ -92,7 +109,7 @@ function parseRomaji(input: string): {
     syllables.push(currentSyllable)
   }
 
-  return { consonants, vowelCount, syllables }
+  return { consonants, vowels, vowelCount, syllables }
 }
 
 // スコア計算
@@ -102,12 +119,14 @@ function calculateScore(input: string): {
   posScore: number
   balanceScore: number
   cvScore: number
+  vowelScore: number
   details: {
     moraCount: number
     consonantCount: number
     voicedCount: number
     unvoicedCount: number
     posTransitions: string[]
+    vowelTransitions: string[]
     tags: string[]
   }
 } {
@@ -119,18 +138,20 @@ function calculateScore(input: string): {
       posScore: 0,
       balanceScore: 0,
       cvScore: 0,
+      vowelScore: 0,
       details: {
         moraCount: 0,
         consonantCount: 0,
         voicedCount: 0,
         unvoicedCount: 0,
         posTransitions: [],
+        vowelTransitions: [],
         tags: [],
       },
     }
   }
 
-  const { consonants, vowelCount, syllables } = parseRomaji(name)
+  const { consonants, vowels, vowelCount, syllables } = parseRomaji(name)
   const moraCount = vowelCount || 1
 
   // (1) 長さスコア (0-30)
@@ -188,13 +209,38 @@ function calculateScore(input: string): {
     posScore = 20 // 中間的な値
   }
 
-  // (4) 有声/無声バランススコア (0-20)
-  let balanceScore = 20
+  // (4) 有声/無声バランススコア (0-15)
+  let balanceScore = 15
   const totalC = voicedCount + unvoicedCount
   if (totalC > 0) {
     const ratio = voicedCount / totalC
     const diff = Math.abs(ratio - 0.5)
-    balanceScore = Math.max(0, Math.round(20 - diff * 40))
+    balanceScore = Math.max(0, Math.round(15 - diff * 30))
+  }
+
+  // (5) 母音の流れスコア (0-15)
+  let vowelPenalty = 0
+  let prevVowelPos: number | null = null
+  const vowelTransitions: string[] = []
+
+  for (const v of vowels) {
+    const info = VOWEL_INFO[v]
+    if (!info) continue
+
+    if (prevVowelPos != null) {
+      const diff = Math.abs(info.frontBack - prevVowelPos)
+      vowelTransitions.push(`${prevVowelPos}→${info.frontBack}`)
+      if (diff === 0) vowelPenalty += 0 // 同じ位置
+      else if (diff === 1) vowelPenalty += 0 // 1段移動: 滑らか
+      else vowelPenalty += 1.5 // 2段: 跳ぶ
+    }
+    prevVowelPos = info.frontBack
+  }
+  let vowelScore = Math.max(0, 15 - Math.min(vowelPenalty, 5) * 3)
+
+  // 母音が1つ以下の場合
+  if (vowels.length <= 1) {
+    vowelScore = 10
   }
 
   // タグ生成
@@ -234,7 +280,10 @@ function calculateScore(input: string): {
     tags.push('重厚')
   }
 
-  const total = Math.min(100, lengthScore + posScore + balanceScore + cvScore)
+  const total = Math.min(
+    100,
+    lengthScore + posScore + balanceScore + cvScore + vowelScore
+  )
 
   return {
     total: Math.round(total),
@@ -242,12 +291,14 @@ function calculateScore(input: string): {
     posScore: Math.round(posScore),
     balanceScore: Math.round(balanceScore),
     cvScore: Math.round(cvScore),
+    vowelScore: Math.round(vowelScore),
     details: {
       moraCount,
       consonantCount: consonants.length,
       voicedCount,
       unvoicedCount,
       posTransitions,
+      vowelTransitions,
       tags,
     },
   }
@@ -376,7 +427,7 @@ const GokanScore = () => {
                     <TableRow>
                       <TableCell>有声/無声バランス</TableCell>
                       <TableCell align="right">
-                        {result.balanceScore}/20
+                        {result.balanceScore}/15
                       </TableCell>
                       <TableCell>
                         有声:{result.details.voicedCount} / 無声:
@@ -387,6 +438,15 @@ const GokanScore = () => {
                       <TableCell>CV構造</TableCell>
                       <TableCell align="right">{result.cvScore}/20</TableCell>
                       <TableCell>子音+母音の規則性</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>母音の流れ</TableCell>
+                      <TableCell align="right">{result.vowelScore}/15</TableCell>
+                      <TableCell>
+                        {result.details.vowelTransitions.length > 0
+                          ? result.details.vowelTransitions.join(', ')
+                          : '-'}
+                      </TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -420,50 +480,98 @@ const GokanScore = () => {
 
         <Paper sx={{ p: 2 }}>
           <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>
-            調音位置テーブル
+            子音テーブル
           </Typography>
           <TableContainer>
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>位置</TableCell>
-                  <TableCell>子音</TableCell>
-                  <TableCell>特徴</TableCell>
-                  <TableCell>印象</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}></TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                    唇音 (前)
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                    歯茎音
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                    軟口蓋音
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                    声門音 (後)
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 <TableRow>
-                  <TableCell>1. 唇音（前）</TableCell>
-                  <TableCell>p, b, m, f, v, w</TableCell>
-                  <TableCell>口先で閉じる/開く</TableCell>
-                  <TableCell>可愛い・優しい</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>
+                    無声 (シャープ)
+                  </TableCell>
+                  <TableCell align="center">p, f</TableCell>
+                  <TableCell align="center">t, s, c, x</TableCell>
+                  <TableCell align="center">k, q</TableCell>
+                  <TableCell align="center">h</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell>2. 歯茎音（中央）</TableCell>
-                  <TableCell>t, d, n, s, z, r, l</TableCell>
-                  <TableCell>舌先のタッチ</TableCell>
-                  <TableCell>中性・リズム良い</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>3. 軟口蓋音（後ろ）</TableCell>
-                  <TableCell>k, g</TableCell>
-                  <TableCell>喉奥の響き</TableCell>
-                  <TableCell>強さ・硬質</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>4. 声門音</TableCell>
-                  <TableCell>h</TableCell>
-                  <TableCell>息が抜ける</TableCell>
-                  <TableCell>軽さ・風っぽい</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>
+                    有声 (柔らか)
+                  </TableCell>
+                  <TableCell align="center">b, m, v, w</TableCell>
+                  <TableCell align="center">d, n, z, r, l, j, y</TableCell>
+                  <TableCell align="center">g</TableCell>
+                  <TableCell align="center">-</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
           </TableContainer>
+          <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+            ※ 位置が1段ずつ動く（前→中央→後ろ）並びは滑らか
+          </Typography>
+        </Paper>
 
-          <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
-            ※
-            調音位置が1段ずつ動く（前→中央→後ろ）並びは滑らかで語感が良いとされます
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>
+            母音テーブル
+          </Typography>
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold' }}></TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                    前舌
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                    中舌
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                    後舌
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold' }}>狭 (閉)</TableCell>
+                  <TableCell align="center">i</TableCell>
+                  <TableCell align="center">-</TableCell>
+                  <TableCell align="center">u</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold' }}>中</TableCell>
+                  <TableCell align="center">e</TableCell>
+                  <TableCell align="center">-</TableCell>
+                  <TableCell align="center">o</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold' }}>広 (開)</TableCell>
+                  <TableCell align="center">-</TableCell>
+                  <TableCell align="center">a</TableCell>
+                  <TableCell align="center">-</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+            ※ 前舌→中舌→後舌の流れが滑らか（例: i→a→u）
           </Typography>
         </Paper>
       </Stack>
