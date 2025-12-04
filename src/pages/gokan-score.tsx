@@ -19,45 +19,60 @@ import { Title } from '../components/Title'
 
 const title = '語感スコア'
 
-// 子音の調音情報
+// 子音の調音情報 (7段階 IPA準拠)
+// 1=両唇音, 2=唇歯音, 3=歯茎音, 4=後部歯茎音, 5=硬口蓋音, 6=軟口蓋音, 7=声門音
 type ConsonantInfo = {
-  pos: number // 調音位置: 1=唇音(前), 2=歯茎音(中央), 3=軟口蓋音(後ろ), 4=声門音
-  voiced: boolean // 有声か
-  fricative: boolean // 摩擦音か
-  label: string // 調音位置ラベル
+  pos: number
+  voiced: boolean
+  fricative: boolean
+  label: string
+}
+
+const POS_LABELS: Record<number, string> = {
+  1: '両唇',
+  2: '唇歯',
+  3: '歯茎',
+  4: '後部歯茎',
+  5: '硬口蓋',
+  6: '軟口蓋',
+  7: '声門',
 }
 
 const CONSONANTS: Record<string, ConsonantInfo> = {
-  // 唇音（前・Labial）
-  p: { pos: 1, voiced: false, fricative: false, label: '唇音' },
-  b: { pos: 1, voiced: true, fricative: false, label: '唇音' },
-  m: { pos: 1, voiced: true, fricative: false, label: '唇音' },
-  f: { pos: 1, voiced: false, fricative: true, label: '唇音' },
-  v: { pos: 1, voiced: true, fricative: true, label: '唇音' },
-  w: { pos: 1, voiced: true, fricative: false, label: '唇音' },
+  // 両唇音 (Bilabial) pos=1
+  p: { pos: 1, voiced: false, fricative: false, label: '両唇音' },
+  b: { pos: 1, voiced: true, fricative: false, label: '両唇音' },
+  m: { pos: 1, voiced: true, fricative: false, label: '両唇音' },
+  w: { pos: 1, voiced: true, fricative: false, label: '両唇音' },
 
-  // 歯茎音（中央・Alveolar）
-  t: { pos: 2, voiced: false, fricative: false, label: '歯茎音' },
-  d: { pos: 2, voiced: true, fricative: false, label: '歯茎音' },
-  n: { pos: 2, voiced: true, fricative: false, label: '歯茎音' },
-  s: { pos: 2, voiced: false, fricative: true, label: '歯茎音' },
-  z: { pos: 2, voiced: true, fricative: true, label: '歯茎音' },
-  r: { pos: 2, voiced: true, fricative: false, label: '歯茎音' },
-  l: { pos: 2, voiced: true, fricative: false, label: '歯茎音' },
-  c: { pos: 2, voiced: false, fricative: false, label: '歯茎音' }, // /k/ or /s/
-  j: { pos: 2, voiced: true, fricative: true, label: '歯茎音' },
-  x: { pos: 2, voiced: false, fricative: true, label: '歯茎音' }, // /ks/
+  // 唇歯音 (Labiodental) pos=2
+  f: { pos: 2, voiced: false, fricative: true, label: '唇歯音' },
+  v: { pos: 2, voiced: true, fricative: true, label: '唇歯音' },
 
-  // 軟口蓋音（後ろ・Velar）
-  k: { pos: 3, voiced: false, fricative: false, label: '軟口蓋音' },
-  g: { pos: 3, voiced: true, fricative: false, label: '軟口蓋音' },
-  q: { pos: 3, voiced: false, fricative: false, label: '軟口蓋音' },
+  // 歯茎音 (Alveolar) pos=3
+  t: { pos: 3, voiced: false, fricative: false, label: '歯茎音' },
+  d: { pos: 3, voiced: true, fricative: false, label: '歯茎音' },
+  n: { pos: 3, voiced: true, fricative: false, label: '歯茎音' },
+  s: { pos: 3, voiced: false, fricative: true, label: '歯茎音' },
+  z: { pos: 3, voiced: true, fricative: true, label: '歯茎音' },
+  r: { pos: 3, voiced: true, fricative: false, label: '歯茎音' },
+  l: { pos: 3, voiced: true, fricative: false, label: '歯茎音' },
 
-  // 声門音（さらに後ろ・Glottal）
-  h: { pos: 4, voiced: false, fricative: true, label: '声門音' },
+  // 後部歯茎音 (Postalveolar) pos=4
+  c: { pos: 4, voiced: false, fricative: false, label: '後部歯茎音' }, // ch的な音
+  j: { pos: 4, voiced: true, fricative: true, label: '後部歯茎音' },
+  x: { pos: 4, voiced: false, fricative: true, label: '後部歯茎音' }, // sh的な音
 
-  // 半母音として扱う
-  y: { pos: 2, voiced: true, fricative: false, label: '硬口蓋音' },
+  // 硬口蓋音 (Palatal) pos=5
+  y: { pos: 5, voiced: true, fricative: false, label: '硬口蓋音' },
+
+  // 軟口蓋音 (Velar) pos=6
+  k: { pos: 6, voiced: false, fricative: false, label: '軟口蓋音' },
+  g: { pos: 6, voiced: true, fricative: false, label: '軟口蓋音' },
+  q: { pos: 6, voiced: false, fricative: false, label: '軟口蓋音' },
+
+  // 声門音 (Glottal) pos=7
+  h: { pos: 7, voiced: false, fricative: true, label: '声門音' },
 }
 
 const VOWELS = new Set(['a', 'i', 'u', 'e', 'o'])
@@ -190,14 +205,14 @@ function calculateScore(input: string): {
 
     if (prevPos != null) {
       const diff = Math.abs(info.pos - prevPos)
-      posTransitions.push(`${prevPos}→${info.pos}`)
-      if (diff === 0)
-        posPenalty += 0 // 同じ位置: OK
-      else if (diff === 1)
-        posPenalty += 0 // 1段移動: 滑らか
-      else if (diff === 2)
-        posPenalty += 1.5 // 2段: ちょい跳ぶ
-      else posPenalty += 3 // 3段以上: 大きく跳ぶ
+      posTransitions.push(
+        `${POS_LABELS[prevPos] || prevPos}→${POS_LABELS[info.pos] || info.pos}`
+      )
+      // 7段階に合わせたペナルティ
+      if (diff <= 1) posPenalty += 0 // 同じ or 1段: 滑らか
+      else if (diff === 2) posPenalty += 0.5 // 2段: やや跳ぶ
+      else if (diff === 3) posPenalty += 1 // 3段: 跳ぶ
+      else posPenalty += 2 // 4段以上: 大きく跳ぶ
     }
     prevPos = info.pos
   }
@@ -230,8 +245,10 @@ function calculateScore(input: string): {
     if (prevVowelPos != null) {
       const diff = Math.abs(info.frontBack - prevVowelPos)
       vowelTransitions.push(`${prevVowelPos}→${info.frontBack}`)
-      if (diff === 0) vowelPenalty += 0 // 同じ位置
-      else if (diff === 1) vowelPenalty += 0 // 1段移動: 滑らか
+      if (diff === 0)
+        vowelPenalty += 0 // 同じ位置
+      else if (diff === 1)
+        vowelPenalty += 0 // 1段移動: 滑らか
       else vowelPenalty += 1.5 // 2段: 跳ぶ
     }
     prevVowelPos = info.frontBack
@@ -441,7 +458,9 @@ const GokanScore = () => {
                     </TableRow>
                     <TableRow>
                       <TableCell>母音の流れ</TableCell>
-                      <TableCell align="right">{result.vowelScore}/15</TableCell>
+                      <TableCell align="right">
+                        {result.vowelScore}/15
+                      </TableCell>
                       <TableCell>
                         {result.details.vowelTransitions.length > 0
                           ? result.details.vowelTransitions.join(', ')
@@ -480,51 +499,64 @@ const GokanScore = () => {
 
         <Paper sx={{ p: 2 }}>
           <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>
-            子音テーブル
+            子音テーブル (7段階)
           </Typography>
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold' }}></TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                    唇音 (前)
-                  </TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                    歯茎音
-                  </TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                    軟口蓋音
-                  </TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                    声門音 (後)
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold' }}>
-                    無声 (シャープ)
-                  </TableCell>
-                  <TableCell align="center">p, f</TableCell>
-                  <TableCell align="center">t, s, c, x</TableCell>
-                  <TableCell align="center">k, q</TableCell>
-                  <TableCell align="center">h</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold' }}>
-                    有声 (柔らか)
-                  </TableCell>
-                  <TableCell align="center">b, m, v, w</TableCell>
-                  <TableCell align="center">d, n, z, r, l, j, y</TableCell>
-                  <TableCell align="center">g</TableCell>
-                  <TableCell align="center">-</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <Box sx={{ overflowX: 'auto' }}>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold' }}></TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                      両唇
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                      唇歯
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                      歯茎
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                      後部歯茎
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                      硬口蓋
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                      軟口蓋
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                      声門
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold' }}>無声</TableCell>
+                    <TableCell align="center">p</TableCell>
+                    <TableCell align="center">f</TableCell>
+                    <TableCell align="center">t, s</TableCell>
+                    <TableCell align="center">c, x</TableCell>
+                    <TableCell align="center">-</TableCell>
+                    <TableCell align="center">k, q</TableCell>
+                    <TableCell align="center">h</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold' }}>有声</TableCell>
+                    <TableCell align="center">b, m, w</TableCell>
+                    <TableCell align="center">v</TableCell>
+                    <TableCell align="center">d, n, z, r, l</TableCell>
+                    <TableCell align="center">j</TableCell>
+                    <TableCell align="center">y</TableCell>
+                    <TableCell align="center">g</TableCell>
+                    <TableCell align="center">-</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
           <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
-            ※ 位置が1段ずつ動く（前→中央→後ろ）並びは滑らか
+            ※ 隣接する位置への移動は滑らか（例: 両唇→唇歯→歯茎）
           </Typography>
         </Paper>
 
