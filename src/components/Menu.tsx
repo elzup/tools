@@ -165,6 +165,11 @@ const routings: RoutingGroup[] = [
       },
       {
         icon: faChartLine,
+        label: '分布推定ツール',
+        path: '/norm-viewer',
+      },
+      {
+        icon: faChartLine,
         label: 'Custom Pi Ratio Graph',
         path: '/custom-ratio-graph',
       },
