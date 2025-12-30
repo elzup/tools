@@ -96,6 +96,21 @@ export type DistributionParams = {
   mean?: number
   stdDev?: number
   conditions: Condition[]
+  rawScores?: number[] // 生の得点データ
+}
+
+// 生データから平均と標準偏差を計算
+function estimateFromRawScores(scores: number[]): { mean: number; stdDev: number } | null {
+  if (scores.length < 2) return null
+
+  const n = scores.length
+  const mean = scores.reduce((a, b) => a + b, 0) / n
+  const variance = scores.reduce((sum, x) => sum + (x - mean) ** 2, 0) / (n - 1) // 不偏分散
+  const stdDev = Math.sqrt(variance)
+
+  if (stdDev <= 0) return null
+
+  return { mean, stdDev }
 }
 
 // 推定結果
@@ -224,10 +239,27 @@ export function estimateDistribution(
   if (mean !== undefined) inputFields.push('平均値')
   if (stdDev !== undefined) inputFields.push('標準偏差')
 
+  // 生データから推定
+  const rawScores = params.rawScores?.filter((s) => Number.isFinite(s)) ?? []
+  if (rawScores.length >= 2 && (mean === undefined || stdDev === undefined)) {
+    const fromRaw = estimateFromRawScores(rawScores)
+    if (fromRaw) {
+      if (mean === undefined) {
+        mean = fromRaw.mean
+        estimatedFields.push('平均値')
+      }
+      if (stdDev === undefined) {
+        stdDev = fromRaw.stdDev
+        estimatedFields.push('標準偏差')
+      }
+      inputFields.push(`得点データ(n=${rawScores.length})`)
+    }
+  }
+
   // 条件からペアを抽出
   const pairs = extractPercentileValuePairs(params.conditions)
 
-  // μ と σ の推定
+  // μ と σ の推定（条件から）
   if (mean === undefined || stdDev === undefined) {
     if (pairs.length >= 2) {
       // 条件から推定

@@ -24,6 +24,9 @@ export function generateLabel(params: DistributionParams): string {
   const parts: string[] = []
   if (params.mean !== undefined) parts.push(`μ=${params.mean}`)
   if (params.stdDev !== undefined) parts.push(`σ=${params.stdDev}`)
+  if (params.rawScores && params.rawScores.length > 0) {
+    parts.push(`n=${params.rawScores.length}`)
+  }
   if (params.conditions.length > 0) {
     const conds = params.conditions
       .filter((c) => c.value !== undefined && c.percentage !== undefined)
@@ -149,11 +152,21 @@ export function SavedLibrary({
 
   return (
     <Paper sx={{ p: 1.5 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mb: 0.5 }}
+      >
         <Typography variant="caption" color="text.secondary">
           履歴 ({entries.length})
         </Typography>
-        <Button size="small" variant="outlined" onClick={onSave} sx={{ py: 0, minHeight: 24 }}>
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={onSave}
+          sx={{ py: 0, minHeight: 24 }}
+        >
           保存
         </Button>
       </Stack>
@@ -169,7 +182,7 @@ export function SavedLibrary({
                   onClick={() => handleRestore(entry)}
                   sx={{ cursor: 'pointer' }}
                 >
-                  <TableCell sx={{ width: 60, color: 'text.secondary' }}>
+                  <TableCell sx={{ color: 'text.secondary' }}>
                     <Typography variant="caption">
                       {formatTime(entry.savedAt)}
                     </Typography>

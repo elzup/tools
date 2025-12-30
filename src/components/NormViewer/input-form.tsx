@@ -9,7 +9,7 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Condition,
   ConditionType,
@@ -51,6 +51,27 @@ export function InputForm({ params, setParams }: Props) {
       ...params,
       conditions: params.conditions.filter((c) => c.id !== id),
     })
+  }
+
+  // 得点データ入力用のローカルstate（入力中のテキストを保持）
+  const [rawScoresText, setRawScoresText] = useState(params.rawScores?.join(', ') ?? '')
+
+  // params.rawScoresが外部から変更された場合に同期
+  useEffect(() => {
+    const newText = params.rawScores?.join(', ') ?? ''
+    if (newText !== rawScoresText.replace(/,\s*$/, '').trim()) {
+      setRawScoresText(newText)
+    }
+  }, [params.rawScores])
+
+  const parseAndSetRawScores = (value: string) => {
+    const scores = value
+      .split(/[,\s\n]+/)
+      .map((s) => s.trim())
+      .filter((s) => s !== '')
+      .map((s) => Number.parseFloat(s))
+      .filter((n) => Number.isFinite(n))
+    setParams({ ...params, rawScores: scores.length > 0 ? scores : undefined })
   }
 
   return (
@@ -157,10 +178,36 @@ export function InputForm({ params, setParams }: Props) {
           ))}
           {params.conditions.length === 0 && (
             <Typography variant="caption" color="text.secondary">
-              条件を2つ以上追加してください
+              条件を2つ以上追加、または得点データを入力
             </Typography>
           )}
         </Stack>
+      </Paper>
+
+      <Paper sx={{ p: 2 }}>
+        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          得点データ
+          {params.rawScores && params.rawScores.length > 0 && (
+            <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+              (n={params.rawScores.length})
+            </Typography>
+          )}
+        </Typography>
+        <TextField
+          size="small"
+          fullWidth
+          multiline
+          minRows={1}
+          maxRows={3}
+          placeholder="200, 215, 180, 195..."
+          value={rawScoresText}
+          onChange={(e) => {
+            setRawScoresText(e.target.value)
+            parseAndSetRawScores(e.target.value)
+          }}
+          helperText="カンマ区切りで入力"
+          FormHelperTextProps={{ sx: { mt: 0.5, fontSize: '0.7rem' } }}
+        />
       </Paper>
     </Stack>
   )
