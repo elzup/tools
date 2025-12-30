@@ -1,13 +1,12 @@
 import {
+  Box,
   Button,
-  FormControl,
-  FormControlLabel,
-  FormLabel,
+  IconButton,
   Paper,
-  Radio,
-  RadioGroup,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from '@mui/material'
 import { useState } from 'react'
@@ -55,172 +54,112 @@ export function InputForm({ params, setParams }: Props) {
   }
 
   return (
-    <Stack spacing={3}>
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
+    <Stack spacing={2}>
+      <Paper sx={{ p: 2 }}>
+        <Typography variant="subtitle2" sx={{ mb: 1 }}>
           基本パラメータ
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          空白のままでも条件から自動推定されます
-        </Typography>
-
-        <Stack spacing={2}>
+        <Stack direction="row" spacing={1}>
           <TextField
-            label="平均値 (μ)"
+            label="μ"
             type="number"
             size="small"
             value={params.mean ?? ''}
             onChange={(e) => handleBasicChange('mean', e.target.value)}
-            placeholder="例: 100"
-            fullWidth
+            sx={{ flex: 1 }}
           />
           <TextField
-            label="標準偏差 (σ)"
+            label="σ"
             type="number"
             size="small"
             value={params.stdDev ?? ''}
             onChange={(e) => handleBasicChange('stdDev', e.target.value)}
-            placeholder="例: 15"
-            fullWidth
+            sx={{ flex: 1 }}
           />
           <TextField
-            label="総数 (N)"
+            label="N"
             type="number"
             size="small"
             value={params.totalCount ?? ''}
             onChange={(e) => handleBasicChange('totalCount', e.target.value)}
-            placeholder="例: 1000"
-            fullWidth
+            sx={{ flex: 1 }}
           />
         </Stack>
       </Paper>
 
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          条件を追加
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          複数の条件から未知値を推定します（最低2つ必要）
-        </Typography>
-
-        <FormControl component="fieldset" sx={{ mb: 2 }}>
-          <FormLabel component="legend">条件タイプ</FormLabel>
-          <RadioGroup
-            value={newCondType}
-            onChange={(e) => setNewCondType(e.target.value as ConditionType)}
-          >
-            <FormControlLabel
-              value="value-percentage"
-              control={<Radio size="small" />}
-              label="値とパーセント: 「x点以上は上位y%」"
-            />
-            <FormControlLabel
-              value="percentile-value"
-              control={<Radio size="small" />}
-              label="パーセンタイルと値: 「上位x%の境界値はy点」"
-            />
-          </RadioGroup>
-        </FormControl>
-
-        <Button
-          variant="contained"
-          onClick={addCondition}
-          fullWidth
-          sx={{ mb: 2 }}
+      <Paper sx={{ p: 2 }}>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ mb: 1 }}
         >
-          条件を追加
-        </Button>
+          <Typography variant="subtitle2">条件</Typography>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <ToggleButtonGroup
+              value={newCondType}
+              exclusive
+              onChange={(_, v) => v && setNewCondType(v)}
+              size="small"
+            >
+              <ToggleButton value="value-percentage" sx={{ px: 1, py: 0.5 }}>
+                <Typography variant="caption">点→%</Typography>
+              </ToggleButton>
+              <ToggleButton value="percentile-value" sx={{ px: 1, py: 0.5 }}>
+                <Typography variant="caption">%→点</Typography>
+              </ToggleButton>
+            </ToggleButtonGroup>
+            <Button size="small" variant="outlined" onClick={addCondition}>
+              +
+            </Button>
+          </Stack>
+        </Stack>
 
-        <Stack spacing={2}>
+        <Stack spacing={1}>
           {params.conditions.map((cond) => (
-            <Paper key={cond.id} variant="outlined" sx={{ p: 2 }}>
-              {cond.type === 'value-percentage' && (
-                <>
-                  <Stack direction="row" spacing={2}>
-                    <TextField
-                      label="値 (点)"
-                      type="number"
-                      size="small"
-                      value={cond.value ?? ''}
-                      onChange={(e) =>
-                        updateCondition(cond.id, 'value', e.target.value)
-                      }
-                      placeholder="例: 200"
-                      fullWidth
-                    />
-                    <TextField
-                      label="上位 (%)"
-                      type="number"
-                      size="small"
-                      value={cond.percentage ?? ''}
-                      onChange={(e) =>
-                        updateCondition(cond.id, 'percentage', e.target.value)
-                      }
-                      placeholder="例: 30"
-                      fullWidth
-                    />
-                  </Stack>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ mt: 1, display: 'block' }}
-                  >
-                    {cond.value !== undefined && cond.percentage !== undefined
-                      ? `${cond.value}点以上: 上位${cond.percentage}%`
-                      : '値とパーセントを入力'}
-                  </Typography>
-                </>
-              )}
-
-              {cond.type === 'percentile-value' && (
-                <>
-                  <Stack direction="row" spacing={2}>
-                    <TextField
-                      label="上位 (%)"
-                      type="number"
-                      size="small"
-                      value={cond.percentage ?? ''}
-                      onChange={(e) =>
-                        updateCondition(cond.id, 'percentage', e.target.value)
-                      }
-                      placeholder="例: 30"
-                      fullWidth
-                    />
-                    <TextField
-                      label="境界値 (点)"
-                      type="number"
-                      size="small"
-                      value={cond.value ?? ''}
-                      onChange={(e) =>
-                        updateCondition(cond.id, 'value', e.target.value)
-                      }
-                      placeholder="例: 200"
-                      fullWidth
-                    />
-                  </Stack>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ mt: 1, display: 'block' }}
-                  >
-                    {cond.value !== undefined && cond.percentage !== undefined
-                      ? `上位${cond.percentage}%の境界: ${cond.value}点`
-                      : 'パーセントと値を入力'}
-                  </Typography>
-                </>
-              )}
-
-              <Button
-                variant="text"
-                color="error"
+            <Stack key={cond.id} direction="row" spacing={1} alignItems="center">
+              <TextField
+                size="small"
+                type="number"
+                value={cond.value ?? ''}
+                onChange={(e) =>
+                  updateCondition(cond.id, 'value', e.target.value)
+                }
+                placeholder="点"
+                sx={{ width: 80 }}
+                inputProps={{ style: { textAlign: 'right' } }}
+              />
+              <Typography variant="body2" color="text.secondary">
+                {cond.type === 'value-percentage' ? '点 → 上位' : '点 ← 上位'}
+              </Typography>
+              <TextField
+                size="small"
+                type="number"
+                value={cond.percentage ?? ''}
+                onChange={(e) =>
+                  updateCondition(cond.id, 'percentage', e.target.value)
+                }
+                placeholder="%"
+                sx={{ width: 70 }}
+                inputProps={{ style: { textAlign: 'right' } }}
+              />
+              <Typography variant="body2" color="text.secondary">
+                %
+              </Typography>
+              <IconButton
                 size="small"
                 onClick={() => removeCondition(cond.id)}
-                sx={{ mt: 1 }}
+                sx={{ ml: 'auto' }}
               >
-                削除
-              </Button>
-            </Paper>
+                ×
+              </IconButton>
+            </Stack>
           ))}
+          {params.conditions.length === 0 && (
+            <Typography variant="caption" color="text.secondary">
+              条件を2つ以上追加してください
+            </Typography>
+          )}
         </Stack>
       </Paper>
     </Stack>

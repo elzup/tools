@@ -1,6 +1,15 @@
-import { Box, Paper, Stack, Typography } from '@mui/material'
-import { useMemo } from 'react'
-import { Condition, normalPDF } from '../../lib/norm-estimator'
+import { Box, Paper, Slider, Stack, Typography } from '@mui/material'
+import { useMemo, useState } from 'react'
+import { Condition, normalCDF, normalPDF } from '../../lib/norm-estimator'
+
+// 軸分割レベルの設定
+const AXIS_LEVELS = [
+  { label: '粗い', step: 3 },      // -3, 0, 3
+  { label: '', step: 1.5 },        // -3, -1.5, 0, 1.5, 3
+  { label: '標準', step: 1 },      // -3, -2, -1, 0, 1, 2, 3
+  { label: '', step: 0.5 },        // every 0.5σ
+  { label: '細かい', step: 0.25 }, // every 0.25σ
+]
 
 type Props = {
   mean: number
@@ -9,6 +18,17 @@ type Props = {
 }
 
 export function DistributionChart({ mean, stdDev, conditions }: Props) {
+  const [axisLevel, setAxisLevel] = useState(2) // デフォルトは「標準」
+
+  const axisPoints = useMemo(() => {
+    const step = AXIS_LEVELS[axisLevel].step
+    const points: number[] = []
+    for (let s = -3; s <= 3; s += step) {
+      points.push(Math.round(s * 1000) / 1000) // 浮動小数点誤差対策
+    }
+    return points
+  }, [axisLevel])
+
   const chartData = useMemo(() => {
     if (!Number.isFinite(mean) || !Number.isFinite(stdDev) || stdDev <= 0) {
       return []
@@ -54,7 +74,7 @@ export function DistributionChart({ mean, stdDev, conditions }: Props) {
   const range = maxX - minX
 
   const width = 800
-  const height = 300
+  const height = 320
   const padding = 50
 
   // 条件の点をマーク
@@ -166,8 +186,8 @@ export function DistributionChart({ mean, stdDev, conditions }: Props) {
           )
         })}
 
-        {/* X axis labels */}
-        {[-3, -2, -1, 0, 1, 2, 3].map((sigma) => {
+        {/* X axis labels - value */}
+        {axisPoints.map((sigma) => {
           const xVal = mean + sigma * stdDev
           const xPos =
             padding + ((xVal - minX) / range) * (width - 2 * padding)
@@ -175,18 +195,47 @@ export function DistributionChart({ mean, stdDev, conditions }: Props) {
             <text
               key={sigma}
               x={xPos}
-              y={height - padding + 20}
+              y={height - padding + 18}
               textAnchor="middle"
-              fontSize="12"
+              fontSize={axisLevel >= 3 ? '9' : '11'}
               fill="#666"
             >
-              {xVal.toFixed(0)}
+              {xVal.toFixed(axisLevel >= 4 ? 1 : 0)}
+            </text>
+          )
+        })}
+
+        {/* X axis labels - top % */}
+        {axisPoints.map((sigma) => {
+          const xPos =
+            padding + ((mean + sigma * stdDev - minX) / range) * (width - 2 * padding)
+          const topPercent = (1 - normalCDF(sigma)) * 100
+          return (
+            <text
+              key={`top-${sigma}`}
+              x={xPos}
+              y={height - padding + 32}
+              textAnchor="middle"
+              fontSize={axisLevel >= 3 ? '7' : '9'}
+              fill="#999"
+            >
+              {topPercent < 1
+                ? `${topPercent.toFixed(1)}%`
+                : topPercent < 10
+                  ? `${topPercent.toFixed(1)}%`
+                  : `${topPercent.toFixed(0)}%`}
             </text>
           )
         })}
       </svg>
 
-      <Stack direction="row" spacing={3} sx={{ mt: 2 }}>
+      <Stack
+        direction="row"
+        spacing={2}
+        sx={{ mt: 2 }}
+        alignItems="center"
+        flexWrap="wrap"
+      >
         <Stack direction="row" spacing={1} alignItems="center">
           <Box sx={{ width: 24, height: 2, bgcolor: 'primary.main' }} />
           <Typography variant="body2">正規分布</Typography>
@@ -212,6 +261,24 @@ export function DistributionChart({ mean, stdDev, conditions }: Props) {
             <Typography variant="body2">条件</Typography>
           </Stack>
         )}
+
+        <Box sx={{ flex: 1 }} />
+
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 150 }}>
+          <Typography variant="caption" color="text.secondary">
+            軸
+          </Typography>
+          <Slider
+            value={axisLevel}
+            onChange={(_e: Event, v: number | number[]) => setAxisLevel(v as number)}
+            min={0}
+            max={4}
+            step={1}
+            marks={AXIS_LEVELS.map((l, i) => ({ value: i, label: l.label }))}
+            size="small"
+            sx={{ width: 120 }}
+          />
+        </Stack>
       </Stack>
     </Paper>
   )

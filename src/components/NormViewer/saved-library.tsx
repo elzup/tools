@@ -1,14 +1,13 @@
 import {
-  Box,
   Button,
-  Collapse,
   IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
   Paper,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
   Typography,
 } from '@mui/material'
 import { useEffect, useRef, useState } from 'react'
@@ -125,14 +124,10 @@ export function SavedLibrary({
   onSave: () => void
 }) {
   const [entries, setEntries] = useState<SavedEntry[]>([])
-  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
     setEntries(loadSavedEntries())
   }, [])
-
-  const manualEntries = entries.filter((e) => !e.isAuto)
-  const autoEntries = entries.filter((e) => e.isAuto)
 
   const handleRestore = (entry: SavedEntry) => {
     setParams(entry.params)
@@ -149,111 +144,70 @@ export function SavedLibrary({
     return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
   }
 
+  // 最新5件のみ表示
+  const displayEntries = entries.slice(0, 5)
+
   return (
-    <Paper sx={{ p: 2 }}>
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-      >
-        <Typography variant="subtitle2">
-          Saved ({manualEntries.length} + {autoEntries.length} auto)
+    <Paper sx={{ p: 1.5 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+        <Typography variant="caption" color="text.secondary">
+          履歴 ({entries.length})
         </Typography>
-        <Stack direction="row" spacing={1}>
-          <Button size="small" variant="contained" onClick={onSave}>
-            Save
-          </Button>
-          <Button size="small" onClick={() => setExpanded(!expanded)}>
-            {expanded ? 'Hide' : 'Show'}
-          </Button>
-        </Stack>
+        <Button size="small" variant="outlined" onClick={onSave} sx={{ py: 0, minHeight: 24 }}>
+          保存
+        </Button>
       </Stack>
 
-      <Collapse in={expanded}>
-        <Box sx={{ mt: 2 }}>
-          {manualEntries.length > 0 && (
-            <>
-              <Typography variant="caption" color="text.secondary">
-                Manual
-              </Typography>
-              <List dense disablePadding>
-                {manualEntries.map((entry) => (
-                  <ListItem
-                    key={entry.id}
-                    disablePadding
-                    secondaryAction={
-                      <IconButton
-                        edge="end"
-                        size="small"
-                        onClick={() => handleDelete(entry.id)}
-                      >
-                        ×
-                      </IconButton>
-                    }
-                  >
-                    <ListItemButton onClick={() => handleRestore(entry)} dense>
-                      <ListItemText
-                        primary={entry.label}
-                        secondary={formatTime(entry.savedAt)}
-                        primaryTypographyProps={{ variant: 'body2', noWrap: true }}
-                        secondaryTypographyProps={{ variant: 'caption' }}
-                      />
-                    </ListItemButton>
-                  </ListItem>
-                ))}
-              </List>
-            </>
-          )}
-
-          {autoEntries.length > 0 && (
-            <>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ mt: 1, display: 'block' }}
-              >
-                Auto-saved
-              </Typography>
-              <List dense disablePadding>
-                {autoEntries.slice(0, 5).map((entry) => (
-                  <ListItem
-                    key={entry.id}
-                    disablePadding
-                    secondaryAction={
-                      <IconButton
-                        edge="end"
-                        size="small"
-                        onClick={() => handleDelete(entry.id)}
-                      >
-                        ×
-                      </IconButton>
-                    }
-                  >
-                    <ListItemButton onClick={() => handleRestore(entry)} dense>
-                      <ListItemText
-                        primary={entry.label}
-                        secondary={formatTime(entry.savedAt)}
-                        primaryTypographyProps={{
-                          variant: 'body2',
-                          noWrap: true,
-                          color: 'text.secondary',
-                        }}
-                        secondaryTypographyProps={{ variant: 'caption' }}
-                      />
-                    </ListItemButton>
-                  </ListItem>
-                ))}
-              </List>
-            </>
-          )}
-
-          {entries.length === 0 && (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
-              No saved entries
-            </Typography>
-          )}
-        </Box>
-      </Collapse>
+      {displayEntries.length > 0 ? (
+        <TableContainer>
+          <Table size="small" sx={{ '& td': { py: 0.3, px: 0.5, border: 0 } }}>
+            <TableBody>
+              {displayEntries.map((entry) => (
+                <TableRow
+                  key={entry.id}
+                  hover
+                  onClick={() => handleRestore(entry)}
+                  sx={{ cursor: 'pointer' }}
+                >
+                  <TableCell sx={{ width: 60, color: 'text.secondary' }}>
+                    <Typography variant="caption">
+                      {formatTime(entry.savedAt)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: entry.isAuto ? 'text.secondary' : 'text.primary',
+                        fontFamily: 'monospace',
+                      }}
+                      noWrap
+                    >
+                      {entry.label}
+                    </Typography>
+                  </TableCell>
+                  <TableCell sx={{ width: 24 }}>
+                    <IconButton
+                      size="small"
+                      onClick={(e: React.MouseEvent) => {
+                        e.stopPropagation()
+                        handleDelete(entry.id)
+                      }}
+                      sx={{ p: 0, fontSize: '0.75rem' }}
+                    >
+                      ×
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      ) : (
+        <Typography variant="caption" color="text.secondary">
+          なし
+        </Typography>
+      )}
     </Paper>
   )
 }
