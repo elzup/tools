@@ -6,7 +6,7 @@ import {
 } from '../../lib/norm-estimator'
 import { PercentileTable, ResultSummary } from './calculation-results'
 import { DistributionChart } from './distribution-chart'
-import { InputForm } from './input-form'
+import { BasicParamsInput, ConditionsInput, RawScoresInput } from './input-form'
 import { SavedLibrary, saveManually, useAutoSave } from './saved-library'
 import { ValueLookup } from './value-lookup'
 
@@ -44,7 +44,7 @@ const NormViewer = () => {
 
   return (
     <Stack spacing={2}>
-      {/* 入力エリア */}
+      {/* 入力エリア: 条件(左) | 基本パラメータ+得点データ(右) */}
       <Box
         sx={{
           display: 'grid',
@@ -52,37 +52,56 @@ const NormViewer = () => {
           gap: 2,
         }}
       >
-        <Stack spacing={2}>
+        {/* 左: 条件 + サンプルボタン */}
+        <Stack spacing={1}>
           <Stack direction="row" spacing={1} alignItems="center">
             <Button variant="outlined" size="small" onClick={setExample}>
               Sample
             </Button>
           </Stack>
-          <InputForm params={params} setParams={setParams} />
+          <ConditionsInput params={params} setParams={setParams} />
         </Stack>
-        <ValueLookup
-          mean={result.mean}
-          stdDev={result.stdDev}
-          isValid={result.isValid}
-          onLookupChange={handleLookupChange}
-        />
+
+        {/* 右: 基本パラメータ + 得点データ */}
+        <Stack spacing={2}>
+          <BasicParamsInput params={params} setParams={setParams} />
+          <RawScoresInput params={params} setParams={setParams} />
+        </Stack>
       </Box>
 
-      {/* グラフ */}
-      {result.isValid && (
-        <DistributionChart
-          mean={result.mean}
-          stdDev={result.stdDev}
-          conditions={params.conditions}
-          lookupMarkers={lookupMarkers}
-        />
-      )}
+      {/* 逆引き（フル幅） */}
+      <ValueLookup
+        mean={result.mean}
+        stdDev={result.stdDev}
+        isValid={result.isValid}
+        lookupMarkers={lookupMarkers}
+        onLookupChange={handleLookupChange}
+      />
 
       {/* 推定結果サマリー（1行） */}
       <ResultSummary result={result} />
 
-      {/* パーセンタイル（折りたたみ式） */}
-      <PercentileTable result={result} />
+      {/* グラフ + パーセンタイル（横並び） */}
+      {result.isValid && (
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', lg: '1fr auto' },
+            gap: 2,
+            alignItems: 'start',
+          }}
+        >
+          <DistributionChart
+            mean={result.mean}
+            stdDev={result.stdDev}
+            conditions={params.conditions}
+            lookupMarkers={lookupMarkers}
+            rawScores={params.rawScores}
+            onLookupChange={handleLookupChange}
+          />
+          <PercentileTable result={result} />
+        </Box>
+      )}
 
       {/* 履歴（最下部） */}
       <SavedLibrary

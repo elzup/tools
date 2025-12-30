@@ -1,28 +1,22 @@
 import { Paper, Stack, TextField, Typography } from '@mui/material'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { percentileToValue, valueToPercentile } from '../../lib/norm-estimator'
 
 // 数値を妥当な桁数で表示
-// - 0以外の数字を上から2つは表示
-// - 小数点以下1つは必ず表示
 function formatSmart(num: number): string {
-  if (!Number.isFinite(num)) return '-'
+  if (!Number.isFinite(num)) return ''
 
   const absNum = Math.abs(num)
 
-  if (absNum === 0) return '0.0'
+  if (absNum === 0) return '0'
 
   if (absNum >= 10) {
-    // 10以上: 小数点以下1桁
     return num.toFixed(1)
   } else if (absNum >= 1) {
-    // 1-10: 小数点以下2桁（有効数字2-3桁）
-    return num.toFixed(2).replace(/0$/, '')
+    return num.toFixed(2).replace(/\.?0+$/, '')
   } else {
-    // 1未満: 有効数字2桁を確保
-    // 先頭の0を除いて最初の非0桁を見つける
     const log = Math.floor(Math.log10(absNum))
-    const decimals = Math.max(1, -log + 1) // 有効数字2桁分
+    const decimals = Math.max(1, -log + 1)
     return num.toFixed(decimals)
   }
 }
@@ -31,80 +25,135 @@ type Props = {
   mean: number
   stdDev: number
   isValid: boolean
+  lookupMarkers?: { value: number | null; percentile: number | null }
   onLookupChange?: (lookupValue: number | null, lookupPercentile: number | null) => void
 }
 
-export function ValueLookup({ mean, stdDev, isValid, onLookupChange }: Props) {
-  const [lookupValue, setLookupValue] = useState<string>('')
-  const [lookupPercentile, setLookupPercentile] = useState<string>('')
+export function ValueLookup({ mean, stdDev, isValid, lookupMarkers, onLookupChange }: Props) {
+  const [valueInput, setValueInput] = useState<string>('')
+  const [percentInput, setPercentInput] = useState<string>('50')
+  const [lastEdited, setLastEdited] = useState<'value' | 'percent' | null>('percent')
+  const [initialized, setInitialized] = useState(false)
+  const [lastExternalUpdate, setLastExternalUpdate] = useState<number>(0)
+
+  // 初期化: 有効になったら50%をデフォルトで計算
+  useEffect(() => {
+    if (!isValid || initialized) return
+
+    const pct = 50
+    const val = percentileToValue(100 - pct, mean, stdDev)
+    setValueInput(formatSmart(val))
+    onLookupChange?.(val, pct)
+    setInitialized(true)
+  }, [isValid, initialized, mean, stdDev, onLookupChange])
+
+  // 外部からの変更（スライダーなど）を同期
+  useEffect(() => {
+    if (!isValid || !initialized) return
+    if (lookupMarkers?.value == null || lookupMarkers?.percentile == null) return
+
+    // 外部からの変更を検出（現在の入力値と異なる場合）
+    const currentVal = Number(valueInput)
+    const externalVal = lookupMarkers.value
+    const diff = Math.abs(currentVal - externalVal)
+
+    // 差が大きい場合のみ更新（自分の変更を上書きしないように）
+    if (diff > 0.01) {
+      setValueInput(formatSmart(externalVal))
+      setPercentInput(formatSmart(lookupMarkers.percentile))
+      setLastExternalUpdate(Date.now())
+    }
+  }, [lookupMarkers?.value, lookupMarkers?.percentile, isValid, initialized])
+
+  // mean/stdDevが変わったら再計算
+  useEffect(() => {
+    if (!isValid || !initialized) return
+
+    if (lastEdited === 'value' && valueInput !== '') {
+      const val = Number(valueInput)
+      if (Number.isFinite(val)) {
+        const pct = valueToPercentile(val, mean, stdDev)
+        const topPct = 100 - pct
+        setPercentInput(formatSmart(topPct))
+        onLookupChange?.(val, topPct)
+      }
+    } else if (lastEdited === 'percent' && percentInput !== '') {
+      const pct = Number(percentInput)
+      if (Number.isFinite(pct)) {
+        const val = percentileToValue(100 - pct, mean, stdDev)
+        setValueInput(formatSmart(val))
+        onLookupChange?.(val, pct)
+      }
+    }
+  }, [mean, stdDev, isValid, initialized])
 
   if (!isValid) return null
 
-  const valueResult =
-    lookupValue !== ''
-      ? valueToPercentile(Number(lookupValue), mean, stdDev)
-      : null
-  const percentileResult =
-    lookupPercentile !== ''
-      ? percentileToValue(Number(lookupPercentile), mean, stdDev)
-      : null
-
-  // 親に通知
   const handleValueChange = (v: string) => {
-    setLookupValue(v)
-    const numVal = v !== '' ? Number(v) : null
-    onLookupChange?.(numVal, lookupPercentile !== '' ? Number(lookupPercentile) : null)
+    setValueInput(v)
+    setLastEdited('value')
+
+    if (v === '') {
+      setPercentInput('')
+      onLookupChange?.(null, null)
+      return
+    }
+
+    const val = Number(v)
+    if (Number.isFinite(val)) {
+      const pct = valueToPercentile(val, mean, stdDev)
+      const topPct = 100 - pct
+      setPercentInput(formatSmart(topPct))
+      onLookupChange?.(val, topPct)
+    }
   }
 
-  const handlePercentileChange = (v: string) => {
-    setLookupPercentile(v)
-    const numPct = v !== '' ? Number(v) : null
-    onLookupChange?.(lookupValue !== '' ? Number(lookupValue) : null, numPct)
-  }
+  const handlePercentChange = (v: string) => {
+    setPercentInput(v)
+    setLastEdited('percent')
 
-  // 上位%の表示（100 - パーセンタイル）
-  const topPercentDisplay = valueResult !== null ? formatSmart(100 - valueResult) : '-'
+    if (v === '') {
+      setValueInput('')
+      onLookupChange?.(null, null)
+      return
+    }
+
+    const pct = Number(v)
+    if (Number.isFinite(pct)) {
+      const val = percentileToValue(100 - pct, mean, stdDev)
+      setValueInput(formatSmart(val))
+      onLookupChange?.(val, pct)
+    }
+  }
 
   return (
-    <Paper sx={{ p: 2 }}>
-      <Typography variant="subtitle2" sx={{ mb: 1 }}>
-        逆引き
-      </Typography>
-      <Stack spacing={1}>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <TextField
-            size="small"
-            type="number"
-            value={lookupValue}
-            onChange={(e) => handleValueChange(e.target.value)}
-            placeholder="点"
-            sx={{ width: 80 }}
-            inputProps={{ style: { textAlign: 'right' } }}
-          />
-          <Typography variant="body2" color="text.secondary">
-            点 → 上位
-          </Typography>
-          <Typography variant="body2" color="primary" fontWeight="bold">
-            {topPercentDisplay !== '-' ? `${topPercentDisplay}%` : '-'}
-          </Typography>
-        </Stack>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <TextField
-            size="small"
-            type="number"
-            value={lookupPercentile}
-            onChange={(e) => handlePercentileChange(e.target.value)}
-            placeholder="%"
-            sx={{ width: 80 }}
-            inputProps={{ style: { textAlign: 'right' } }}
-          />
-          <Typography variant="body2" color="text.secondary">
-            % → 点数
-          </Typography>
-          <Typography variant="body2" color="primary" fontWeight="bold">
-            {percentileResult !== null ? formatSmart(percentileResult) : '-'}
-          </Typography>
-        </Stack>
+    <Paper sx={{ p: 1.5 }}>
+      <Stack direction="row" spacing={1} alignItems="center">
+        <Typography variant="subtitle2" sx={{ flexShrink: 0 }}>逆引き:</Typography>
+        <TextField
+          size="small"
+          type="number"
+          value={valueInput}
+          onChange={(e) => handleValueChange(e.target.value)}
+          placeholder="点"
+          sx={{ width: 90 }}
+          inputProps={{ style: { textAlign: 'right' } }}
+        />
+        <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
+          点 = 上位
+        </Typography>
+        <TextField
+          size="small"
+          type="number"
+          value={percentInput}
+          onChange={(e) => handlePercentChange(e.target.value)}
+          placeholder="%"
+          sx={{ width: 80 }}
+          inputProps={{ style: { textAlign: 'right' } }}
+        />
+        <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
+          %
+        </Typography>
       </Stack>
     </Paper>
   )

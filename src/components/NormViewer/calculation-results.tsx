@@ -1,15 +1,8 @@
 import {
   Alert,
   Box,
-  Collapse,
-  IconButton,
   Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableRow,
   Typography,
 } from '@mui/material'
 import { useState } from 'react'
@@ -107,13 +100,15 @@ export function ResultSummary({ result }: Props) {
   )
 }
 
-// パーセンタイル表（折りたたみ式）
+// パーセンタイル表（コンパクト版・サイドバー用）
 export function PercentileTable({ result }: Props) {
   const [showDetail, setShowDetail] = useState(false)
 
   if (!result.isValid) return null
 
   const basicPercentiles = [
+    { p: 99, label: '1%' },
+    { p: 95, label: '5%' },
     { p: 90, label: '10%' },
     { p: 75, label: '25%' },
     { p: 50, label: '50%' },
@@ -172,33 +167,32 @@ export function PercentileTable({ result }: Props) {
   }
 
   return (
-    <Paper sx={{ p: 1.5 }}>
+    <Paper sx={{ p: 1, minWidth: 120 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-        <Typography variant="subtitle2">パーセンタイル</Typography>
-        <IconButton
-          size="small"
+        <Typography variant="caption" fontWeight="bold">上位%</Typography>
+        <Typography
+          variant="caption"
           onClick={() => setShowDetail(!showDetail)}
-          sx={{ fontSize: '0.75rem', p: 0.5 }}
+          sx={{ cursor: 'pointer', color: 'primary.main', '&:hover': { textDecoration: 'underline' } }}
         >
           {showDetail ? '簡易' : '詳細'}
-        </IconButton>
+        </Typography>
       </Stack>
-      <Collapse in={true}>
-        <TableContainer>
-          <Table size="small" sx={{ '& td, & th': { py: 0.2, px: 0.5 } }}>
-            <TableBody>
-              {percentiles.map(({ p, label }) => (
-                <TableRow key={p}>
-                  <TableCell sx={{ color: 'text.secondary', width: 60 }}>上位{label}</TableCell>
-                  <TableCell align="right" sx={{ fontFamily: 'monospace' }}>
-                    {formatNumber(getPercentileValue(p), 1)}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Collapse>
+      <Stack spacing={0}>
+        {percentiles.map(({ p, label }) => (
+          <Stack
+            key={p}
+            direction="row"
+            justifyContent="space-between"
+            sx={{ py: 0.25, borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { border: 0 } }}
+          >
+            <Typography variant="caption" color="text.secondary">{label}</Typography>
+            <Typography variant="caption" fontFamily="monospace" fontWeight="medium">
+              {formatNumber(getPercentileValue(p), 1)}
+            </Typography>
+          </Stack>
+        ))}
+      </Stack>
     </Paper>
   )
 }

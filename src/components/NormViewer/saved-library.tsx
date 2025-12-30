@@ -3,11 +3,6 @@ import {
   IconButton,
   Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableRow,
   Typography,
 } from '@mui/material'
 import { useEffect, useRef, useState } from 'react'
@@ -19,22 +14,32 @@ import {
   STORAGE_KEY,
 } from './types'
 
-// サマリーラベル生成
+// サマリーラベル生成（改善版）
 export function generateLabel(params: DistributionParams): string {
   const parts: string[] = []
-  if (params.mean !== undefined) parts.push(`μ=${params.mean}`)
-  if (params.stdDev !== undefined) parts.push(`σ=${params.stdDev}`)
+
+  // 条件数
+  const validConditions = params.conditions.filter(
+    (c) => c.value !== undefined && c.percentage !== undefined
+  )
+  if (validConditions.length > 0) {
+    parts.push(`条件${validConditions.length}件`)
+  }
+
+  // データ数
   if (params.rawScores && params.rawScores.length > 0) {
-    parts.push(`n=${params.rawScores.length}`)
+    parts.push(`データ${params.rawScores.length}件`)
   }
-  if (params.conditions.length > 0) {
-    const conds = params.conditions
-      .filter((c) => c.value !== undefined && c.percentage !== undefined)
-      .map((c) => `${c.value}pt/${c.percentage}%`)
-      .slice(0, 2)
-    if (conds.length > 0) parts.push(conds.join(', '))
+
+  // 平均・標準偏差
+  if (params.mean !== undefined) {
+    parts.push(`μ=${Number(params.mean.toFixed(1))}`)
   }
-  return parts.length > 0 ? parts.join(' | ') : 'empty'
+  if (params.stdDev !== undefined) {
+    parts.push(`σ=${Number(params.stdDev.toFixed(1))}`)
+  }
+
+  return parts.length > 0 ? parts.join(' / ') : '(空)'
 }
 
 // localStorage 操作
@@ -144,7 +149,12 @@ export function SavedLibrary({
 
   const formatTime = (ts: number) => {
     const d = new Date(ts)
-    return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
+    const year = d.getFullYear()
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    const hour = String(d.getHours()).padStart(2, '0')
+    const min = String(d.getMinutes()).padStart(2, '0')
+    return `${year}/${month}/${day} ${hour}:${min}`
   }
 
   // 最新5件のみ表示
@@ -172,50 +182,69 @@ export function SavedLibrary({
       </Stack>
 
       {displayEntries.length > 0 ? (
-        <TableContainer>
-          <Table size="small" sx={{ '& td': { py: 0.3, px: 0.5, border: 0 } }}>
-            <TableBody>
-              {displayEntries.map((entry) => (
-                <TableRow
-                  key={entry.id}
-                  hover
-                  onClick={() => handleRestore(entry)}
-                  sx={{ cursor: 'pointer' }}
-                >
-                  <TableCell sx={{ color: 'text.secondary' }}>
-                    <Typography variant="caption">
-                      {formatTime(entry.savedAt)}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: entry.isAuto ? 'text.secondary' : 'text.primary',
-                        fontFamily: 'monospace',
-                      }}
-                      noWrap
-                    >
-                      {entry.label}
-                    </Typography>
-                  </TableCell>
-                  <TableCell sx={{ width: 24 }}>
-                    <IconButton
-                      size="small"
-                      onClick={(e: React.MouseEvent) => {
-                        e.stopPropagation()
-                        handleDelete(entry.id)
-                      }}
-                      sx={{ p: 0, fontSize: '0.75rem' }}
-                    >
-                      ×
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Stack spacing={0.5}>
+          {displayEntries.map((entry) => (
+            <Stack
+              key={entry.id}
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              sx={{
+                py: 0.5,
+                px: 0.5,
+                borderRadius: 0.5,
+                '&:hover': { bgcolor: 'action.hover' },
+              }}
+            >
+              {/* 自動/手動 */}
+              <Typography
+                variant="caption"
+                sx={{
+                  px: 0.5,
+                  py: 0.25,
+                  borderRadius: 0.5,
+                  bgcolor: entry.isAuto ? 'grey.200' : 'primary.light',
+                  color: entry.isAuto ? 'text.secondary' : 'primary.contrastText',
+                  fontSize: '0.65rem',
+                  flexShrink: 0,
+                }}
+              >
+                {entry.isAuto ? '自動' : '手動'}
+              </Typography>
+              {/* 日時 */}
+              <Typography
+                variant="caption"
+                sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary', flexShrink: 0 }}
+              >
+                {formatTime(entry.savedAt)}
+              </Typography>
+              {/* 内容 */}
+              <Typography
+                variant="caption"
+                sx={{ fontSize: '0.75rem', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+              >
+                {entry.label}
+              </Typography>
+              {/* 復元ボタン */}
+              <Button
+                size="small"
+                variant="text"
+                onClick={() => handleRestore(entry)}
+                sx={{ py: 0, px: 0.5, minWidth: 0, fontSize: '0.7rem', flexShrink: 0 }}
+              >
+                復元
+              </Button>
+              {/* 削除ボタン */}
+              <IconButton
+                size="small"
+                onClick={() => handleDelete(entry.id)}
+                sx={{ p: 0.25, color: 'error.main', fontSize: '0.8rem', flexShrink: 0 }}
+              >
+                ×
+              </IconButton>
+            </Stack>
+          ))}
+        </Stack>
       ) : (
         <Typography variant="caption" color="text.secondary">
           なし
