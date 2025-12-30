@@ -15,6 +15,10 @@ const NormViewer = () => {
     conditions: [],
   })
   const [saveKey, setSaveKey] = useState(0)
+  const [lookupMarkers, setLookupMarkers] = useState<{ value: number | null; percentile: number | null }>({
+    value: null,
+    percentile: null,
+  })
 
   const result = useMemo(() => estimateDistribution(params), [params])
 
@@ -24,6 +28,10 @@ const NormViewer = () => {
     saveManually(params)
     setSaveKey((k) => k + 1)
   }, [params])
+
+  const handleLookupChange = useCallback((value: number | null, percentile: number | null) => {
+    setLookupMarkers({ value, percentile })
+  }, [])
 
   const setExample = () => {
     setParams({
@@ -56,6 +64,7 @@ const NormViewer = () => {
           mean={result.mean}
           stdDev={result.stdDev}
           isValid={result.isValid}
+          onLookupChange={handleLookupChange}
         />
       </Box>
 
@@ -65,6 +74,7 @@ const NormViewer = () => {
           mean={result.mean}
           stdDev={result.stdDev}
           conditions={params.conditions}
+          lookupMarkers={lookupMarkers}
         />
       )}
 

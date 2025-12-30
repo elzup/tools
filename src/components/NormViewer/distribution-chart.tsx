@@ -1,6 +1,6 @@
 import { Box, Paper, Slider, Stack, Typography } from '@mui/material'
 import { useMemo, useState } from 'react'
-import { Condition, normalCDF, normalPDF } from '../../lib/norm-estimator'
+import { Condition, normalCDF, normalPDF, percentileToValue } from '../../lib/norm-estimator'
 
 // 軸分割レベルの設定
 const AXIS_LEVELS = [
@@ -15,9 +15,10 @@ type Props = {
   mean: number
   stdDev: number
   conditions: Condition[]
+  lookupMarkers?: { value: number | null; percentile: number | null }
 }
 
-export function DistributionChart({ mean, stdDev, conditions }: Props) {
+export function DistributionChart({ mean, stdDev, conditions, lookupMarkers }: Props) {
   const [axisLevel, setAxisLevel] = useState(2) // デフォルトは「標準」
 
   const axisPoints = useMemo(() => {
@@ -186,6 +187,47 @@ export function DistributionChart({ mean, stdDev, conditions }: Props) {
           )
         })}
 
+        {/* Lookup markers (逆引き) */}
+        {lookupMarkers?.value != null && Number.isFinite(lookupMarkers.value) && (() => {
+          const val = lookupMarkers.value
+          const xPos = padding + ((val - minX) / range) * (width - 2 * padding)
+          if (xPos < padding || xPos > width - padding) return null
+          return (
+            <g>
+              <line
+                x1={xPos}
+                y1={padding}
+                x2={xPos}
+                y2={height - padding}
+                stroke="#9c27b0"
+                strokeWidth="2"
+                strokeDasharray="6 3"
+              />
+              <circle cx={xPos} cy={padding + 10} r={5} fill="#9c27b0" />
+            </g>
+          )
+        })()}
+        {lookupMarkers?.percentile != null && Number.isFinite(lookupMarkers.percentile) && (() => {
+          const pct = lookupMarkers.percentile
+          const valueFromPct = percentileToValue(pct, mean, stdDev)
+          const xPos = padding + ((valueFromPct - minX) / range) * (width - 2 * padding)
+          if (xPos < padding || xPos > width - padding) return null
+          return (
+            <g>
+              <line
+                x1={xPos}
+                y1={padding}
+                x2={xPos}
+                y2={height - padding}
+                stroke="#00bcd4"
+                strokeWidth="2"
+                strokeDasharray="6 3"
+              />
+              <circle cx={xPos} cy={padding + 10} r={5} fill="#00bcd4" />
+            </g>
+          )
+        })()}
+
         {/* X axis labels - value */}
         {axisPoints.map((sigma) => {
           const xVal = mean + sigma * stdDev
@@ -259,6 +301,12 @@ export function DistributionChart({ mean, stdDev, conditions }: Props) {
           <Stack direction="row" spacing={1} alignItems="center">
             <Box sx={{ width: 24, height: 2, bgcolor: '#ff9800' }} />
             <Typography variant="body2">条件</Typography>
+          </Stack>
+        )}
+        {(lookupMarkers?.value !== null || lookupMarkers?.percentile !== null) && (
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Box sx={{ width: 24, height: 2, borderTop: '2px dashed #9c27b0' }} />
+            <Typography variant="body2">逆引き</Typography>
           </Stack>
         )}
 
