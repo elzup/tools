@@ -53,7 +53,15 @@ const Wrap = styled.div`
 
 const Main = styled.main`
   flex: 1;
-  padding: 2rem 0;
+  padding: 2rem 1rem;
+
+  @media (min-width: 600px) {
+    padding: 2.5rem 1.5rem;
+  }
+
+  @media (min-width: 900px) {
+    padding: 3rem 2rem;
+  }
 `
 
 function LayoutRouter(props: WithChild<Props>) {
