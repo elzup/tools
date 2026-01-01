@@ -1,3 +1,5 @@
+import { faSatellite } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { AppBar, Box, IconButton, Toolbar, Typography } from '@mui/material'
 import { FaGithub, FaHome } from 'react-icons/fa'
 import Link from 'next/link'
@@ -12,20 +14,21 @@ const Header = ({ currentPath }: Props) => {
   const isHome = currentPath === '/'
 
   return (
-    <StyledAppBar position="static" elevation={0}>
-      <Toolbar>
+    <StyledAppBar position="static" elevation={0} $compact={!isHome}>
+      <StyledToolbar $compact={!isHome}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
           <Link href="/" passHref legacyBehavior>
-            <LogoLink>
+            <LogoLink $compact={!isHome}>
+              <FontAwesomeIcon icon={faSatellite} />
               <Typography
-                variant="h6"
+                variant={isHome ? 'h6' : 'body1'}
                 component="span"
                 sx={{ fontWeight: 700, letterSpacing: '-0.5px' }}
               >
                 anozon
               </Typography>
               <Typography
-                variant="h6"
+                variant={isHome ? 'h6' : 'body1'}
                 component="span"
                 sx={{ fontWeight: 300, opacity: 0.8 }}
               >
@@ -35,7 +38,7 @@ const Header = ({ currentPath }: Props) => {
           </Link>
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 0.5 }}>
           {!isHome && (
             <Link href="/" passHref legacyBehavior>
               <IconButton
@@ -58,22 +61,31 @@ const Header = ({ currentPath }: Props) => {
             <FaGithub />
           </IconButton>
         </Box>
-      </Toolbar>
+      </StyledToolbar>
     </StyledAppBar>
   )
 }
 
-const StyledAppBar = styled(AppBar)`
+const StyledAppBar = styled(AppBar)<{ $compact: boolean }>`
   background: linear-gradient(135deg, ${colors.surface.darker} 0%, ${colors.surface.dark} 100%);
 `
 
-const LogoLink = styled.a`
+const StyledToolbar = styled(Toolbar)<{ $compact: boolean }>`
+  min-height: ${({ $compact }) => ($compact ? '40px' : '64px')} !important;
+  padding: ${({ $compact }) => ($compact ? '0 16px' : '0 24px')} !important;
+`
+
+const LogoLink = styled.a<{ $compact: boolean }>`
   display: flex;
-  align-items: baseline;
-  gap: 2px;
+  align-items: center;
+  gap: ${({ $compact }) => ($compact ? '6px' : '8px')};
   text-decoration: none;
   color: inherit;
   transition: opacity 0.2s;
+
+  svg {
+    font-size: ${({ $compact }) => ($compact ? '1rem' : '1.25rem')};
+  }
 
   &:hover {
     opacity: 0.85;
