@@ -66,12 +66,23 @@ const PiLab = () => {
     ctx.fillStyle = '#fafafa'
     ctx.fillRect(0, 0, width, height)
 
-    const maxLen = Math.max(random.piHistory.length, stratified.piHistory.length)
-    if (maxLen < 2) return
+    const allValues = [...random.piHistory, ...stratified.piHistory]
+    if (allValues.length < 2) return
 
-    const yMin = 2.8
-    const yMax = 3.5
+    // 動的スケール: データの範囲 + πを含む + 余白
+    const dataMin = Math.min(...allValues)
+    const dataMax = Math.max(...allValues)
+    const padding = 0.05 // 5%の余白
+    const rangeWithPi = Math.max(dataMax, Math.PI) - Math.min(dataMin, Math.PI)
+    const yMin = Math.min(dataMin, Math.PI) - rangeWithPi * padding
+    const yMax = Math.max(dataMax, Math.PI) + rangeWithPi * padding
     const yRange = yMax - yMin
+
+    // Y軸ラベル
+    ctx.fillStyle = colors.grey.main
+    ctx.font = '10px sans-serif'
+    ctx.fillText(yMax.toFixed(2), 2, 12)
+    ctx.fillText(yMin.toFixed(2), 2, height - 4)
 
     // PI基準線
     const piY = height - ((Math.PI - yMin) / yRange) * height
@@ -90,7 +101,7 @@ const PiLab = () => {
       const step = width / (random.piHistory.length - 1)
       random.piHistory.forEach((pi, i) => {
         const x = i * step
-        const y = height - ((Math.min(Math.max(pi, yMin), yMax) - yMin) / yRange) * height
+        const y = height - ((pi - yMin) / yRange) * height
         if (i === 0) ctx.moveTo(x, y)
         else ctx.lineTo(x, y)
       })
@@ -105,7 +116,7 @@ const PiLab = () => {
       const step = width / (stratified.piHistory.length - 1)
       stratified.piHistory.forEach((pi, i) => {
         const x = i * step
-        const y = height - ((Math.min(Math.max(pi, yMin), yMax) - yMin) / yRange) * height
+        const y = height - ((pi - yMin) / yRange) * height
         if (i === 0) ctx.moveTo(x, y)
         else ctx.lineTo(x, y)
       })
