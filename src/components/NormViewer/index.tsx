@@ -1,5 +1,5 @@
 import { Box, Button, Stack } from '@mui/material'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   DistributionParams,
   estimateDistribution,
@@ -7,13 +7,26 @@ import {
 import { PercentileTable, ResultSummary } from './calculation-results'
 import { DistributionChart } from './distribution-chart'
 import { BasicParamsInput, ConditionsInput, RawScoresInput } from './input-form'
-import { SavedLibrary, saveManually, useAutoSave } from './saved-library'
+import { loadSavedEntries, SavedLibrary, saveManually, useAutoSave } from './saved-library'
 import { ValueLookup } from './value-lookup'
 
 const NormViewer = () => {
   const [params, setParams] = useState<DistributionParams>({
     conditions: [],
   })
+  const [initialized, setInitialized] = useState(false)
+
+  // リロード時に最新の履歴を復元
+  useEffect(() => {
+    if (initialized) return
+    const entries = loadSavedEntries()
+    if (entries.length > 0) {
+      // 最新のエントリを復元
+      const latest = entries[0]
+      setParams(latest.params)
+    }
+    setInitialized(true)
+  }, [initialized])
   const [saveKey, setSaveKey] = useState(0)
   const [lookupMarkers, setLookupMarkers] = useState<{ value: number | null; percentile: number | null }>({
     value: null,
