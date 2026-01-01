@@ -76,7 +76,11 @@ const PiLab = () => {
     ctx.fillStyle = '#fafafa'
     ctx.fillRect(0, 0, width, height)
 
-    const allValues = [...random.piHistory, ...stratified.piHistory, ...haltonSeq.piHistory]
+    const allValues = [
+      ...random.piHistory,
+      ...stratified.piHistory,
+      ...haltonSeq.piHistory,
+    ]
     if (allValues.length < 2) return
 
     // 動的スケール: データの範囲 + πを含む + 余白
@@ -202,7 +206,11 @@ const PiLab = () => {
                 <ColorDot $color={colors.brown.main} />
                 <Typography variant="h6">ランダム</Typography>
               </Box>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: 'block', mb: 1 }}
+              >
                 純粋な乱数で座標を生成。偏りが生じやすく収束にばらつき。
               </Typography>
               <CanvasWrapper>
@@ -248,7 +256,11 @@ const PiLab = () => {
                 <ColorDot $color="#1976d2" />
                 <Typography variant="h6">層化サンプリング</Typography>
               </Box>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: 'block', mb: 1 }}
+              >
                 グリッド分割し各セル内でランダム抽出。均等分散で収束が早い。
               </Typography>
               <CanvasWrapper>
@@ -298,7 +310,11 @@ const PiLab = () => {
                 <ColorDot $color="#4caf50" />
                 <Typography variant="h6">Halton列</Typography>
               </Box>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: 'block', mb: 1 }}
+              >
                 準乱数列で空間を均等に埋める。同じ点を避け収束が早い。
               </Typography>
               <CanvasWrapper>

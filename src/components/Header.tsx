@@ -4,6 +4,7 @@ import { AppBar, Box, IconButton, Toolbar, Typography } from '@mui/material'
 import { FaGithub, FaHome } from 'react-icons/fa'
 import Link from 'next/link'
 import styled from 'styled-components'
+import { Clock } from './Clock'
 import { colors } from './theme'
 
 type Props = {
@@ -38,7 +39,8 @@ const Header = ({ currentPath }: Props) => {
           </Link>
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 0.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Clock compact={!isHome} />
           {!isHome && (
             <Link href="/" passHref legacyBehavior>
               <IconButton
