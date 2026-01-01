@@ -24,7 +24,6 @@
 | mandelbulb.tsx          | Math         | マンデルブロ集合可視化ツール                  | @mui                                  | 現在           |     | 数学的可視化           | 5    |
 | collatz-graph.tsx       | Math         | コラッツ予想グラフ可視化                      |                                       | 現在           |     | 数学的グラフ           | 4    |
 | frag-problab.tsx        | Math         | フラグメント確率実験                          | @mui                                  | 現在           |     | 確率シミュレーション   | 4    |
-| normal-distribution.tsx | Math         | 正規分布ツール                                | react-google-charts, @mui             | **要更新**     |     | 統計計算               | 3    |
 | custom-ratio-graph.tsx  | Math         | カスタム比率グラフ作成                        | @mui                                  | 現在           |     | グラフ作成             | 4    |
 | noopener.tsx            | Security     | noopener デモ - セキュリティ実演              | @mui                                  | 現在           |     | セキュリティ教育       | 3    |
 | xss.tsx                 | Security     | XSS デモ - クロスサイトスクリプティング実演   | prettier                              | **レガシー**   |     | セキュリティ教育       | 3    |

@@ -159,11 +159,6 @@ const routings: RoutingGroup[] = [
         path: '/frag-problab',
       },
       {
-        icon: faCalculator,
-        label: '正規分布ツール',
-        path: '/normal-distribution',
-      },
-      {
         icon: faChartLine,
         label: '分布推定ツール',
         path: '/norm-viewer',
