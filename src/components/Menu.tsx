@@ -144,11 +144,6 @@ const routings: RoutingGroup[] = [
         path: '/pi-lab',
       },
       {
-        icon: faRing,
-        label: 'マンデルブロ集合',
-        path: '/mandelbulb',
-      },
-      {
         icon: faCalculator,
         label: 'Collatz graph',
         path: '/collatz-graph',
@@ -162,11 +157,6 @@ const routings: RoutingGroup[] = [
         icon: faChartLine,
         label: '分布推定ツール',
         path: '/norm-viewer',
-      },
-      {
-        icon: faChartLine,
-        label: 'Custom Pi Ratio Graph',
-        path: '/custom-ratio-graph',
       },
     ],
   },
@@ -308,6 +298,16 @@ const routings: RoutingGroup[] = [
         icon: faIdBadge,
         label: 'GHA BadgeMaker',
         path: '/gha-badge-maker',
+      },
+      {
+        icon: faRing,
+        label: 'マンデルブロ集合',
+        path: '/mandelbulb',
+      },
+      {
+        icon: faChartLine,
+        label: 'Custom Pi Ratio Graph',
+        path: '/custom-ratio-graph',
       },
     ],
   },
