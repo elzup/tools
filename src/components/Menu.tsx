@@ -420,20 +420,62 @@ const Menu = ({ currentPath }: Props) => {
 
 const Style = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
   @media (max-width: 600px) {
     grid-template-columns: repeat(2, 1fr);
   }
+
   > div {
-    margin-top: 16px;
+    > p {
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      opacity: 0.5;
+      margin-bottom: 0.75rem;
+    }
   }
+
   .item {
     display: flex;
-    gap: 4px;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+
     svg {
-      margin-top: 4px;
-      min-width: 1.4rem;
+      min-width: 1rem;
+      width: 1rem;
+      opacity: 0.7;
     }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+      opacity: 0.85;
+      transition: opacity 0.2s;
+      font-size: 0.875rem;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+
+    p {
+      font-size: 0.875rem;
+      opacity: 0.5;
+    }
+  }
+
+  .secret-group {
+    background: rgba(255, 100, 100, 0.1);
+    border-radius: 8px;
+    padding: 0.75rem;
   }
 `
 
