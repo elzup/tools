@@ -2,6 +2,7 @@ import { AppBar, Box, IconButton, Toolbar, Typography } from '@mui/material'
 import { FaGithub, FaHome } from 'react-icons/fa'
 import Link from 'next/link'
 import styled from 'styled-components'
+import { colors } from './theme'
 
 type Props = {
   currentPath: string
@@ -63,7 +64,7 @@ const Header = ({ currentPath }: Props) => {
 }
 
 const StyledAppBar = styled(AppBar)`
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(135deg, ${colors.surface.darker} 0%, ${colors.surface.dark} 100%);
 `
 
 const LogoLink = styled.a`

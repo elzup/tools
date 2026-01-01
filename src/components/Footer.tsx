@@ -3,6 +3,7 @@ import { FaChevronDown, FaChevronUp, FaGithub, FaGlobe } from 'react-icons/fa'
 import { useState } from 'react'
 import styled from 'styled-components'
 import Menu from './Menu'
+import { colors } from './theme'
 
 export type FooterMode = 'full' | 'minimal' | 'hidden'
 
@@ -80,7 +81,7 @@ const Footer = ({ currentPath, mode = 'full' }: Props) => {
 }
 
 const StyledFooter = styled.footer<{ $minimal?: boolean }>`
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(135deg, ${colors.surface.darker} 0%, ${colors.surface.dark} 100%);
   color: #fff;
   padding: ${({ $minimal }) => ($minimal ? '0.75rem 0' : '3rem 0 2rem')};
   margin-top: auto;
