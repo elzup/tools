@@ -45,8 +45,16 @@ const PiLab = () => {
 
       newPoints.forEach(({ x, y, inside }) => {
         ctx.beginPath()
-        ctx.arc(x * CANVAS_SIZE, CANVAS_SIZE - y * CANVAS_SIZE, 2, 0, Math.PI * 2)
-        ctx.fillStyle = inside ? 'rgba(121, 85, 72, 0.5)' : 'rgba(229, 115, 115, 0.5)'
+        ctx.arc(
+          x * CANVAS_SIZE,
+          CANVAS_SIZE - y * CANVAS_SIZE,
+          2,
+          0,
+          Math.PI * 2
+        )
+        ctx.fillStyle = inside
+          ? 'rgba(121, 85, 72, 0.5)'
+          : 'rgba(229, 115, 115, 0.5)'
         ctx.fill()
       })
     },
@@ -130,13 +138,16 @@ const PiLab = () => {
     ctx.fillText('π=' + Math.PI.toFixed(4), width - 70, piY - 5)
   }, [random.piHistory, stratified.piHistory])
 
-  const resetCanvas = useCallback((ref: React.RefObject<HTMLCanvasElement | null>) => {
-    const canvas = ref.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    drawBackground(ctx)
-  }, [])
+  const resetCanvas = useCallback(
+    (ref: React.RefObject<HTMLCanvasElement | null>) => {
+      const canvas = ref.current
+      if (!canvas) return
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      drawBackground(ctx)
+    },
+    []
+  )
 
   const handleStart = useCallback(
     (n: number) => {
@@ -164,21 +175,40 @@ const PiLab = () => {
         <Grid size={{ xs: 12, md: 6 }}>
           <Card>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <Box
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}
+              >
                 <ColorDot $color={colors.brown.main} />
                 <Typography variant="h6">ランダム</Typography>
               </Box>
               <CanvasWrapper>
-                <canvas ref={randomPlotRef} width={CANVAS_SIZE} height={CANVAS_SIZE} />
+                <canvas
+                  ref={randomPlotRef}
+                  width={CANVAS_SIZE}
+                  height={CANVAS_SIZE}
+                />
               </CanvasWrapper>
               <StatsRow>
                 <StatItem label="試行" value={random.total.toLocaleString()} />
-                <StatItem label="円内" value={random.inCount.toLocaleString()} />
-                <StatItem label="PI" value={random.total > 0 ? random.pi.toFixed(6) : '-'} primary />
+                <StatItem
+                  label="円内"
+                  value={random.inCount.toLocaleString()}
+                />
+                <StatItem
+                  label="PI"
+                  value={random.total > 0 ? random.pi.toFixed(6) : '-'}
+                  primary
+                />
                 <StatItem
                   label="誤差"
-                  value={random.total > 0 ? `${((Math.abs(random.pi - Math.PI) / Math.PI) * 100).toFixed(4)}%` : '-'}
-                  error={random.total > 0 && Math.abs(random.pi - Math.PI) >= 0.01}
+                  value={
+                    random.total > 0
+                      ? `${((Math.abs(random.pi - Math.PI) / Math.PI) * 100).toFixed(4)}%`
+                      : '-'
+                  }
+                  error={
+                    random.total > 0 && Math.abs(random.pi - Math.PI) >= 0.01
+                  }
                 />
               </StatsRow>
             </CardContent>
@@ -188,21 +218,44 @@ const PiLab = () => {
         <Grid size={{ xs: 12, md: 6 }}>
           <Card>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <Box
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}
+              >
                 <ColorDot $color="#1976d2" />
                 <Typography variant="h6">層化サンプリング</Typography>
               </Box>
               <CanvasWrapper>
-                <canvas ref={stratifiedPlotRef} width={CANVAS_SIZE} height={CANVAS_SIZE} />
+                <canvas
+                  ref={stratifiedPlotRef}
+                  width={CANVAS_SIZE}
+                  height={CANVAS_SIZE}
+                />
               </CanvasWrapper>
               <StatsRow>
-                <StatItem label="試行" value={stratified.total.toLocaleString()} />
-                <StatItem label="円内" value={stratified.inCount.toLocaleString()} />
-                <StatItem label="PI" value={stratified.total > 0 ? stratified.pi.toFixed(6) : '-'} primary />
+                <StatItem
+                  label="試行"
+                  value={stratified.total.toLocaleString()}
+                />
+                <StatItem
+                  label="円内"
+                  value={stratified.inCount.toLocaleString()}
+                />
+                <StatItem
+                  label="PI"
+                  value={stratified.total > 0 ? stratified.pi.toFixed(6) : '-'}
+                  primary
+                />
                 <StatItem
                   label="誤差"
-                  value={stratified.total > 0 ? `${((Math.abs(stratified.pi - Math.PI) / Math.PI) * 100).toFixed(4)}%` : '-'}
-                  error={stratified.total > 0 && Math.abs(stratified.pi - Math.PI) >= 0.01}
+                  value={
+                    stratified.total > 0
+                      ? `${((Math.abs(stratified.pi - Math.PI) / Math.PI) * 100).toFixed(4)}%`
+                      : '-'
+                  }
+                  error={
+                    stratified.total > 0 &&
+                    Math.abs(stratified.pi - Math.PI) >= 0.01
+                  }
                 />
               </StatsRow>
             </CardContent>
@@ -219,7 +272,14 @@ const PiLab = () => {
               <CanvasWrapper>
                 <canvas ref={historyCanvasRef} width={600} height={200} />
               </CanvasWrapper>
-              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mt: 1 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: 3,
+                  mt: 1,
+                }}
+              >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <ColorDot $color={colors.brown.main} />
                   <Typography variant="caption">ランダム</Typography>
@@ -246,14 +306,19 @@ const PiLab = () => {
               </Typography>
               <Slider
                 value={stepSize}
-                onChange={(_: Event, v: number | number[]) => setStepSize(v as number)}
+                onChange={(_: Event, v: number | number[]) =>
+                  setStepSize(v as number)
+                }
                 min={1}
                 max={10000}
                 step={1}
                 valueLabelDisplay="auto"
               />
               <Box sx={{ display: 'flex', gap: 1, mt: 2, flexWrap: 'wrap' }}>
-                <Button variant="contained" onClick={() => handleStart(stepSize)}>
+                <Button
+                  variant="contained"
+                  onClick={() => handleStart(stepSize)}
+                >
                   試行 (+{stepSize.toLocaleString()})
                 </Button>
                 <Button variant="outlined" onClick={() => handleStart(100)}>
