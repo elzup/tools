@@ -1,5 +1,8 @@
 import { Box, Button, Slider, Stack, Typography } from '@mui/material'
-import { useState, useCallback, useRef } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
+import { OrbitControls } from '@react-three/drei'
+import { useState, useCallback, useRef, Suspense, useMemo } from 'react'
+import * as THREE from 'three'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 
@@ -34,56 +37,77 @@ type GearProps = {
   size: number
 }
 
-function Gear({ index, position, size }: GearProps) {
-  const angle = (position / 10) * 360
-  const teethCount = 10
-  const innerRadius = size * 0.3
-  const outerRadius = size * 0.45
+function Gear({ index, position, size, reverse }: GearProps & { reverse?: boolean }) {
+  const baseAngle = (position / 10) * 360
+  const angle = reverse ? -baseAngle : baseAngle
+  const teethCount = 12
+  const bodyRadius = size * 0.35
+  const toothHeight = size * 0.12
+  const holeRadius = size * 0.08
+
+  // 歯車のパスを生成
+  const gearPath = () => {
+    const points: string[] = []
+    for (let i = 0; i < teethCount; i++) {
+      const baseAngle = (i / teethCount) * Math.PI * 2
+      const toothWidth = Math.PI / teethCount * 0.6
+
+      // 歯の外側
+      const outerR = bodyRadius + toothHeight
+      const innerR = bodyRadius
+
+      // 歯の根元（左）
+      const a1 = baseAngle - toothWidth
+      points.push(`${Math.cos(a1) * innerR},${Math.sin(a1) * innerR}`)
+      // 歯の先端（左）
+      points.push(`${Math.cos(a1) * outerR},${Math.sin(a1) * outerR}`)
+      // 歯の先端（右）
+      const a2 = baseAngle + toothWidth
+      points.push(`${Math.cos(a2) * outerR},${Math.sin(a2) * outerR}`)
+      // 歯の根元（右）
+      points.push(`${Math.cos(a2) * innerR},${Math.sin(a2) * innerR}`)
+    }
+    return `M ${points.join(' L ')} Z`
+  }
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <defs>
+        <linearGradient id={`gear-grad-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#3a3a3a" />
+          <stop offset="50%" stopColor="#1a1a1a" />
+          <stop offset="100%" stopColor="#2a2a2a" />
+        </linearGradient>
+      </defs>
       <g transform={`translate(${size / 2}, ${size / 2}) rotate(${angle})`}>
-        {/* 歯車の歯 */}
-        {Array.from({ length: teethCount }).map((_, i) => {
-          const toothAngle = (i / teethCount) * 360
-          const rad = (toothAngle * Math.PI) / 180
-          const x1 = Math.cos(rad) * innerRadius
-          const y1 = Math.sin(rad) * innerRadius
-          const x2 = Math.cos(rad) * outerRadius
-          const y2 = Math.sin(rad) * outerRadius
-          return (
-            <line
-              key={i}
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              stroke="#666"
-              strokeWidth={size * 0.08}
-              strokeLinecap="round"
-            />
-          )
-        })}
-        {/* 中心の円 */}
-        <circle r={innerRadius} fill="#888" stroke="#555" strokeWidth={1} />
+        {/* 歯車本体 */}
+        <path
+          d={gearPath()}
+          fill={`url(#gear-grad-${index})`}
+          stroke="#000"
+          strokeWidth={1}
+        />
+        {/* 中心の穴 */}
+        <circle r={holeRadius} fill="#f5f5f5" />
         {/* 回転マーカー */}
         <line
           x1={0}
-          y1={0}
+          y1={-holeRadius}
           x2={0}
-          y2={-innerRadius * 0.8}
-          stroke="#f44"
-          strokeWidth={size * 0.06}
+          y2={-bodyRadius + 2}
+          stroke="#e53935"
+          strokeWidth={2}
           strokeLinecap="round"
         />
       </g>
       {/* インデックス表示 */}
       <text
         x={size / 2}
-        y={size - 2}
+        y={size - 1}
         textAnchor="middle"
-        fontSize={size * 0.2}
-        fill="#333"
+        fontSize={size * 0.16}
+        fill="#666"
+        fontFamily="monospace"
       >
         {index}
       </text>
@@ -92,34 +116,188 @@ function Gear({ index, position, size }: GearProps) {
 }
 
 /**
- * 歯車グループ（可視範囲）
+ * 3D歯車コンポーネント（軽量版）
+ */
+const GEAR_BODY_RADIUS = 1.5
+const GEAR_TOOTH_HEIGHT = 0.4
+
+// 歯車形状を一度だけ生成（メモ化）
+function createGearShape() {
+  const gearShape = new THREE.Shape()
+  const teethCount = 12
+
+  for (let i = 0; i < teethCount; i++) {
+    const baseAngle = (i / teethCount) * Math.PI * 2
+    const toothWidth = Math.PI / teethCount * 0.6
+
+    const outerR = GEAR_BODY_RADIUS + GEAR_TOOTH_HEIGHT
+    const innerR = GEAR_BODY_RADIUS
+
+    const a1 = baseAngle - toothWidth
+    const a2 = baseAngle + toothWidth
+
+    if (i === 0) {
+      gearShape.moveTo(Math.cos(a1) * innerR, Math.sin(a1) * innerR)
+    } else {
+      gearShape.lineTo(Math.cos(a1) * innerR, Math.sin(a1) * innerR)
+    }
+    gearShape.lineTo(Math.cos(a1) * outerR, Math.sin(a1) * outerR)
+    gearShape.lineTo(Math.cos(a2) * outerR, Math.sin(a2) * outerR)
+    gearShape.lineTo(Math.cos(a2) * innerR, Math.sin(a2) * innerR)
+  }
+  gearShape.closePath()
+
+  // 中心の穴
+  const holePath = new THREE.Path()
+  holePath.absarc(0, 0, 0.4, 0, Math.PI * 2, false)
+  gearShape.holes.push(holePath)
+
+  return gearShape
+}
+
+function Gear3D({
+  position,
+  posX,
+  posZ,
+  reverse,
+}: {
+  index: number
+  position: number
+  posX: number
+  posZ: number
+  reverse: boolean
+}) {
+  const groupRef = useRef<THREE.Group>(null)
+  const baseAngle = (position / 10) * Math.PI * 2
+  const angle = reverse ? -baseAngle : baseAngle
+
+  // 形状をメモ化
+  const gearShape = useMemo(() => createGearShape(), [])
+  const shapeGeometry = useMemo(() => new THREE.ShapeGeometry(gearShape), [gearShape])
+
+  useFrame(() => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y = angle
+    }
+  })
+
+  return (
+    <group position={[posX, 0, posZ]}>
+      <group ref={groupRef}>
+        {/* 歯車本体（両面同じ・ShapeGeometry使用で軽量化） */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]}>
+          <primitive object={shapeGeometry} attach="geometry" />
+          <meshStandardMaterial color="#1a1a1a" metalness={0.8} roughness={0.3} side={THREE.DoubleSide} />
+        </mesh>
+        {/* 回転マーカー（中心から外周まで伸びる線） */}
+        <mesh position={[0, 0.05, (GEAR_BODY_RADIUS + GEAR_TOOTH_HEIGHT * 0.3) / 2]}>
+          <boxGeometry args={[0.15, 0.1, GEAR_BODY_RADIUS + GEAR_TOOTH_HEIGHT * 0.3]} />
+          <meshStandardMaterial color="#e53935" />
+        </mesh>
+      </group>
+    </group>
+  )
+}
+
+/**
+ * カメラ位置トラッカー
+ */
+function CameraTracker({ onUpdate }: { onUpdate: (pos: [number, number, number], target: [number, number, number]) => void }) {
+  const controlsRef = useRef<any>(null)
+
+  useFrame(({ camera }) => {
+    const pos: [number, number, number] = [
+      Math.round(camera.position.x * 10) / 10,
+      Math.round(camera.position.y * 10) / 10,
+      Math.round(camera.position.z * 10) / 10,
+    ]
+    const target: [number, number, number] = controlsRef.current
+      ? [
+          Math.round(controlsRef.current.target.x * 10) / 10,
+          Math.round(controlsRef.current.target.y * 10) / 10,
+          Math.round(controlsRef.current.target.z * 10) / 10,
+        ]
+      : [0, 0, 0]
+    onUpdate(pos, target)
+  })
+
+  return <OrbitControls ref={controlsRef} target={[-1.7, -1.4, 10.5]} />
+}
+
+/**
+ * 3D歯車グループ（机の上に鉛筆が並ぶように配置）
+ */
+function GearGroup3D({ positions }: { positions: number[] }) {
+  const spacing = 0.25
+
+  return (
+    <group>
+      {positions.map((pos, index) => {
+        const isOdd = index % 2 === 1
+        // 手前から奥に向かって配置（index 0が手前）
+        const posZ = index * spacing
+        // 交互にX方向にずらす（横にしっかりオフセット）
+        const posX = isOdd ? 1.8 : 0
+        return (
+          <Gear3D
+            key={index}
+            index={index}
+            position={pos}
+            posX={posX}
+            posZ={posZ}
+            reverse={isOdd}
+          />
+        )
+      })}
+    </group>
+  )
+}
+
+/**
+ * 歯車グループ（2列ジグザグ配置）
  */
 type GearGroupProps = {
   positions: number[]
-  startIndex: number
-  count: number
   gearSize: number
 }
 
-function GearGroup({ positions, startIndex, count, gearSize }: GearGroupProps) {
-  const visiblePositions = positions.slice(startIndex, startIndex + count)
+function GearGroup({ positions, gearSize }: GearGroupProps) {
+  const overlap = gearSize * 0.35 // 歯車の噛み合わせ用オーバーラップ
+  const indent = gearSize * 0.5 // 奇数番号の右ずらし量
+
+  // 下から上に表示（0が下）
+  const reversedPositions = [...positions].reverse()
+
   return (
     <Box
       sx={{
         display: 'flex',
-        flexWrap: 'wrap',
-        gap: 0.5,
-        justifyContent: 'center',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        width: 'fit-content',
+        mx: 'auto',
       }}
     >
-      {visiblePositions.map((pos, i) => (
-        <Gear
-          key={startIndex + i}
-          index={startIndex + i}
-          position={pos}
-          size={gearSize}
-        />
-      ))}
+      {reversedPositions.map((pos, reversedIndex) => {
+        const index = positions.length - 1 - reversedIndex
+        const isOdd = index % 2 === 1
+        return (
+          <Box
+            key={index}
+            sx={{
+              marginLeft: isOdd ? `${indent}px` : 0,
+              marginTop: reversedIndex > 0 ? `-${overlap}px` : 0,
+            }}
+          >
+            <Gear
+              index={index}
+              position={pos}
+              size={gearSize}
+              reverse={isOdd}
+            />
+          </Box>
+        )
+      })}
     </Box>
   )
 }
@@ -135,6 +313,13 @@ const GoogolPage = () => {
   const [counterStr, setCounterStr] = useState('0')
   const [sliderValue, setSliderValue] = useState(50)
   const lastSliderRef = useRef(50)
+  const [cameraPos, setCameraPos] = useState<[number, number, number]>([-8, 15, -5])
+  const [cameraTarget, setCameraTarget] = useState<[number, number, number]>([1, 0, 12])
+
+  const handleCameraUpdate = useCallback((pos: [number, number, number], target: [number, number, number]) => {
+    setCameraPos(pos)
+    setCameraTarget(target)
+  }, [])
 
   const positions = getGearPositions(BigInt(counterStr))
 
@@ -185,12 +370,7 @@ const GoogolPage = () => {
           mb: 3,
         }}
       >
-        <GearGroup
-          positions={positions}
-          startIndex={0}
-          count={GEAR_COUNT}
-          gearSize={70}
-        />
+        <GearGroup positions={positions} gearSize={60} />
       </Box>
 
       {/* コントロール */}
@@ -236,6 +416,42 @@ const GoogolPage = () => {
         </Typography>
         <Typography variant="caption" color="text.secondary">
           桁数: {counterStr.length}
+        </Typography>
+      </Box>
+
+      {/* 3D表示 */}
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h6" gutterBottom>
+          3D View
+        </Typography>
+        <Box
+          sx={{
+            height: 500,
+            bgcolor: '#e8e8e8',
+            borderRadius: 2,
+            overflow: 'hidden',
+          }}
+        >
+          <Canvas camera={{ position: [15.2, 7.9, -4.5], fov: 50 }}>
+            <Suspense fallback={null}>
+              <ambientLight intensity={0.5} />
+              <directionalLight position={[10, 20, 10]} intensity={1} />
+              <pointLight position={[-10, 10, -10]} intensity={0.5} />
+              <GearGroup3D positions={positions} />
+              <CameraTracker onUpdate={handleCameraUpdate} />
+            </Suspense>
+          </Canvas>
+        </Box>
+        <Box sx={{ mt: 1, p: 1, bgcolor: 'grey.200', borderRadius: 1, fontFamily: 'monospace', fontSize: '0.75rem' }}>
+          <Typography variant="caption" component="div">
+            Camera position: [{cameraPos.join(', ')}]
+          </Typography>
+          <Typography variant="caption" component="div">
+            Camera target: [{cameraTarget.join(', ')}]
+          </Typography>
+        </Box>
+        <Typography variant="caption" color="text.secondary">
+          ※ ドラッグで視点を回転できます。
         </Typography>
       </Box>
 

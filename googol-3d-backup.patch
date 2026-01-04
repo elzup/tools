@@ -1,0 +1,145 @@
+diff --git a/src/pages/googol.tsx b/src/pages/googol.tsx
+index f273fcc..5225714 100644
+--- a/src/pages/googol.tsx
++++ b/src/pages/googol.tsx
+@@ -1,5 +1,8 @@
+ import { Box, Button, Slider, Stack, Typography } from '@mui/material'
+-import { useState, useCallback, useRef } from 'react'
++import { Canvas, useFrame } from '@react-three/fiber'
++import { OrbitControls } from '@react-three/drei'
++import { useState, useCallback, useRef, Suspense } from 'react'
++import * as THREE from 'three'
+ import Layout from '../components/Layout'
+ import { Title } from '../components/Title'
+ 
+@@ -26,7 +29,7 @@ function getGearPositions(value: bigint): number[] {
+ }
+ 
+ /**
+- * 歯車コンポーネント
++ * 歯車コンポーネント (2D SVG)
+  */
+ type GearProps = {
+   index: number
+@@ -124,6 +127,88 @@ function GearGroup({ positions, startIndex, count, gearSize }: GearGroupProps) {
+   )
+ }
+ 
++// 3D関連
++const GEAR_BODY_RADIUS = 1.5
++
++function Gear3D({
++  position,
++  posX,
++  posZ,
++  reverse,
++}: {
++  index: number
++  position: number
++  posX: number
++  posZ: number
++  reverse: boolean
++}) {
++  const groupRef = useRef<THREE.Group>(null)
++  const baseAngle = (position / 10) * Math.PI * 2
++  const angle = reverse ? -baseAngle : baseAngle
++
++  useFrame(() => {
++    if (groupRef.current) {
++      groupRef.current.rotation.y = angle
++    }
++  })
++
++  return (
++    <group position={[posX, 0, posZ]}>
++      <group ref={groupRef}>
++        <mesh rotation={[-Math.PI / 2, 0, 0]}>
++          <circleGeometry args={[GEAR_BODY_RADIUS, 24]} />
++          <meshBasicMaterial color="#444444" side={THREE.DoubleSide} />
++        </mesh>
++        <mesh rotation={[-Math.PI / 2, 0, 0]}>
++          <ringGeometry
++            args={[GEAR_BODY_RADIUS - 0.05, GEAR_BODY_RADIUS, 24]}
++          />
++          <meshBasicMaterial color="#888888" side={THREE.DoubleSide} />
++        </mesh>
++        <mesh position={[0, 0.05, GEAR_BODY_RADIUS * 0.5]}>
++          <boxGeometry args={[0.15, 0.1, GEAR_BODY_RADIUS]} />
++          <meshBasicMaterial color="#e53935" />
++        </mesh>
++      </group>
++    </group>
++  )
++}
++
++function GearGroup3D({ positions }: { positions: number[] }) {
++  const spacing = 0.25
++  return (
++    <group>
++      {positions.map((pos, index) => {
++        const isOdd = index % 2 === 1
++        const posZ = index * spacing
++        const posX = isOdd ? 1.8 : 0
++        return (
++          <Gear3D
++            key={index}
++            index={index}
++            position={pos}
++            posX={posX}
++            posZ={posZ}
++            reverse={isOdd}
++          />
++        )
++      })}
++    </group>
++  )
++}
++
++function Scene({ positions }: { positions: number[] }) {
++  return (
++    <>
++      <ambientLight intensity={0.5} />
++      <directionalLight position={[10, 20, 10]} intensity={1} />
++      <pointLight position={[-10, 10, -10]} intensity={0.5} />
++      <GearGroup3D positions={positions} />
++      <OrbitControls target={[-1.7, -1.4, 10.5]} />
++    </>
++  )
++}
++
+ // BigInt を文字列として保持するためのヘルパー
+ const addBigIntStr = (a: string, b: number): string => {
+   const result = BigInt(a) + BigInt(b)
+@@ -239,6 +324,32 @@ const GoogolPage = () => {
+         </Typography>
+       </Box>
+ 
++      {/* 3D表示 */}
++      <Box sx={{ mt: 4 }}>
++        <Typography variant="h6" gutterBottom>
++          3D View
++        </Typography>
++        <Box
++          sx={{
++            height: 500,
++            bgcolor: '#e8e8e8',
++            borderRadius: 2,
++            overflow: 'hidden',
++          }}
++        >
++          <Suspense
++            fallback={<Box sx={{ color: '#666', p: 2 }}>Loading 3D...</Box>}
++          >
++            <Canvas camera={{ position: [15.2, 7.9, -4.5], fov: 50 }}>
++              <Scene positions={positions} />
++            </Canvas>
++          </Suspense>
++        </Box>
++        <Typography variant="caption" color="text.secondary">
++          ※ ドラッグで視点を回転できます。
++        </Typography>
++      </Box>
++
+       {/* 説明 */}
+       <Box sx={{ mt: 4 }}>
+         <Typography variant="body2" color="text.secondary">
