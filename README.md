@@ -1,4 +1,4 @@
-![qawolf](https://github.com/elzup/tools/workflows/qawolf/badge.svg)
+![Vercel](https://vercelbadge.vercel.app/api/elzup/tools)
 
 # Tools by anozon
 
@@ -6,9 +6,10 @@
 
 Collection of Minimum web tools.
 
+![screenshot](./screenshot.png)
+
 ## Made with
 
 - Next.js
 - TypeScript
 - MUI
-
