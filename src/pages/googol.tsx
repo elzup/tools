@@ -171,27 +171,31 @@ function Gear3D({
   const baseAngle = (position / 10) * Math.PI * 2
   const angle = reverse ? -baseAngle : baseAngle
 
-  // 形状をメモ化
+  // 形状をメモ化（厚み付き）
   const gearShape = useMemo(() => createGearShape(), [])
-  const shapeGeometry = useMemo(() => new THREE.ShapeGeometry(gearShape), [gearShape])
+  const extrudeSettings = useMemo(() => ({ depth: 0.15, bevelEnabled: false }), [])
+  const extrudeGeometry = useMemo(
+    () => new THREE.ExtrudeGeometry(gearShape, extrudeSettings),
+    [gearShape, extrudeSettings]
+  )
 
   useFrame(() => {
     if (groupRef.current) {
-      groupRef.current.rotation.y = angle
+      groupRef.current.rotation.z = angle
     }
   })
 
   return (
     <group position={[posX, 0, posZ]}>
       <group ref={groupRef}>
-        {/* 歯車本体（両面同じ・ShapeGeometry使用で軽量化） */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]}>
-          <primitive object={shapeGeometry} attach="geometry" />
-          <meshStandardMaterial color="#1a1a1a" metalness={0.8} roughness={0.3} side={THREE.DoubleSide} />
+        {/* 歯車本体（厚み付き） */}
+        <mesh geometry={extrudeGeometry}>
+          <meshStandardMaterial attach="material-0" color="#1a1a1a" metalness={0.8} roughness={0.3} />
+          <meshStandardMaterial attach="material-1" color="#4a4a4a" metalness={0.6} roughness={0.4} />
         </mesh>
         {/* 回転マーカー（中心から外周まで伸びる線） */}
-        <mesh position={[0, 0.05, (GEAR_BODY_RADIUS + GEAR_TOOTH_HEIGHT * 0.3) / 2]}>
-          <boxGeometry args={[0.15, 0.1, GEAR_BODY_RADIUS + GEAR_TOOTH_HEIGHT * 0.3]} />
+        <mesh position={[0, (GEAR_BODY_RADIUS + GEAR_TOOTH_HEIGHT * 0.3) / 2, -0.05]}>
+          <boxGeometry args={[0.15, GEAR_BODY_RADIUS + GEAR_TOOTH_HEIGHT * 0.3, 0.08]} />
           <meshStandardMaterial color="#e53935" />
         </mesh>
       </group>
@@ -221,7 +225,7 @@ function CameraTracker({ onUpdate }: { onUpdate: (pos: [number, number, number],
     onUpdate(pos, target)
   })
 
-  return <OrbitControls ref={controlsRef} target={[-1.7, -1.4, 10.5]} />
+  return <OrbitControls ref={controlsRef} target={[-3.7, -1.1, 8.8]} />
 }
 
 /**
@@ -432,7 +436,7 @@ const GoogolPage = () => {
             overflow: 'hidden',
           }}
         >
-          <Canvas camera={{ position: [15.2, 7.9, -4.5], fov: 50 }}>
+          <Canvas camera={{ position: [11.1, 4.6, -4.7], fov: 50 }}>
             <Suspense fallback={null}>
               <ambientLight intensity={0.5} />
               <directionalLight position={[10, 20, 10]} intensity={1} />
