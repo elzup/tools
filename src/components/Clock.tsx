@@ -41,7 +41,7 @@ type Props = {
 
 export function Clock({ compact = false }: Props) {
   const time = useCurrentTime()
-  const [formatIndex, setFormatIndex] = useState(0)
+  const [formatIndex, setFormatIndex] = useState(2)
 
   const currentFormat = formats[formatIndex]
 

@@ -1,5 +1,4 @@
 import {
-  Box,
   Button,
   Collapse,
   Slider,
@@ -359,13 +358,13 @@ function GearGroup({
   const reversedPositions = [...positions].reverse()
 
   return (
-    <Box
-      sx={{
+    <div
+      style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-start',
         width: 'fit-content',
-        mx: 'auto',
+        margin: '0 auto',
       }}
     >
       {reversedPositions.map((pos, reversedIndex) => {
@@ -373,9 +372,9 @@ function GearGroup({
         const offset = getOffset(index)
         const isReverse = index % 2 === 1
         return (
-          <Box
+          <div
             key={index}
-            sx={{
+            style={{
               marginLeft: `${offset * indent}px`,
               marginTop: reversedIndex > 0 ? `-${overlap}px` : 0,
             }}
@@ -386,10 +385,10 @@ function GearGroup({
               size={gearSize}
               reverse={isReverse}
             />
-          </Box>
+          </div>
         )
       })}
-    </Box>
+    </div>
   )
 }
 
@@ -468,13 +467,13 @@ const GoogolPage = () => {
       <Title>{title}</Title>
 
       {/* 歯車表示（メイン） */}
-      <Box
-        sx={{
-          p: 2,
-          bgcolor: '#f5f5f5',
-          borderRadius: 2,
+      <div
+        style={{
+          padding: 16,
+          backgroundColor: '#f5f5f5',
+          borderRadius: 8,
           border: '1px solid #ddd',
-          mb: 3,
+          marginBottom: 24,
         }}
       >
         <GearGroup
@@ -485,10 +484,10 @@ const GoogolPage = () => {
           zigzagPeriod={zigzagPeriod}
           patternType={patternType}
         />
-      </Box>
+      </div>
 
       {/* コントロール */}
-      <Box sx={{ mb: 3 }}>
+      <div style={{ marginBottom: 24 }}>
         <Stack
           direction="row"
           spacing={1}
@@ -514,9 +513,16 @@ const GoogolPage = () => {
           </Button>
         </Stack>
         <Collapse in={showConfig}>
-          <Box sx={{ p: 2, bgcolor: 'grey.100', borderRadius: 1, mb: 2 }}>
+          <div
+            style={{
+              padding: 16,
+              backgroundColor: '#f5f5f5',
+              borderRadius: 4,
+              marginBottom: 16,
+            }}
+          >
             <Stack spacing={2}>
-              <Box>
+              <div>
                 <Typography variant="caption">
                   Overlap Ratio: {overlapRatio}
                 </Typography>
@@ -528,8 +534,8 @@ const GoogolPage = () => {
                   step={0.05}
                   size="small"
                 />
-              </Box>
-              <Box>
+              </div>
+              <div>
                 <Typography variant="caption">
                   Indent Ratio: {indentRatio}
                 </Typography>
@@ -541,8 +547,8 @@ const GoogolPage = () => {
                   step={0.05}
                   size="small"
                 />
-              </Box>
-              <Box>
+              </div>
+              <div>
                 <Typography variant="caption">
                   Zigzag Period: {zigzagPeriod}
                 </Typography>
@@ -554,8 +560,8 @@ const GoogolPage = () => {
                   step={2}
                   size="small"
                 />
-              </Box>
-              <Box>
+              </div>
+              <div>
                 <Typography variant="caption">Pattern:</Typography>
                 <ToggleButtonGroup
                   value={patternType}
@@ -568,13 +574,20 @@ const GoogolPage = () => {
                   <ToggleButton value="wave">Wave</ToggleButton>
                   <ToggleButton value="square">Square</ToggleButton>
                 </ToggleButtonGroup>
-              </Box>
+              </div>
             </Stack>
-          </Box>
+          </div>
         </Collapse>
 
         {/* スライダー（左右に擦ると+） */}
-        <Box sx={{ px: 2, maxWidth: 400, mx: 'auto' }}>
+        <div
+          style={{
+            paddingLeft: 16,
+            paddingRight: 16,
+            maxWidth: 400,
+            margin: '0 auto',
+          }}
+        >
           <Slider
             value={sliderValue}
             onChange={handleSliderChange}
@@ -583,11 +596,18 @@ const GoogolPage = () => {
             max={100}
             step={1}
           />
-        </Box>
-      </Box>
+        </div>
+      </div>
 
       {/* 現在の値 */}
-      <Box sx={{ mb: 3, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
+      <div
+        style={{
+          marginBottom: 24,
+          padding: 16,
+          backgroundColor: '#f5f5f5',
+          borderRadius: 4,
+        }}
+      >
         <Typography variant="subtitle2" gutterBottom>
           回転数:
         </Typography>
@@ -603,18 +623,18 @@ const GoogolPage = () => {
         <Typography variant="caption" color="text.secondary">
           桁数: {counterStr.length}
         </Typography>
-      </Box>
+      </div>
 
       {/* 3D表示 */}
-      <Box sx={{ mt: 4 }}>
+      <div style={{ marginTop: 32 }}>
         <Typography variant="h6" gutterBottom>
           3D View
         </Typography>
-        <Box
-          sx={{
+        <div
+          style={{
             height: 500,
-            bgcolor: '#e8e8e8',
-            borderRadius: 2,
+            backgroundColor: '#e8e8e8',
+            borderRadius: 8,
             overflow: 'hidden',
           }}
         >
@@ -627,13 +647,13 @@ const GoogolPage = () => {
               <CameraTracker onUpdate={handleCameraUpdate} />
             </Suspense>
           </Canvas>
-        </Box>
-        <Box
-          sx={{
-            mt: 1,
-            p: 1,
-            bgcolor: 'grey.200',
-            borderRadius: 1,
+        </div>
+        <div
+          style={{
+            marginTop: 8,
+            padding: 8,
+            backgroundColor: '#e0e0e0',
+            borderRadius: 4,
             fontFamily: 'monospace',
             fontSize: '0.75rem',
           }}
@@ -644,19 +664,19 @@ const GoogolPage = () => {
           <Typography variant="caption" component="div">
             Camera target: [{cameraTarget.join(', ')}]
           </Typography>
-        </Box>
+        </div>
         <Typography variant="caption" color="text.secondary">
           ※ ドラッグで視点を回転できます。
         </Typography>
-      </Box>
+      </div>
 
       {/* 説明 */}
-      <Box sx={{ mt: 4 }}>
+      <div style={{ marginTop: 32 }}>
         <Typography variant="body2" color="text.secondary">
           10回転で次の歯車を1回転させる歯車が100枚。 最初の歯車を googol
           (10^100) 回まわすと、最後の歯車が1回転します。
         </Typography>
-      </Box>
+      </div>
     </Layout>
   )
 }
