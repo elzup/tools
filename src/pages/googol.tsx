@@ -1,4 +1,13 @@
-import { Box, Button, Collapse, Slider, Stack, Typography } from '@mui/material'
+import {
+  Box,
+  Button,
+  Collapse,
+  Slider,
+  Stack,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from '@mui/material'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { useState, useCallback, useRef, Suspense, useMemo } from 'react'
@@ -106,7 +115,7 @@ function Gear({
           y1={-holeRadius}
           x2={0}
           y2={-bodyRadius + 2}
-          stroke="#e53935"
+          stroke="#00BCD4"
           strokeWidth={2}
           strokeLinecap="round"
         />
@@ -228,7 +237,7 @@ function Gear3D({
           <boxGeometry
             args={[0.15, GEAR_BODY_RADIUS + GEAR_TOOTH_HEIGHT * 0.3, 0.08]}
           />
-          <meshStandardMaterial color="#e53935" />
+          <meshStandardMaterial color="#00BCD4" />
         </mesh>
       </group>
     </group>
@@ -299,12 +308,15 @@ function GearGroup3D({ positions }: { positions: number[] }) {
 /**
  * 歯車グループ（2列ジグザグ配置）
  */
+type PatternType = 'zigzag' | 'wave' | 'square'
+
 type GearGroupProps = {
   positions: number[]
   gearSize: number
   overlapRatio: number
   indentRatio: number
   zigzagPeriod: number
+  patternType: PatternType
 }
 
 function GearGroup({
@@ -313,15 +325,34 @@ function GearGroup({
   overlapRatio,
   indentRatio,
   zigzagPeriod,
+  patternType,
 }: GearGroupProps) {
   const overlap = gearSize * overlapRatio
   const indent = gearSize * indentRatio
 
-  // N周期のジグザグパターンを生成
+  // パターンに応じたオフセットを計算
   const getOffset = (index: number) => {
     const half = Math.floor(zigzagPeriod / 2)
     const pos = index % zigzagPeriod
-    return pos <= half ? pos : zigzagPeriod - pos
+
+    switch (patternType) {
+      case 'wave': {
+        // サイン波: 滑らかな曲線
+        const t = (index % zigzagPeriod) / zigzagPeriod
+        return (Math.sin(t * Math.PI * 2) * half) / 2 + half / 2
+      }
+      case 'square': {
+        // コの字: 矩形波（折り返し部分で横に広がる）
+        const quarter = Math.floor(zigzagPeriod / 4)
+        if (pos < quarter) return pos // 上昇
+        if (pos < quarter * 3) return quarter // 上で横移動
+        return zigzagPeriod - pos // 下降
+      }
+      case 'zigzag':
+      default:
+        // 三角波
+        return pos <= half ? pos : zigzagPeriod - pos
+    }
   }
 
   // 下から上に表示（0が下）
@@ -382,9 +413,12 @@ const GoogolPage = () => {
 
   // 2D歯車レイアウト設定
   const [showConfig, setShowConfig] = useState(false)
-  const [overlapRatio, setOverlapRatio] = useState(0.95)
-  const [indentRatio, setIndentRatio] = useState(0.75)
-  const [zigzagPeriod, setZigzagPeriod] = useState(16)
+  const [overlapRatio, setOverlapRatio] = useState(1)
+  const [indentRatio, setIndentRatio] = useState(0.45)
+  const [zigzagPeriod, setZigzagPeriod] = useState(20)
+  const [patternType, setPatternType] = useState<'zigzag' | 'wave' | 'square'>(
+    'zigzag'
+  )
 
   const handleCameraUpdate = useCallback(
     (pos: [number, number, number], target: [number, number, number]) => {
@@ -449,6 +483,7 @@ const GoogolPage = () => {
           overlapRatio={overlapRatio}
           indentRatio={indentRatio}
           zigzagPeriod={zigzagPeriod}
+          patternType={patternType}
         />
       </Box>
 
@@ -519,6 +554,20 @@ const GoogolPage = () => {
                   step={2}
                   size="small"
                 />
+              </Box>
+              <Box>
+                <Typography variant="caption">Pattern:</Typography>
+                <ToggleButtonGroup
+                  value={patternType}
+                  exclusive
+                  onChange={(_, v) => v && setPatternType(v)}
+                  size="small"
+                  sx={{ mt: 0.5 }}
+                >
+                  <ToggleButton value="zigzag">Zigzag</ToggleButton>
+                  <ToggleButton value="wave">Wave</ToggleButton>
+                  <ToggleButton value="square">Square</ToggleButton>
+                </ToggleButtonGroup>
               </Box>
             </Stack>
           </Box>
