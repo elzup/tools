@@ -197,7 +197,7 @@ const PiLab = () => {
 
       <Grid container spacing={4}>
         {/* 3つのサンプリング手法を比較 */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card>
             <CardContent>
               <Box
@@ -247,7 +247,7 @@ const PiLab = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card>
             <CardContent>
               <Box
@@ -301,7 +301,7 @@ const PiLab = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card>
             <CardContent>
               <Box
@@ -356,7 +356,7 @@ const PiLab = () => {
         </Grid>
 
         {/* PI履歴グラフ */}
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -396,7 +396,7 @@ const PiLab = () => {
         </Grid>
 
         {/* 操作パネル */}
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <CardContent>
               <Typography variant="subtitle2" gutterBottom>

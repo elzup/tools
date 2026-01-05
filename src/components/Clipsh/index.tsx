@@ -115,7 +115,7 @@ function ClipshContent() {
         ))}
       </Box>
       <Grid container>
-        <Grid item xs={12} sm={12} md={6}>
+        <Grid size={{ xs: 12, sm: 12, md: 6 }}>
           <Box m={'0.5rem'} className="input">
             <Typography>
               input
@@ -132,7 +132,7 @@ function ClipshContent() {
             />
           </Box>
         </Grid>
-        <Grid item xs={12} sm={12} md={6}>
+        <Grid size={{ xs: 12, sm: 12, md: 6 }}>
           <Box m={'0.5rem'} className="output">
             <Typography>
               output
