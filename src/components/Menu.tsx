@@ -9,6 +9,7 @@ import {
 import {
   IconDefinition,
   faBowlingBall,
+  faCog,
   faCalculator,
   faChartLine,
   faClipboard,
@@ -229,6 +230,11 @@ const routings: RoutingGroup[] = [
   {
     label: 'Graphical',
     routings: [
+      {
+        icon: faCog,
+        label: 'Googol 歯車',
+        path: '/googol',
+      },
       {
         icon: faPaintBrush,
         label: 'Creative Coding playground',

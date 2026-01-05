@@ -18,43 +18,40 @@ const Header = ({ currentPath }: Props) => {
     <StyledAppBar position="static" elevation={0} $compact={!isHome}>
       <StyledToolbar $compact={!isHome}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
-          <Link href="/" passHref>
-            <LogoLink $compact={!isHome}>
-              <FontAwesomeIcon icon={faSatellite} />
-              <Typography
-                variant={isHome ? 'h6' : 'body1'}
-                component="span"
-                sx={{ fontWeight: 700, letterSpacing: '-0.5px' }}
-              >
-                anozon
-              </Typography>
-              <Typography
-                variant={isHome ? 'h6' : 'body1'}
-                component="span"
-                sx={{ fontWeight: 300, opacity: 0.8 }}
-              >
-                /tools
-              </Typography>
-            </LogoLink>
-          </Link>
+          <StyledLogoLink href="/" $compact={!isHome}>
+            <FontAwesomeIcon icon={faSatellite} />
+            <Typography
+              variant={isHome ? 'h6' : 'body1'}
+              component="span"
+              sx={{ fontWeight: 700, letterSpacing: '-0.5px' }}
+            >
+              anozon
+            </Typography>
+            <Typography
+              variant={isHome ? 'h6' : 'body1'}
+              component="span"
+              sx={{ fontWeight: 300, opacity: 0.8 }}
+            >
+              /tools
+            </Typography>
+          </StyledLogoLink>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Clock compact={!isHome} />
           {!isHome && (
-            <Link href="/" passHref legacyBehavior>
-              <IconButton
-                component="a"
-                size="small"
-                sx={{
-                  color: 'inherit',
-                  opacity: 0.8,
-                  '&:hover': { opacity: 1 },
-                }}
-              >
-                <FaHome />
-              </IconButton>
-            </Link>
+            <IconButton
+              component={Link}
+              href="/"
+              size="small"
+              sx={{
+                color: 'inherit',
+                opacity: 0.8,
+                '&:hover': { opacity: 1 },
+              }}
+            >
+              <FaHome />
+            </IconButton>
           )}
           <IconButton
             component="a"
@@ -85,7 +82,7 @@ const StyledToolbar = styled(Toolbar)<{ $compact: boolean }>`
   padding: ${({ $compact }) => ($compact ? '0 16px' : '0 24px')} !important;
 `
 
-const LogoLink = styled.a<{ $compact: boolean }>`
+const StyledLogoLink = styled(Link)<{ $compact: boolean }>`
   display: flex;
   align-items: center;
   gap: ${({ $compact }) => ($compact ? '6px' : '8px')};
