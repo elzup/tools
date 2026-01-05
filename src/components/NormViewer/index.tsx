@@ -7,7 +7,12 @@ import {
 import { PercentileTable, ResultSummary } from './calculation-results'
 import { DistributionChart } from './distribution-chart'
 import { BasicParamsInput, ConditionsInput, RawScoresInput } from './input-form'
-import { loadSavedEntries, SavedLibrary, saveManually, useAutoSave } from './saved-library'
+import {
+  loadSavedEntries,
+  SavedLibrary,
+  saveManually,
+  useAutoSave,
+} from './saved-library'
 import { ValueLookup } from './value-lookup'
 
 const NormViewer = () => {
@@ -28,7 +33,10 @@ const NormViewer = () => {
     setInitialized(true)
   }, [initialized])
   const [saveKey, setSaveKey] = useState(0)
-  const [lookupMarkers, setLookupMarkers] = useState<{ value: number | null; percentile: number | null }>({
+  const [lookupMarkers, setLookupMarkers] = useState<{
+    value: number | null
+    percentile: number | null
+  }>({
     value: null,
     percentile: null,
   })
@@ -42,9 +50,12 @@ const NormViewer = () => {
     setSaveKey((k) => k + 1)
   }, [params])
 
-  const handleLookupChange = useCallback((value: number | null, percentile: number | null) => {
-    setLookupMarkers({ value, percentile })
-  }, [])
+  const handleLookupChange = useCallback(
+    (value: number | null, percentile: number | null) => {
+      setLookupMarkers({ value, percentile })
+    },
+    []
+  )
 
   const setExample = () => {
     setParams({

@@ -1,10 +1,4 @@
-import {
-  Alert,
-  Box,
-  Paper,
-  Stack,
-  Typography,
-} from '@mui/material'
+import { Alert, Box, Paper, Stack, Typography } from '@mui/material'
 import { useState } from 'react'
 import { EstimationResult } from '../../lib/norm-estimator'
 
@@ -22,7 +16,9 @@ export function ResultSummary({ result }: Props) {
     return (
       <Paper sx={{ p: 1.5 }}>
         <Alert severity="info" sx={{ py: 0 }}>
-          <Typography variant="caption">{result.error || '条件を入力してください'}</Typography>
+          <Typography variant="caption">
+            {result.error || '条件を入力してください'}
+          </Typography>
         </Alert>
       </Paper>
     )
@@ -38,11 +34,20 @@ export function ResultSummary({ result }: Props) {
               px: 1,
               py: 0.5,
               borderRadius: 1,
-              bgcolor: result.estimatedFields.includes('平均値') ? 'info.light' : 'grey.100',
+              bgcolor: result.estimatedFields.includes('平均値')
+                ? 'info.light'
+                : 'grey.100',
             }}
           >
-            <Typography variant="caption" color="text.secondary">μ</Typography>
-            <Typography variant="body1" fontWeight="bold" component="span" sx={{ ml: 0.5 }}>
+            <Typography variant="caption" color="text.secondary">
+              μ
+            </Typography>
+            <Typography
+              variant="body1"
+              fontWeight="bold"
+              component="span"
+              sx={{ ml: 0.5 }}
+            >
               {formatNumber(result.mean, 1)}
             </Typography>
           </Box>
@@ -51,11 +56,20 @@ export function ResultSummary({ result }: Props) {
               px: 1,
               py: 0.5,
               borderRadius: 1,
-              bgcolor: result.estimatedFields.includes('標準偏差') ? 'info.light' : 'grey.100',
+              bgcolor: result.estimatedFields.includes('標準偏差')
+                ? 'info.light'
+                : 'grey.100',
             }}
           >
-            <Typography variant="caption" color="text.secondary">σ</Typography>
-            <Typography variant="body1" fontWeight="bold" component="span" sx={{ ml: 0.5 }}>
+            <Typography variant="caption" color="text.secondary">
+              σ
+            </Typography>
+            <Typography
+              variant="body1"
+              fontWeight="bold"
+              component="span"
+              sx={{ ml: 0.5 }}
+            >
               {formatNumber(result.stdDev, 2)}
             </Typography>
           </Box>
@@ -64,10 +78,12 @@ export function ResultSummary({ result }: Props) {
         {/* 簡略範囲 */}
         <Stack direction="row" spacing={1.5} sx={{ color: 'text.secondary' }}>
           <Typography variant="caption">
-            68%: {formatNumber(result.mean - result.stdDev, 0)}〜{formatNumber(result.mean + result.stdDev, 0)}
+            68%: {formatNumber(result.mean - result.stdDev, 0)}〜
+            {formatNumber(result.mean + result.stdDev, 0)}
           </Typography>
           <Typography variant="caption">
-            95%: {formatNumber(result.mean - 2 * result.stdDev, 0)}〜{formatNumber(result.mean + 2 * result.stdDev, 0)}
+            95%: {formatNumber(result.mean - 2 * result.stdDev, 0)}〜
+            {formatNumber(result.mean + 2 * result.stdDev, 0)}
           </Typography>
         </Stack>
 
@@ -144,9 +160,7 @@ export function PercentileTable({ result }: Props) {
       return result.percentiles[p]
     }
     // 計算で求める
-    const z = p < 50
-      ? -Math.abs(getZScore(p))
-      : Math.abs(getZScore(p))
+    const z = p < 50 ? -Math.abs(getZScore(p)) : Math.abs(getZScore(p))
     return result.mean + z * result.stdDev
   }
 
@@ -158,22 +172,48 @@ export function PercentileTable({ result }: Props) {
 
     // 既知の値を使用
     const known: Record<number, number> = {
-      1: -2.326, 3: -1.881, 5: -1.645, 10: -1.282, 15: -1.036,
-      20: -0.842, 25: -0.674, 30: -0.524, 40: -0.253, 50: 0,
-      60: 0.253, 70: 0.524, 75: 0.674, 80: 0.842, 85: 1.036,
-      90: 1.282, 95: 1.645, 97: 1.881, 99: 2.326,
+      1: -2.326,
+      3: -1.881,
+      5: -1.645,
+      10: -1.282,
+      15: -1.036,
+      20: -0.842,
+      25: -0.674,
+      30: -0.524,
+      40: -0.253,
+      50: 0,
+      60: 0.253,
+      70: 0.524,
+      75: 0.674,
+      80: 0.842,
+      85: 1.036,
+      90: 1.282,
+      95: 1.645,
+      97: 1.881,
+      99: 2.326,
     }
     return known[p] ?? 0
   }
 
   return (
     <Paper sx={{ p: 1, minWidth: 120 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-        <Typography variant="caption" fontWeight="bold">上位%</Typography>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mb: 0.5 }}
+      >
+        <Typography variant="caption" fontWeight="bold">
+          上位%
+        </Typography>
         <Typography
           variant="caption"
           onClick={() => setShowDetail(!showDetail)}
-          sx={{ cursor: 'pointer', color: 'primary.main', '&:hover': { textDecoration: 'underline' } }}
+          sx={{
+            cursor: 'pointer',
+            color: 'primary.main',
+            '&:hover': { textDecoration: 'underline' },
+          }}
         >
           {showDetail ? '簡易' : '詳細'}
         </Typography>
@@ -184,10 +224,21 @@ export function PercentileTable({ result }: Props) {
             key={p}
             direction="row"
             justifyContent="space-between"
-            sx={{ py: 0.25, borderBottom: '1px solid', borderColor: 'divider', '&:last-child': { border: 0 } }}
+            sx={{
+              py: 0.25,
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              '&:last-child': { border: 0 },
+            }}
           >
-            <Typography variant="caption" color="text.secondary">{label}</Typography>
-            <Typography variant="caption" fontFamily="monospace" fontWeight="medium">
+            <Typography variant="caption" color="text.secondary">
+              {label}
+            </Typography>
+            <Typography
+              variant="caption"
+              fontFamily="monospace"
+              fontWeight="medium"
+            >
               {formatNumber(getPercentileValue(p), 1)}
             </Typography>
           </Stack>
@@ -213,7 +264,11 @@ export function RangeDetails({ result }: Props) {
           { label: '±3σ', sigma: 3, central: '99.73%', top: '0.13%' },
         ].map(({ label, sigma, central, top }) => (
           <Stack key={label} direction="row" spacing={1} alignItems="center">
-            <Typography variant="caption" color="text.secondary" sx={{ width: 28 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ width: 28 }}
+            >
               {label}
             </Typography>
             <Typography variant="caption" fontFamily="monospace">

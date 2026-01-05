@@ -435,7 +435,7 @@ const BitMixer = () => {
         <Typography variant="body2" paragraph>
           <strong>アルゴリズム:</strong>
         </Typography>
-        <Typography variant="body2" component="div" sx={{ pl: 2 }}>
+        <Typography variant="body2" sx={{ pl: 2 }}>
           <ul>
             <li>各bitについて0〜7のインデックスで処理</li>
             <li>
@@ -458,7 +458,7 @@ const BitMixer = () => {
         <Typography variant="body2" paragraph sx={{ mt: 2 }}>
           <strong>想定用途:</strong>
         </Typography>
-        <Typography variant="body2" component="div" sx={{ pl: 2 }}>
+        <Typography variant="body2" sx={{ pl: 2 }}>
           <ul>
             <li>ビットパターン同士の「ゆらぎを持つブレンド」生成</li>
             <li>アニメーションフレーム間補間の擬似ノイズ</li>

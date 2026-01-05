@@ -244,7 +244,6 @@ function DiceD6({
   )
 }
 
-
 // D100の色：10色（一の位）× 10段階の明度（十の位）
 // 一の位: 0=赤, 1=オレンジ, 2=黄, 3=黄緑, 4=緑, 5=シアン, 6=青, 7=紫, 8=マゼンタ, 9=ピンク
 // 十の位: 0=暗い → 9=明るい
@@ -270,9 +269,21 @@ function D100Geometry() {
     for (let i = 0; i < faceCount; i++) {
       // 面の中心座標を計算
       const idx = i * 3
-      const cx = (positionAttribute.getX(idx) + positionAttribute.getX(idx + 1) + positionAttribute.getX(idx + 2)) / 3
-      const cy = (positionAttribute.getY(idx) + positionAttribute.getY(idx + 1) + positionAttribute.getY(idx + 2)) / 3
-      const cz = (positionAttribute.getZ(idx) + positionAttribute.getZ(idx + 1) + positionAttribute.getZ(idx + 2)) / 3
+      const cx =
+        (positionAttribute.getX(idx) +
+          positionAttribute.getX(idx + 1) +
+          positionAttribute.getX(idx + 2)) /
+        3
+      const cy =
+        (positionAttribute.getY(idx) +
+          positionAttribute.getY(idx + 1) +
+          positionAttribute.getY(idx + 2)) /
+        3
+      const cz =
+        (positionAttribute.getZ(idx) +
+          positionAttribute.getZ(idx + 1) +
+          positionAttribute.getZ(idx + 2)) /
+        3
 
       // 面の法線から最も近いd100Facesを見つける
       const faceNormal = new THREE.Vector3(cx, cy, cz).normalize()
@@ -636,13 +647,26 @@ const Dice3D = () => {
             <Typography variant="subtitle2" sx={{ mb: 1 }}>
               D100 色の見方
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: 'block', mb: 1 }}
+            >
               色相（横）= 一の位、明度（縦）= 十の位
             </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'auto repeat(10, 1fr)', gap: 0.25, fontSize: '0.6rem' }}>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: 'auto repeat(10, 1fr)',
+                gap: 0.25,
+                fontSize: '0.6rem',
+              }}
+            >
               <Box />
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((n) => (
-                <Box key={n} sx={{ textAlign: 'center', fontWeight: 'bold' }}>{n}</Box>
+                <Box key={n} sx={{ textAlign: 'center', fontWeight: 'bold' }}>
+                  {n}
+                </Box>
               ))}
               {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((tens) => (
                 <React.Fragment key={tens}>

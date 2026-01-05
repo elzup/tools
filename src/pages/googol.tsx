@@ -658,10 +658,10 @@ const GoogolPage = () => {
             fontSize: '0.75rem',
           }}
         >
-          <Typography variant="caption" component="div">
+          <Typography variant="caption">
             Camera position: [{cameraPos.join(', ')}]
           </Typography>
-          <Typography variant="caption" component="div">
+          <Typography variant="caption">
             Camera target: [{cameraTarget.join(', ')}]
           </Typography>
         </div>

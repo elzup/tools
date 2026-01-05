@@ -1,4 +1,11 @@
-import { Box, Collapse, Container, Divider, IconButton, Typography } from '@mui/material'
+import {
+  Box,
+  Collapse,
+  Container,
+  Divider,
+  IconButton,
+  Typography,
+} from '@mui/material'
 import { FaChevronDown, FaChevronUp, FaGithub, FaGlobe } from 'react-icons/fa'
 import { useState } from 'react'
 import styled from 'styled-components'
@@ -26,10 +33,18 @@ const Footer = ({ currentPath, mode = 'full' }: Props) => {
               <Typography variant="body2" sx={{ opacity: 0.7 }}>
                 anozon/tools
               </Typography>
-              <FooterLink href="https://anozon.me" target="_blank" rel="noopener noreferrer">
+              <FooterLink
+                href="https://anozon.me"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaGlobe />
               </FooterLink>
-              <FooterLink href="https://github.com/elzup/tools" target="_blank" rel="noopener noreferrer">
+              <FooterLink
+                href="https://github.com/elzup/tools"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaGithub />
               </FooterLink>
             </Box>
@@ -65,11 +80,19 @@ const Footer = ({ currentPath, mode = 'full' }: Props) => {
           </Typography>
 
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <FooterLink href="https://anozon.me" target="_blank" rel="noopener noreferrer">
+            <FooterLink
+              href="https://anozon.me"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <FaGlobe />
               <span>anozon.me</span>
             </FooterLink>
-            <FooterLink href="https://github.com/elzup/tools" target="_blank" rel="noopener noreferrer">
+            <FooterLink
+              href="https://github.com/elzup/tools"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <FaGithub />
               <span>GitHub</span>
             </FooterLink>
@@ -81,7 +104,11 @@ const Footer = ({ currentPath, mode = 'full' }: Props) => {
 }
 
 const StyledFooter = styled.footer<{ $minimal?: boolean }>`
-  background: linear-gradient(135deg, ${colors.surface.darker} 0%, ${colors.surface.dark} 100%);
+  background: linear-gradient(
+    135deg,
+    ${colors.surface.darker} 0%,
+    ${colors.surface.dark} 100%
+  );
   color: #fff;
   padding: ${({ $minimal }) => ($minimal ? '0.75rem 0' : '3rem 0 2rem')};
   margin-top: auto;

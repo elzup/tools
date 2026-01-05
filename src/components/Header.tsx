@@ -18,7 +18,7 @@ const Header = ({ currentPath }: Props) => {
     <StyledAppBar position="static" elevation={0} $compact={!isHome}>
       <StyledToolbar $compact={!isHome}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
-          <Link href="/" passHref legacyBehavior>
+          <Link href="/" passHref>
             <LogoLink $compact={!isHome}>
               <FontAwesomeIcon icon={faSatellite} />
               <Typography
@@ -46,7 +46,11 @@ const Header = ({ currentPath }: Props) => {
               <IconButton
                 component="a"
                 size="small"
-                sx={{ color: 'inherit', opacity: 0.8, '&:hover': { opacity: 1 } }}
+                sx={{
+                  color: 'inherit',
+                  opacity: 0.8,
+                  '&:hover': { opacity: 1 },
+                }}
               >
                 <FaHome />
               </IconButton>
@@ -69,7 +73,11 @@ const Header = ({ currentPath }: Props) => {
 }
 
 const StyledAppBar = styled(AppBar)<{ $compact: boolean }>`
-  background: linear-gradient(135deg, ${colors.surface.darker} 0%, ${colors.surface.dark} 100%);
+  background: linear-gradient(
+    135deg,
+    ${colors.surface.darker} 0%,
+    ${colors.surface.dark} 100%
+  );
 `
 
 const StyledToolbar = styled(Toolbar)<{ $compact: boolean }>`

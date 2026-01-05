@@ -1,6 +1,20 @@
-import { Box, Checkbox, FormControlLabel, Paper, Slider, Stack, Typography } from '@mui/material'
+import {
+  Box,
+  Checkbox,
+  FormControlLabel,
+  Paper,
+  Slider,
+  Stack,
+  Typography,
+} from '@mui/material'
 import { useMemo, useState } from 'react'
-import { Condition, normalCDF, normalPDF, percentileToValue, valueToPercentile } from '../../lib/norm-estimator'
+import {
+  Condition,
+  normalCDF,
+  normalPDF,
+  percentileToValue,
+  valueToPercentile,
+} from '../../lib/norm-estimator'
 
 type Props = {
   mean: number
@@ -20,7 +34,14 @@ const DETAIL_LEVELS = [
   { label: '細かい', step: 0.25, bins: 50 },
 ]
 
-export function DistributionChart({ mean, stdDev, conditions, lookupMarkers, rawScores, onLookupChange }: Props) {
+export function DistributionChart({
+  mean,
+  stdDev,
+  conditions,
+  lookupMarkers,
+  rawScores,
+  onLookupChange,
+}: Props) {
   const [detailLevel, setDetailLevel] = useState(2) // デフォルトは「標準」
   const [showSigmaRange, setShowSigmaRange] = useState<number[]>([]) // デフォルト非表示
 
@@ -89,7 +110,9 @@ export function DistributionChart({ mean, stdDev, conditions, lookupMarkers, raw
     const totalCount = rawScores.length
 
     // ビンの境界点（軸表示用）
-    const binBoundaries = bins.map(b => b.start).concat([bins[bins.length - 1].end])
+    const binBoundaries = bins
+      .map((b) => b.start)
+      .concat([bins[bins.length - 1].end])
 
     return { bins, binWidth, totalCount, binBoundaries }
   }, [rawScores, mean, stdDev, detailLevel])
@@ -141,7 +164,8 @@ export function DistributionChart({ mean, stdDev, conditions, lookupMarkers, raw
   // X座標変換（データ値 → SVG座標）
   const toSvgX = (val: number) => paddingX + ((val - minX) / range) * plotWidth
   // Y座標変換（PDF値 → SVG座標）
-  const toSvgY = (pdfVal: number) => height - paddingY - (pdfVal / maxY) * plotHeight
+  const toSvgY = (pdfVal: number) =>
+    height - paddingY - (pdfVal / maxY) * plotHeight
 
   return (
     <Paper sx={{ p: 3 }}>
@@ -152,42 +176,45 @@ export function DistributionChart({ mean, stdDev, conditions, lookupMarkers, raw
       <svg
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="none"
-        style={{ width: '100%', height: 'auto', aspectRatio: `${width} / ${height}`, display: 'block' }}
+        style={{
+          width: '100%',
+          height: 'auto',
+          aspectRatio: `${width} / ${height}`,
+          display: 'block',
+        }}
       >
         {/* Grid (ヒストグラムがある場合はビン境界、ない場合はσ基準) */}
-        {histogramData ? (
-          histogramData.binBoundaries.map((xVal, i) => {
-            const xPos = toSvgX(xVal)
-            return (
-              <line
-                key={`grid-bin-${i}`}
-                x1={xPos}
-                y1={paddingY}
-                x2={xPos}
-                y2={height - paddingY}
-                stroke="#e0e0e0"
-                strokeDasharray="4"
-                strokeWidth="0.5"
-              />
-            )
-          })
-        ) : (
-          axisPoints.map((sigma) => {
-            const xPos = toSvgX(mean + sigma * stdDev)
-            return (
-              <line
-                key={`grid-${sigma}`}
-                x1={xPos}
-                y1={paddingY}
-                x2={xPos}
-                y2={height - paddingY}
-                stroke="#e0e0e0"
-                strokeDasharray="4"
-                strokeWidth="0.5"
-              />
-            )
-          })
-        )}
+        {histogramData
+          ? histogramData.binBoundaries.map((xVal, i) => {
+              const xPos = toSvgX(xVal)
+              return (
+                <line
+                  key={`grid-bin-${i}`}
+                  x1={xPos}
+                  y1={paddingY}
+                  x2={xPos}
+                  y2={height - paddingY}
+                  stroke="#e0e0e0"
+                  strokeDasharray="4"
+                  strokeWidth="0.5"
+                />
+              )
+            })
+          : axisPoints.map((sigma) => {
+              const xPos = toSvgX(mean + sigma * stdDev)
+              return (
+                <line
+                  key={`grid-${sigma}`}
+                  x1={xPos}
+                  y1={paddingY}
+                  x2={xPos}
+                  y2={height - paddingY}
+                  stroke="#e0e0e0"
+                  strokeDasharray="4"
+                  strokeWidth="0.5"
+                />
+              )
+            })}
 
         {/* Axes */}
         <line
@@ -232,26 +259,30 @@ export function DistributionChart({ mean, stdDev, conditions, lookupMarkers, raw
         )}
 
         {/* Histogram bars - 全サンプルの合計が100%の高さになるように正規化 */}
-        {histogramData && histogramData.bins.map((bin, i) => {
-          // 全サンプル数を基準に高さを計算（全バーの合計が100%）
-          const normalizedHeight = histogramData.totalCount > 0 ? bin.count / histogramData.totalCount : 0
-          const barHeight = normalizedHeight * plotHeight
-          const barX = toSvgX(bin.start)
-          const barWidth = toSvgX(bin.end) - toSvgX(bin.start)
-          return (
-            <rect
-              key={`hist-${i}`}
-              x={barX}
-              y={height - paddingY - barHeight}
-              width={barWidth}
-              height={barHeight}
-              fill="#4caf50"
-              opacity="0.4"
-              stroke="#4caf50"
-              strokeWidth="1"
-            />
-          )
-        })}
+        {histogramData &&
+          histogramData.bins.map((bin, i) => {
+            // 全サンプル数を基準に高さを計算（全バーの合計が100%）
+            const normalizedHeight =
+              histogramData.totalCount > 0
+                ? bin.count / histogramData.totalCount
+                : 0
+            const barHeight = normalizedHeight * plotHeight
+            const barX = toSvgX(bin.start)
+            const barWidth = toSvgX(bin.end) - toSvgX(bin.start)
+            return (
+              <rect
+                key={`hist-${i}`}
+                x={barX}
+                y={height - paddingY - barHeight}
+                width={barWidth}
+                height={barHeight}
+                fill="#4caf50"
+                opacity="0.4"
+                stroke="#4caf50"
+                strokeWidth="1"
+              />
+            )
+          })}
 
         {/* Distribution curve */}
         <polyline
@@ -295,124 +326,140 @@ export function DistributionChart({ mean, stdDev, conditions, lookupMarkers, raw
         })}
 
         {/* Filled area under curve from lookup to right */}
-        {lookupMarkers?.value != null && Number.isFinite(lookupMarkers.value) && (() => {
-          const val = lookupMarkers.value
-          if (val < minX || val > maxX) return null
+        {lookupMarkers?.value != null &&
+          Number.isFinite(lookupMarkers.value) &&
+          (() => {
+            const val = lookupMarkers.value
+            if (val < minX || val > maxX) return null
 
-          // Filter points from lookup value to the right
-          const areaPoints = chartData.filter(p => p.x >= val)
-          if (areaPoints.length === 0) return null
+            // Filter points from lookup value to the right
+            const areaPoints = chartData.filter((p) => p.x >= val)
+            if (areaPoints.length === 0) return null
 
-          // Build path: start at lookup point on x-axis, follow curve, end at x-axis
-          const startX = toSvgX(val)
-          const endX = toSvgX(maxX)
-          const baseY = height - paddingY
+            // Build path: start at lookup point on x-axis, follow curve, end at x-axis
+            const startX = toSvgX(val)
+            const endX = toSvgX(maxX)
+            const baseY = height - paddingY
 
-          // Start from bottom, go up to curve at lookup point
-          const startY = toSvgY(normalPDF(val, mean, stdDev))
+            // Start from bottom, go up to curve at lookup point
+            const startY = toSvgY(normalPDF(val, mean, stdDev))
 
-          let pathD = `M ${startX} ${baseY} L ${startX} ${startY}`
+            let pathD = `M ${startX} ${baseY} L ${startX} ${startY}`
 
-          // Follow the curve
-          for (const point of areaPoints) {
-            pathD += ` L ${toSvgX(point.x)} ${toSvgY(point.y)}`
-          }
+            // Follow the curve
+            for (const point of areaPoints) {
+              pathD += ` L ${toSvgX(point.x)} ${toSvgY(point.y)}`
+            }
 
-          // Close path back to x-axis
-          pathD += ` L ${endX} ${baseY} Z`
+            // Close path back to x-axis
+            pathD += ` L ${endX} ${baseY} Z`
 
-          return (
-            <path
-              d={pathD}
-              fill="#9c27b0"
-              opacity="0.15"
-            />
-          )
-        })()}
+            return <path d={pathD} fill="#9c27b0" opacity="0.15" />
+          })()}
 
         {/* Lookup markers (逆引き) */}
-        {lookupMarkers?.value != null && Number.isFinite(lookupMarkers.value) && (() => {
-          const val = lookupMarkers.value
-          const xPos = toSvgX(val)
-          if (xPos < 0 || xPos > width) return null
-          return (
-            <g>
-              <line
-                x1={xPos}
-                y1={paddingY}
-                x2={xPos}
-                y2={height - paddingY}
-                stroke="#9c27b0"
-                strokeWidth="2"
-              />
-              <circle cx={xPos} cy={paddingY + 10} r={5} fill="#9c27b0" />
-            </g>
-          )
-        })()}
+        {lookupMarkers?.value != null &&
+          Number.isFinite(lookupMarkers.value) &&
+          (() => {
+            const val = lookupMarkers.value
+            const xPos = toSvgX(val)
+            if (xPos < 0 || xPos > width) return null
+            return (
+              <g>
+                <line
+                  x1={xPos}
+                  y1={paddingY}
+                  x2={xPos}
+                  y2={height - paddingY}
+                  stroke="#9c27b0"
+                  strokeWidth="2"
+                />
+                <circle cx={xPos} cy={paddingY + 10} r={5} fill="#9c27b0" />
+              </g>
+            )
+          })()}
 
         {/* X axis labels - value (ヒストグラムがある場合はビン境界、ない場合はσ基準) */}
-        {histogramData ? (
-          // ビン境界を表示（間引き: ビン数に応じて）
-          histogramData.binBoundaries
-            .filter((_, i) => {
-              const binCount = histogramData.bins.length
-              // ビン数が多い場合は間引く
-              if (binCount <= 12) return true
-              if (binCount <= 20) return i % 2 === 0
-              if (binCount <= 30) return i % 3 === 0
-              return i % 5 === 0
-            })
-            .map((xVal, i) => {
+        {histogramData
+          ? // ビン境界を表示（間引き: ビン数に応じて）
+            histogramData.binBoundaries
+              .filter((_, i) => {
+                const binCount = histogramData.bins.length
+                // ビン数が多い場合は間引く
+                if (binCount <= 12) return true
+                if (binCount <= 20) return i % 2 === 0
+                if (binCount <= 30) return i % 3 === 0
+                return i % 5 === 0
+              })
+              .map((xVal, i) => {
+                const xPos = toSvgX(xVal)
+                return (
+                  <text
+                    key={`bin-${i}`}
+                    x={xPos}
+                    y={height - paddingY + 18}
+                    textAnchor="middle"
+                    fontSize={detailLevel >= 3 ? '9' : '11'}
+                    fill="#666"
+                  >
+                    {xVal.toFixed(detailLevel >= 3 ? 1 : 0)}
+                  </text>
+                )
+              })
+          : axisPoints.map((sigma) => {
+              const xVal = mean + sigma * stdDev
               const xPos = toSvgX(xVal)
               return (
                 <text
-                  key={`bin-${i}`}
+                  key={sigma}
                   x={xPos}
                   y={height - paddingY + 18}
                   textAnchor="middle"
                   fontSize={detailLevel >= 3 ? '9' : '11'}
                   fill="#666"
                 >
-                  {xVal.toFixed(detailLevel >= 3 ? 1 : 0)}
+                  {xVal.toFixed(detailLevel >= 4 ? 1 : 0)}
                 </text>
               )
-            })
-        ) : (
-          axisPoints.map((sigma) => {
-            const xVal = mean + sigma * stdDev
-            const xPos = toSvgX(xVal)
-            return (
-              <text
-                key={sigma}
-                x={xPos}
-                y={height - paddingY + 18}
-                textAnchor="middle"
-                fontSize={detailLevel >= 3 ? '9' : '11'}
-                fill="#666"
-              >
-                {xVal.toFixed(detailLevel >= 4 ? 1 : 0)}
-              </text>
-            )
-          })
-        )}
+            })}
 
         {/* X axis labels - top % (ヒストグラムがある場合はビン境界、ない場合はσ基準) */}
-        {histogramData ? (
-          histogramData.binBoundaries
-            .filter((_, i) => {
-              const binCount = histogramData.bins.length
-              if (binCount <= 12) return true
-              if (binCount <= 20) return i % 2 === 0
-              if (binCount <= 30) return i % 3 === 0
-              return i % 5 === 0
-            })
-            .map((xVal, i) => {
-              const xPos = toSvgX(xVal)
-              const zScore = (xVal - mean) / stdDev
-              const topPercent = (1 - normalCDF(zScore)) * 100
+        {histogramData
+          ? histogramData.binBoundaries
+              .filter((_, i) => {
+                const binCount = histogramData.bins.length
+                if (binCount <= 12) return true
+                if (binCount <= 20) return i % 2 === 0
+                if (binCount <= 30) return i % 3 === 0
+                return i % 5 === 0
+              })
+              .map((xVal, i) => {
+                const xPos = toSvgX(xVal)
+                const zScore = (xVal - mean) / stdDev
+                const topPercent = (1 - normalCDF(zScore)) * 100
+                return (
+                  <text
+                    key={`bin-top-${i}`}
+                    x={xPos}
+                    y={height - paddingY + 32}
+                    textAnchor="middle"
+                    fontSize={detailLevel >= 3 ? '7' : '9'}
+                    fill="#999"
+                  >
+                    {topPercent < 1
+                      ? `${topPercent.toFixed(1)}%`
+                      : topPercent < 10
+                        ? `${topPercent.toFixed(1)}%`
+                        : `${topPercent.toFixed(0)}%`}
+                  </text>
+                )
+              })
+          : axisPoints.map((sigma) => {
+              const xPos = toSvgX(mean + sigma * stdDev)
+              const topPercent = (1 - normalCDF(sigma)) * 100
               return (
                 <text
-                  key={`bin-top-${i}`}
+                  key={`top-${sigma}`}
                   x={xPos}
                   y={height - paddingY + 32}
                   textAnchor="middle"
@@ -426,39 +473,19 @@ export function DistributionChart({ mean, stdDev, conditions, lookupMarkers, raw
                       : `${topPercent.toFixed(0)}%`}
                 </text>
               )
-            })
-        ) : (
-          axisPoints.map((sigma) => {
-            const xPos = toSvgX(mean + sigma * stdDev)
-            const topPercent = (1 - normalCDF(sigma)) * 100
-            return (
-              <text
-                key={`top-${sigma}`}
-                x={xPos}
-                y={height - paddingY + 32}
-                textAnchor="middle"
-                fontSize={detailLevel >= 3 ? '7' : '9'}
-                fill="#999"
-              >
-                {topPercent < 1
-                  ? `${topPercent.toFixed(1)}%`
-                  : topPercent < 10
-                    ? `${topPercent.toFixed(1)}%`
-                    : `${topPercent.toFixed(0)}%`}
-              </text>
-            )
-          })
-        )}
+            })}
       </svg>
 
       {/* Lookup slider - same padding ratio as graph */}
       {onLookupChange && (
-        <Box sx={{
-          // グラフと同じ余白比率 (paddingX / width = 25/800 = 3.125%)
-          width: `${(plotWidth / width) * 100}%`,
-          mx: 'auto',
-          mt: -1,
-        }}>
+        <Box
+          sx={{
+            // グラフと同じ余白比率 (paddingX / width = 25/800 = 3.125%)
+            width: `${(plotWidth / width) * 100}%`,
+            mx: 'auto',
+            mt: -1,
+          }}
+        >
           <Slider
             value={lookupMarkers?.value ?? mean}
             onChange={(_e: Event, v: number | number[]) => {
@@ -513,7 +540,7 @@ export function DistributionChart({ mean, stdDev, conditions, lookupMarkers, raw
                     if (e.target.checked) {
                       setShowSigmaRange([...showSigmaRange, n].sort())
                     } else {
-                      setShowSigmaRange(showSigmaRange.filter(v => v !== n))
+                      setShowSigmaRange(showSigmaRange.filter((v) => v !== n))
                     }
                   }}
                   sx={{ p: 0.5 }}
@@ -526,7 +553,9 @@ export function DistributionChart({ mean, stdDev, conditions, lookupMarkers, raw
         </Stack>
         {conditionMarks.length > 0 && (
           <Stack direction="row" spacing={1} alignItems="center">
-            <Box sx={{ width: 24, height: 2, borderTop: '2px dashed #ff9800' }} />
+            <Box
+              sx={{ width: 24, height: 2, borderTop: '2px dashed #ff9800' }}
+            />
             <Typography variant="body2">条件</Typography>
           </Stack>
         )}
@@ -540,10 +569,13 @@ export function DistributionChart({ mean, stdDev, conditions, lookupMarkers, raw
                 border: '1px solid #4caf50',
               }}
             />
-            <Typography variant="body2">データ分布 (n={histogramData.totalCount})</Typography>
+            <Typography variant="body2">
+              データ分布 (n={histogramData.totalCount})
+            </Typography>
           </Stack>
         )}
-        {(lookupMarkers?.value !== null || lookupMarkers?.percentile !== null) && (
+        {(lookupMarkers?.value !== null ||
+          lookupMarkers?.percentile !== null) && (
           <Stack direction="row" spacing={1} alignItems="center">
             <Box sx={{ width: 24, height: 2, bgcolor: '#9c27b0' }} />
             <Typography variant="body2">逆引き</Typography>
@@ -552,13 +584,20 @@ export function DistributionChart({ mean, stdDev, conditions, lookupMarkers, raw
 
         <Box sx={{ flex: 1 }} />
 
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 150 }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          sx={{ minWidth: 150 }}
+        >
           <Typography variant="caption" color="text.secondary">
             細かさ
           </Typography>
           <Slider
             value={detailLevel}
-            onChange={(_e: Event, v: number | number[]) => setDetailLevel(v as number)}
+            onChange={(_e: Event, v: number | number[]) =>
+              setDetailLevel(v as number)
+            }
             min={0}
             max={4}
             step={1}

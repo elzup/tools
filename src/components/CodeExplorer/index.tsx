@@ -35,8 +35,8 @@ const isLayoutState = (v: unknown): v is LayoutState =>
 const base64UnUrl = (s: string) =>
   s.replace(/\+/g, '-').replace(/\//g, '_').replace(/=*$/g, '')
 
-const PanelBox = (props: ComponentProps<typeof BoxType>) => (
-  <Box border={'solid 1px'} mt={1} p={1} borderRadius={1} {...props} />
+const PanelBox = (props: { children?: React.ReactNode }) => (
+  <Box sx={{ border: 'solid 1px', mt: 1, p: 1, borderRadius: 1 }} {...props} />
 )
 
 function CodeExplorer() {

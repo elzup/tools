@@ -209,9 +209,12 @@ function calculateScore(input: string): {
         `${POS_LABELS[prevPos] || prevPos}→${POS_LABELS[info.pos] || info.pos}`
       )
       // 7段階に合わせたペナルティ
-      if (diff <= 1) posPenalty += 0 // 同じ or 1段: 滑らか
-      else if (diff === 2) posPenalty += 0.5 // 2段: やや跳ぶ
-      else if (diff === 3) posPenalty += 1 // 3段: 跳ぶ
+      if (diff <= 1)
+        posPenalty += 0 // 同じ or 1段: 滑らか
+      else if (diff === 2)
+        posPenalty += 0.5 // 2段: やや跳ぶ
+      else if (diff === 3)
+        posPenalty += 1 // 3段: 跳ぶ
       else posPenalty += 2 // 4段以上: 大きく跳ぶ
     }
     prevPos = info.pos
