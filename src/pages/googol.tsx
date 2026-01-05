@@ -1,4 +1,4 @@
-import { Box, Button, Slider, Stack, Typography } from '@mui/material'
+import { Box, Button, Collapse, Slider, Stack, Typography } from '@mui/material'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { useState, useCallback, useRef, Suspense, useMemo } from 'react'
@@ -37,7 +37,12 @@ type GearProps = {
   size: number
 }
 
-function Gear({ index, position, size, reverse }: GearProps & { reverse?: boolean }) {
+function Gear({
+  index,
+  position,
+  size,
+  reverse,
+}: GearProps & { reverse?: boolean }) {
   const baseAngle = (position / 10) * 360
   const angle = reverse ? -baseAngle : baseAngle
   const teethCount = 12
@@ -50,7 +55,7 @@ function Gear({ index, position, size, reverse }: GearProps & { reverse?: boolea
     const points: string[] = []
     for (let i = 0; i < teethCount; i++) {
       const baseAngle = (i / teethCount) * Math.PI * 2
-      const toothWidth = Math.PI / teethCount * 0.6
+      const toothWidth = (Math.PI / teethCount) * 0.6
 
       // 歯の外側
       const outerR = bodyRadius + toothHeight
@@ -73,7 +78,13 @@ function Gear({ index, position, size, reverse }: GearProps & { reverse?: boolea
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       <defs>
-        <linearGradient id={`gear-grad-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient
+          id={`gear-grad-${index}`}
+          x1="0%"
+          y1="0%"
+          x2="100%"
+          y2="100%"
+        >
           <stop offset="0%" stopColor="#3a3a3a" />
           <stop offset="50%" stopColor="#1a1a1a" />
           <stop offset="100%" stopColor="#2a2a2a" />
@@ -128,7 +139,7 @@ function createGearShape() {
 
   for (let i = 0; i < teethCount; i++) {
     const baseAngle = (i / teethCount) * Math.PI * 2
-    const toothWidth = Math.PI / teethCount * 0.6
+    const toothWidth = (Math.PI / teethCount) * 0.6
 
     const outerR = GEAR_BODY_RADIUS + GEAR_TOOTH_HEIGHT
     const innerR = GEAR_BODY_RADIUS
@@ -173,7 +184,10 @@ function Gear3D({
 
   // 形状をメモ化（厚み付き）
   const gearShape = useMemo(() => createGearShape(), [])
-  const extrudeSettings = useMemo(() => ({ depth: 0.15, bevelEnabled: false }), [])
+  const extrudeSettings = useMemo(
+    () => ({ depth: 0.15, bevelEnabled: false }),
+    []
+  )
   const extrudeGeometry = useMemo(
     () => new THREE.ExtrudeGeometry(gearShape, extrudeSettings),
     [gearShape, extrudeSettings]
@@ -190,12 +204,30 @@ function Gear3D({
       <group ref={groupRef}>
         {/* 歯車本体（厚み付き） */}
         <mesh geometry={extrudeGeometry}>
-          <meshStandardMaterial attach="material-0" color="#1a1a1a" metalness={0.8} roughness={0.3} />
-          <meshStandardMaterial attach="material-1" color="#4a4a4a" metalness={0.6} roughness={0.4} />
+          <meshStandardMaterial
+            attach="material-0"
+            color="#1a1a1a"
+            metalness={0.8}
+            roughness={0.3}
+          />
+          <meshStandardMaterial
+            attach="material-1"
+            color="#4a4a4a"
+            metalness={0.6}
+            roughness={0.4}
+          />
         </mesh>
         {/* 回転マーカー（中心から外周まで伸びる線） */}
-        <mesh position={[0, (GEAR_BODY_RADIUS + GEAR_TOOTH_HEIGHT * 0.3) / 2, -0.05]}>
-          <boxGeometry args={[0.15, GEAR_BODY_RADIUS + GEAR_TOOTH_HEIGHT * 0.3, 0.08]} />
+        <mesh
+          position={[
+            0,
+            (GEAR_BODY_RADIUS + GEAR_TOOTH_HEIGHT * 0.3) / 2,
+            -0.05,
+          ]}
+        >
+          <boxGeometry
+            args={[0.15, GEAR_BODY_RADIUS + GEAR_TOOTH_HEIGHT * 0.3, 0.08]}
+          />
           <meshStandardMaterial color="#e53935" />
         </mesh>
       </group>
@@ -206,7 +238,14 @@ function Gear3D({
 /**
  * カメラ位置トラッカー
  */
-function CameraTracker({ onUpdate }: { onUpdate: (pos: [number, number, number], target: [number, number, number]) => void }) {
+function CameraTracker({
+  onUpdate,
+}: {
+  onUpdate: (
+    pos: [number, number, number],
+    target: [number, number, number]
+  ) => void
+}) {
   const controlsRef = useRef<any>(null)
 
   useFrame(({ camera }) => {
@@ -263,11 +302,27 @@ function GearGroup3D({ positions }: { positions: number[] }) {
 type GearGroupProps = {
   positions: number[]
   gearSize: number
+  overlapRatio: number
+  indentRatio: number
+  zigzagPeriod: number
 }
 
-function GearGroup({ positions, gearSize }: GearGroupProps) {
-  const overlap = gearSize * 0.35 // 歯車の噛み合わせ用オーバーラップ
-  const indent = gearSize * 0.5 // 奇数番号の右ずらし量
+function GearGroup({
+  positions,
+  gearSize,
+  overlapRatio,
+  indentRatio,
+  zigzagPeriod,
+}: GearGroupProps) {
+  const overlap = gearSize * overlapRatio
+  const indent = gearSize * indentRatio
+
+  // N周期のジグザグパターンを生成
+  const getOffset = (index: number) => {
+    const half = Math.floor(zigzagPeriod / 2)
+    const pos = index % zigzagPeriod
+    return pos <= half ? pos : zigzagPeriod - pos
+  }
 
   // 下から上に表示（0が下）
   const reversedPositions = [...positions].reverse()
@@ -284,12 +339,13 @@ function GearGroup({ positions, gearSize }: GearGroupProps) {
     >
       {reversedPositions.map((pos, reversedIndex) => {
         const index = positions.length - 1 - reversedIndex
-        const isOdd = index % 2 === 1
+        const offset = getOffset(index)
+        const isReverse = index % 2 === 1
         return (
           <Box
             key={index}
             sx={{
-              marginLeft: isOdd ? `${indent}px` : 0,
+              marginLeft: `${offset * indent}px`,
               marginTop: reversedIndex > 0 ? `-${overlap}px` : 0,
             }}
           >
@@ -297,7 +353,7 @@ function GearGroup({ positions, gearSize }: GearGroupProps) {
               index={index}
               position={pos}
               size={gearSize}
-              reverse={isOdd}
+              reverse={isReverse}
             />
           </Box>
         )
@@ -317,13 +373,26 @@ const GoogolPage = () => {
   const [counterStr, setCounterStr] = useState('0')
   const [sliderValue, setSliderValue] = useState(50)
   const lastSliderRef = useRef(50)
-  const [cameraPos, setCameraPos] = useState<[number, number, number]>([-8, 15, -5])
-  const [cameraTarget, setCameraTarget] = useState<[number, number, number]>([1, 0, 12])
+  const [cameraPos, setCameraPos] = useState<[number, number, number]>([
+    -8, 15, -5,
+  ])
+  const [cameraTarget, setCameraTarget] = useState<[number, number, number]>([
+    1, 0, 12,
+  ])
 
-  const handleCameraUpdate = useCallback((pos: [number, number, number], target: [number, number, number]) => {
-    setCameraPos(pos)
-    setCameraTarget(target)
-  }, [])
+  // 2D歯車レイアウト設定
+  const [showConfig, setShowConfig] = useState(false)
+  const [overlapRatio, setOverlapRatio] = useState(0.95)
+  const [indentRatio, setIndentRatio] = useState(0.75)
+  const [zigzagPeriod, setZigzagPeriod] = useState(16)
+
+  const handleCameraUpdate = useCallback(
+    (pos: [number, number, number], target: [number, number, number]) => {
+      setCameraPos(pos)
+      setCameraTarget(target)
+    },
+    []
+  )
 
   const positions = getGearPositions(BigInt(counterStr))
 
@@ -374,12 +443,24 @@ const GoogolPage = () => {
           mb: 3,
         }}
       >
-        <GearGroup positions={positions} gearSize={60} />
+        <GearGroup
+          positions={positions}
+          gearSize={60}
+          overlapRatio={overlapRatio}
+          indentRatio={indentRatio}
+          zigzagPeriod={zigzagPeriod}
+        />
       </Box>
 
       {/* コントロール */}
       <Box sx={{ mb: 3 }}>
-        <Stack direction="row" spacing={1} sx={{ mb: 2 }} justifyContent="center">
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ mb: 2 }}
+          justifyContent="center"
+          alignItems="center"
+        >
           <Button variant="contained" onClick={handleDecrement}>
             -1
           </Button>
@@ -389,7 +470,59 @@ const GoogolPage = () => {
           <Button variant="outlined" onClick={handleReset}>
             Reset
           </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setShowConfig(!showConfig)}
+          >
+            {showConfig ? 'Config ▲' : 'Config ▼'}
+          </Button>
         </Stack>
+        <Collapse in={showConfig}>
+          <Box sx={{ p: 2, bgcolor: 'grey.100', borderRadius: 1, mb: 2 }}>
+            <Stack spacing={2}>
+              <Box>
+                <Typography variant="caption">
+                  Overlap Ratio: {overlapRatio}
+                </Typography>
+                <Slider
+                  value={overlapRatio}
+                  onChange={(_, v) => setOverlapRatio(v as number)}
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  size="small"
+                />
+              </Box>
+              <Box>
+                <Typography variant="caption">
+                  Indent Ratio: {indentRatio}
+                </Typography>
+                <Slider
+                  value={indentRatio}
+                  onChange={(_, v) => setIndentRatio(v as number)}
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  size="small"
+                />
+              </Box>
+              <Box>
+                <Typography variant="caption">
+                  Zigzag Period: {zigzagPeriod}
+                </Typography>
+                <Slider
+                  value={zigzagPeriod}
+                  onChange={(_, v) => setZigzagPeriod(v as number)}
+                  min={2}
+                  max={20}
+                  step={2}
+                  size="small"
+                />
+              </Box>
+            </Stack>
+          </Box>
+        </Collapse>
 
         {/* スライダー（左右に擦ると+） */}
         <Box sx={{ px: 2, maxWidth: 400, mx: 'auto' }}>
@@ -446,7 +579,16 @@ const GoogolPage = () => {
             </Suspense>
           </Canvas>
         </Box>
-        <Box sx={{ mt: 1, p: 1, bgcolor: 'grey.200', borderRadius: 1, fontFamily: 'monospace', fontSize: '0.75rem' }}>
+        <Box
+          sx={{
+            mt: 1,
+            p: 1,
+            bgcolor: 'grey.200',
+            borderRadius: 1,
+            fontFamily: 'monospace',
+            fontSize: '0.75rem',
+          }}
+        >
           <Typography variant="caption" component="div">
             Camera position: [{cameraPos.join(', ')}]
           </Typography>
@@ -462,8 +604,8 @@ const GoogolPage = () => {
       {/* 説明 */}
       <Box sx={{ mt: 4 }}>
         <Typography variant="body2" color="text.secondary">
-          10回転で次の歯車を1回転させる歯車が100枚。
-          最初の歯車を googol (10^100) 回まわすと、最後の歯車が1回転します。
+          10回転で次の歯車を1回転させる歯車が100枚。 最初の歯車を googol
+          (10^100) 回まわすと、最後の歯車が1回転します。
         </Typography>
       </Box>
     </Layout>
