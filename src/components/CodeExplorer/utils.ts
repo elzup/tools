@@ -1,11 +1,8 @@
 import { range } from '@elzup/kit/lib/range'
 import { controlCharLib } from '@elzup/kit/lib/char/ascii'
 
-export const uints = (b: Buffer) => [
-  ...range(b.byteLength).map((i) => {
-    return b.readUint8(i)
-  }),
-]
+export const uints = (b: Buffer) =>
+  range(b.byteLength).map((i) => b.readUint8(i))
 
 const cmdChars1 = 'xcbB?'
 const cmdChars2 = 'hHe'
@@ -58,7 +55,7 @@ export const transCmdUnsafe = (cmd: Cmd, buf: Buffer) => {
 export const transCmd = (cmd: Cmd, buf: Buffer) => {
   try {
     return transCmdUnsafe(cmd, buf)
-  } catch (_e) {
+  } catch {
     return ''
   }
 }

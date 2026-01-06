@@ -12,7 +12,6 @@ import {
   Condition,
   normalCDF,
   normalPDF,
-  percentileToValue,
   valueToPercentile,
 } from '../../lib/norm-estimator'
 

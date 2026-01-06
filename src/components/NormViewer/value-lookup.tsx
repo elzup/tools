@@ -34,7 +34,7 @@ export function ValueLookup({ mean, stdDev, isValid, lookupMarkers, onLookupChan
   const [percentInput, setPercentInput] = useState<string>('50')
   const [lastEdited, setLastEdited] = useState<'value' | 'percent' | null>('percent')
   const [initialized, setInitialized] = useState(false)
-  const [lastExternalUpdate, setLastExternalUpdate] = useState<number>(0)
+  const [_lastExternalUpdate, setLastExternalUpdate] = useState<number>(0)
 
   // 初期化: 有効になったら50%をデフォルトで計算
   useEffect(() => {

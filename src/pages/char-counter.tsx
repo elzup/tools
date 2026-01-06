@@ -31,7 +31,8 @@ function visibleEscapes(text: string) {
     .replace(/\n/g, '\\n')
     .replace(/\r/g, '\\r')
     .replace(/\f/g, '\\f')
-    .replace(/\0/g, '\\0')
+    // eslint-disable-next-line no-control-regex
+    .replace(/\x00/g, '\\0')
 }
 // ¥b	バックスペース
 // ¥t	水平タブ

@@ -1,6 +1,5 @@
 import { makeToggle } from '@elzup/kit/lib/makeToggle'
 import {
-  Box as BoxType,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -10,7 +9,7 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
-import { ComponentProps, useState } from 'react'
+import { useState } from 'react'
 import { FaArrowsAltH } from 'react-icons/fa'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
