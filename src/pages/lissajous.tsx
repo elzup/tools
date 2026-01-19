@@ -3,10 +3,10 @@ import {
   Box,
   FormControl,
   FormControlLabel,
-  InputLabel,
-  MenuItem,
+  FormLabel,
   Paper,
-  Select,
+  Radio,
+  RadioGroup,
   Slider,
   Switch,
   Typography,
@@ -204,18 +204,33 @@ const LissajousPage = () => {
             />
           </Box>
 
-          <FormControl fullWidth>
-            <InputLabel>Waveform</InputLabel>
-            <Select
+          <FormControl>
+            <FormLabel>Waveform</FormLabel>
+            <RadioGroup
               value={waveform}
-              label="Waveform"
               onChange={(e) => setWaveform(e.target.value as WaveformType)}
             >
-              <MenuItem value="sine">Sine (Circle)</MenuItem>
-              <MenuItem value="triangle">Triangle (Hexagon-like)</MenuItem>
-              <MenuItem value="square">Square (Rectangle-like)</MenuItem>
-              <MenuItem value="sawtooth">Sawtooth</MenuItem>
-            </Select>
+              <FormControlLabel
+                value="sine"
+                control={<Radio />}
+                label="Sine (Circle)"
+              />
+              <FormControlLabel
+                value="triangle"
+                control={<Radio />}
+                label="Triangle (Hexagon-like)"
+              />
+              <FormControlLabel
+                value="square"
+                control={<Radio />}
+                label="Square (Rectangle-like)"
+              />
+              <FormControlLabel
+                value="sawtooth"
+                control={<Radio />}
+                label="Sawtooth"
+              />
+            </RadioGroup>
           </FormControl>
         </Paper>
 
