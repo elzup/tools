@@ -89,7 +89,6 @@ const Px4kContent = () => {
   }
 
   const svgCode = gen4kPatternSvg(colors)
-  const svgUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svgCode)}`
 
   const handleCopy = async (text: string) => {
     await navigator.clipboard.writeText(text)
@@ -204,29 +203,6 @@ const Px4kContent = () => {
                     fill={rgbToString(colors.bottomRight)}
                   />
                 </svg>
-              </Box>
-            </Box>
-
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="caption" color="textSecondary">
-                SVG Data URL
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <TextField
-                  multiline
-                  fullWidth
-                  value={svgUrl}
-                  size="small"
-                  slotProps={{ input: { readOnly: true } }}
-                  sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}
-                />
-                <IconButton
-                  onClick={() => handleCopy(svgUrl)}
-                  size="small"
-                  color="primary"
-                >
-                  <FontAwesomeIcon icon={faCopy} />
-                </IconButton>
               </Box>
             </Box>
 
