@@ -188,7 +188,7 @@ const LissajousPage = () => {
             Diagonal cells (1:1, 2:2, etc.) create circles.
           </Typography>
 
-          <GridContainer cellSize={cellSize}>
+          <GridContainer cellSize={cellSize} gridSize={gridSize}>
             {/* Column headers */}
             <HeaderCell />
             {Array.from({ length: gridSize }).map((_, col) => (
@@ -248,12 +248,9 @@ const Container = styled.div`
   padding: 20px;
 `
 
-const GridContainer = styled.div<{ cellSize: number }>`
+const GridContainer = styled.div<{ cellSize: number; gridSize: number }>`
   display: grid;
-  grid-template-columns: 40px repeat(
-      ${(props) => Math.floor((window.innerWidth - 200) / props.cellSize)},
-      ${(props) => props.cellSize}px
-    );
+  grid-template-columns: 40px repeat(${(props) => props.gridSize}, ${(props) => props.cellSize}px);
   gap: 4px;
   width: fit-content;
   margin: 0 auto;
