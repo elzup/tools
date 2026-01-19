@@ -17,7 +17,7 @@ import { Title } from '../components/Title'
 
 const title = 'Lissajous Curves Grid'
 
-type WaveformType = 'sine' | 'triangle' | 'square' | 'sawtooth'
+type WaveformType = 'sine' | 'triangle' | 'square' | 'sawtooth' | 'custom'
 
 type LissajousCanvasProps = {
   freqA: number
@@ -26,6 +26,7 @@ type LissajousCanvasProps = {
   speed: number
   showTrace: boolean
   waveform: WaveformType
+  customWaveform?: number[]
 }
 
 // Waveform functions
@@ -37,6 +38,15 @@ const waveforms = {
   },
   square: (t: number) => (Math.sin(t) >= 0 ? 1 : -1),
   sawtooth: (t: number) => 2 * ((t / (Math.PI * 2)) % 1) - 1,
+  custom: (t: number, customPoints?: number[]) => {
+    if (!customPoints || customPoints.length === 0) return Math.sin(t)
+    const normalized = ((t / (Math.PI * 2)) % 1) * customPoints.length
+    const index = Math.floor(normalized)
+    const frac = normalized - index
+    const p1 = customPoints[index % customPoints.length]
+    const p2 = customPoints[(index + 1) % customPoints.length]
+    return p1 + (p2 - p1) * frac
+  },
 }
 
 const LissajousCanvas = ({
@@ -46,6 +56,7 @@ const LissajousCanvas = ({
   speed,
   showTrace,
   waveform,
+  customWaveform,
 }: LissajousCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number>()
@@ -62,7 +73,10 @@ const LissajousCanvas = ({
     const centerX = size / 2
     const centerY = size / 2
     const radius = size * 0.4
-    const waveFn = waveforms[waveform]
+    const waveFn = (t: number) =>
+      waveform === 'custom'
+        ? waveforms.custom(t, customWaveform)
+        : waveforms[waveform](t)
 
     const animate = () => {
       ctx.clearRect(0, 0, size, size)
@@ -127,7 +141,7 @@ const LissajousCanvas = ({
         cancelAnimationFrame(animationRef.current)
       }
     }
-  }, [freqA, freqB, size, speed, showTrace, waveform])
+  }, [freqA, freqB, size, speed, showTrace, waveform, customWaveform])
 
   useEffect(() => {
     tracePointsRef.current = []
@@ -136,12 +150,123 @@ const LissajousCanvas = ({
   return <canvas ref={canvasRef} width={size} height={size} />
 }
 
+type CurveEditorProps = {
+  points: number[]
+  onChange: (points: number[]) => void
+}
+
+const CurveEditor = ({ points, onChange }: CurveEditorProps) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [dragging, setDragging] = useState<number | null>(null)
+
+  const width = 400
+  const height = 150
+  const padding = 20
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    ctx.clearRect(0, 0, width, height)
+
+    // Grid
+    ctx.strokeStyle = '#e0e0e0'
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(0, height / 2)
+    ctx.lineTo(width, height / 2)
+    ctx.stroke()
+
+    // Curve
+    ctx.strokeStyle = '#3b82f6'
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    points.forEach((y, i) => {
+      const x = padding + (i / (points.length - 1)) * (width - padding * 2)
+      const py = height / 2 - y * (height / 2 - padding)
+      if (i === 0) {
+        ctx.moveTo(x, py)
+      } else {
+        ctx.lineTo(x, py)
+      }
+    })
+    ctx.stroke()
+
+    // Points
+    points.forEach((y, i) => {
+      const x = padding + (i / (points.length - 1)) * (width - padding * 2)
+      const py = height / 2 - y * (height / 2 - padding)
+      ctx.fillStyle = dragging === i ? '#ff5722' : '#3b82f6'
+      ctx.beginPath()
+      ctx.arc(x, py, 6, 0, Math.PI * 2)
+      ctx.fill()
+    })
+  }, [points, dragging])
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const rect = canvas.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+
+    points.forEach((py, i) => {
+      const px = padding + (i / (points.length - 1)) * (width - padding * 2)
+      const pointY = height / 2 - py * (height / 2 - padding)
+      const dist = Math.sqrt((x - px) ** 2 + (y - pointY) ** 2)
+      if (dist < 10) {
+        setDragging(i)
+      }
+    })
+  }
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (dragging === null) return
+
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const rect = canvas.getBoundingClientRect()
+    const y = e.clientY - rect.top
+    const normalized = -(y - height / 2) / (height / 2 - padding)
+    const clamped = Math.max(-1, Math.min(1, normalized))
+
+    const newPoints = [...points]
+    newPoints[dragging] = clamped
+    onChange(newPoints)
+  }
+
+  const handleMouseUp = () => {
+    setDragging(null)
+  }
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={width}
+      height={height}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      style={{ cursor: dragging !== null ? 'grabbing' : 'pointer', border: '1px solid #ccc', borderRadius: '4px' }}
+    />
+  )
+}
+
 const LissajousPage = () => {
   const [gridSize, setGridSize] = useState(8)
   const [cellSize, setCellSize] = useState(80)
   const [speed, setSpeed] = useState(1)
   const [showTrace, setShowTrace] = useState(false)
   const [waveform, setWaveform] = useState<WaveformType>('sine')
+  const [customWaveform, setCustomWaveform] = useState<number[]>(
+    Array.from({ length: 16 }, (_, i) => Math.sin((i / 16) * Math.PI * 2))
+  )
 
   return (
     <Layout title={title}>
@@ -230,8 +355,25 @@ const LissajousPage = () => {
                 control={<Radio />}
                 label="Sawtooth"
               />
+              <FormControlLabel
+                value="custom"
+                control={<Radio />}
+                label="Custom"
+              />
             </RadioGroup>
           </FormControl>
+
+          {waveform === 'custom' && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Custom Curve Editor
+              </Typography>
+              <Typography variant="caption" color="textSecondary" sx={{ mb: 1, display: 'block' }}>
+                Drag points to shape your custom waveform
+              </Typography>
+              <CurveEditor points={customWaveform} onChange={setCustomWaveform} />
+            </Box>
+          )}
         </Paper>
 
         <Paper elevation={1} sx={{ p: 2, overflow: 'auto' }}>
@@ -263,6 +405,7 @@ const LissajousPage = () => {
                       speed={speed}
                       showTrace={showTrace}
                       waveform={waveform}
+                      customWaveform={customWaveform}
                     />
                   </GridCell>
                 ))}
