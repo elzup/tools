@@ -169,6 +169,11 @@ const routings: RoutingGroup[] = [
         label: 'Gray Code Visualizer',
         path: '/gray-code',
       },
+      {
+        icon: faChartLine,
+        label: 'Lissajous Curves Grid',
+        path: '/lissajous',
+      },
     ],
   },
 
