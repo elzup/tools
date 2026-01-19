@@ -27,6 +27,7 @@ type LissajousCanvasProps = {
   showTrace: boolean
   waveform: WaveformType
   customWaveform?: number[]
+  phase?: number
 }
 
 // Waveform functions
@@ -57,6 +58,7 @@ const LissajousCanvas = ({
   showTrace,
   waveform,
   customWaveform,
+  phase = 0,
 }: LissajousCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number>()
@@ -95,7 +97,7 @@ const LissajousCanvas = ({
       }
 
       // Calculate current position
-      const x = centerX + radius * waveFn(freqA * timeRef.current)
+      const x = centerX + radius * waveFn(freqA * timeRef.current + phase)
       const y = centerY + radius * waveFn(freqB * timeRef.current)
 
       // Add to trace
@@ -117,7 +119,7 @@ const LissajousCanvas = ({
       ctx.lineWidth = 1.5
       ctx.beginPath()
       for (let t = 0; t <= Math.PI * 2; t += 0.01) {
-        const px = centerX + radius * waveFn(freqA * t)
+        const px = centerX + radius * waveFn(freqA * t + phase)
         const py = centerY + radius * waveFn(freqB * t)
         if (t === 0) {
           ctx.moveTo(px, py)
@@ -138,7 +140,7 @@ const LissajousCanvas = ({
         cancelAnimationFrame(animationRef.current)
       }
     }
-  }, [freqA, freqB, size, speed, showTrace, waveform, customWaveform])
+  }, [freqA, freqB, size, speed, showTrace, waveform, customWaveform, phase])
 
   useEffect(() => {
     tracePointsRef.current = []
@@ -261,6 +263,7 @@ const LissajousPage = () => {
   const [speed, setSpeed] = useState(1)
   const [showTrace, setShowTrace] = useState(false)
   const [waveform, setWaveform] = useState<WaveformType>('sine')
+  const [phase, setPhase] = useState(0)
   const [customWaveform, setCustomWaveform] = useState<number[]>(
     Array.from({ length: 16 }, (_, i) => Math.sin((i / 16) * Math.PI * 2))
   )
@@ -324,6 +327,19 @@ const LissajousPage = () => {
           </Box>
 
           <Box sx={{ mb: 2 }}>
+            <Typography variant="caption" color="textSecondary" gutterBottom>
+              Phase Shift: {(phase / Math.PI).toFixed(2)}π
+            </Typography>
+            <Slider
+              value={phase}
+              onChange={(_, v) => setPhase(v as number)}
+              min={0}
+              max={Math.PI * 2}
+              step={0.01}
+            />
+          </Box>
+
+          <Box sx={{ mb: 2 }}>
             <FormControlLabel
               control={
                 <Switch
@@ -378,8 +394,8 @@ const LissajousPage = () => {
         <Paper elevation={1} sx={{ p: 2, overflow: 'auto' }}>
           <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
             Each cell shows a Lissajous curve with frequency ratio A:B (row:col).
-            Sine wave creates circles on diagonals. Triangle wave creates
-            hexagon-like shapes. Square wave creates rectangle-like shapes.
+            Sine wave creates circles on diagonals. Try 3:2 or 2:3 ratios with phase shift π/2 (0.50π) to see hexagons!
+            Triangle wave creates hexagon-like shapes. Square wave creates rectangle-like shapes.
           </Typography>
 
           <GridContainer cellSize={cellSize} gridSize={gridSize}>
@@ -405,6 +421,7 @@ const LissajousPage = () => {
                       showTrace={showTrace}
                       waveform={waveform}
                       customWaveform={customWaveform}
+                      phase={phase}
                     />
                   </GridCell>
                 ))}
