@@ -110,6 +110,11 @@ const routings: RoutingGroup[] = [
         path: '/1px',
       },
       {
+        icon: faImage,
+        label: '4K Pattern SVG Generator',
+        path: '/4kpx',
+      },
+      {
         icon: faGlobe,
         label: 'Global Public IP',
         path: '/global-ip',
