@@ -159,6 +159,11 @@ const routings: RoutingGroup[] = [
         label: '分布推定ツール',
         path: '/norm-viewer',
       },
+      {
+        icon: faCalculator,
+        label: 'Gray Code Visualizer',
+        path: '/gray-code',
+      },
     ],
   },
 
