@@ -4,6 +4,7 @@ import {
   FormControl,
   FormControlLabel,
   FormLabel,
+  Grid,
   Paper,
   Radio,
   RadioGroup,
@@ -158,8 +159,8 @@ const CurveEditor = ({ points, onChange }: CurveEditorProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [dragging, setDragging] = useState<number | null>(null)
 
-  const width = 400
-  const height = 150
+  const width = 320
+  const height = 120
   const padding = 20
 
   useEffect(() => {
@@ -281,10 +282,12 @@ const LissajousPage = () => {
     <Layout title={title}>
       <Title>{title}</Title>
       <Container>
-        <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Controls
-          </Typography>
+        <Grid container spacing={3}>
+          <Grid size={{ xs: 12, lg: 4 }}>
+            <ControlsPanel elevation={1}>
+              <Typography variant="h6" gutterBottom>
+                Controls
+              </Typography>
 
           <Box sx={{ mb: 2 }}>
             <Typography variant="caption" color="textSecondary" gutterBottom>
@@ -389,14 +392,16 @@ const LissajousPage = () => {
             </Typography>
             <CurveEditor points={customWaveform} onChange={setCustomWaveform} />
           </Box>
-        </Paper>
+            </ControlsPanel>
+          </Grid>
 
-        <Paper elevation={1} sx={{ p: 2, overflow: 'auto' }}>
-          <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-            Each cell shows a Lissajous curve with frequency ratio A:B (row:col).
-            Sine wave creates circles on diagonals. Try 3:2 or 2:3 ratios with phase shift π/2 (0.50π) to see hexagons!
-            Triangle wave creates hexagon-like shapes. Square wave creates rectangle-like shapes.
-          </Typography>
+          <Grid size={{ xs: 12, lg: 8 }}>
+            <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                Each cell shows a Lissajous curve with frequency ratio A:B (row:col).
+                Sine wave creates circles on diagonals. Try 3:2 or 2:3 ratios with phase shift π/2 (0.50π) to see hexagons!
+                Triangle wave creates hexagon-like shapes. Square wave creates rectangle-like shapes.
+              </Typography>
 
           <GridContainer cellSize={cellSize} gridSize={gridSize}>
             {/* Column headers */}
@@ -428,37 +433,47 @@ const LissajousPage = () => {
               </>
             ))}
           </GridContainer>
-        </Paper>
+            </Paper>
 
-        <Paper elevation={1} sx={{ p: 2, mt: 2 }}>
-          <Typography variant="h6" gutterBottom>
-            About Lissajous Curves
-          </Typography>
-          <Typography variant="body2" paragraph>
-            Lissajous curves are complex harmonic motions created by combining
-            two perpendicular sinusoidal oscillations. The shape depends on the
-            frequency ratio and phase difference between the two oscillations.
-          </Typography>
-          <Typography variant="body2" component="div">
-            <strong>Formula:</strong>
-            <br />
-            x(t) = A × sin(a×t + δ)
-            <br />
-            y(t) = B × sin(b×t)
-            <br />
-            <br />
-            Where a:b is the frequency ratio shown in each cell (row:column).
-          </Typography>
-        </Paper>
+            <Paper elevation={1} sx={{ p: 2 }}>
+              <Typography variant="h6" gutterBottom>
+                About Lissajous Curves
+              </Typography>
+              <Typography variant="body2" paragraph>
+                Lissajous curves are complex harmonic motions created by combining
+                two perpendicular sinusoidal oscillations. The shape depends on the
+                frequency ratio and phase difference between the two oscillations.
+              </Typography>
+              <Typography variant="body2" component="div">
+                <strong>Formula:</strong>
+                <br />
+                x(t) = A × sin(a×t + δ)
+                <br />
+                y(t) = B × sin(b×t)
+                <br />
+                <br />
+                Where a:b is the frequency ratio shown in each cell (row:column).
+              </Typography>
+            </Paper>
+          </Grid>
+        </Grid>
       </Container>
     </Layout>
   )
 }
 
 const Container = styled.div`
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 20px;
+`
+
+const ControlsPanel = styled(Paper)`
+  padding: 24px;
+  position: sticky;
+  top: 80px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
 `
 
 const GridContainer = styled.div<{ cellSize: number; gridSize: number }>`
@@ -467,6 +482,7 @@ const GridContainer = styled.div<{ cellSize: number; gridSize: number }>`
   gap: 4px;
   width: fit-content;
   margin: 0 auto;
+  overflow-x: auto;
 `
 
 const HeaderCell = styled.div`
