@@ -9,7 +9,6 @@ import {
   Radio,
   RadioGroup,
   Slider,
-  Switch,
   Typography,
 } from '@mui/material'
 import styled from 'styled-components'
@@ -25,7 +24,6 @@ type LissajousCanvasProps = {
   freqB: number
   size: number
   speed: number
-  showTrace: boolean
   waveform: WaveformType
   customWaveform?: number[]
   phase?: number
@@ -56,7 +54,6 @@ const LissajousCanvas = ({
   freqB,
   size,
   speed,
-  showTrace,
   waveform,
   customWaveform,
   phase = 0,
@@ -64,7 +61,6 @@ const LissajousCanvas = ({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number>()
   const timeRef = useRef<number>(0)
-  const tracePointsRef = useRef<{ x: number; y: number }[]>([])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -85,29 +81,9 @@ const LissajousCanvas = ({
       ctx.fillStyle = '#f8f9fa'
       ctx.fillRect(0, 0, size, size)
 
-      // Draw trace
-      if (showTrace && tracePointsRef.current.length > 1) {
-        ctx.strokeStyle = 'rgba(59, 130, 246, 0.2)'
-        ctx.lineWidth = 1
-        ctx.beginPath()
-        ctx.moveTo(tracePointsRef.current[0].x, tracePointsRef.current[0].y)
-        for (let i = 1; i < tracePointsRef.current.length; i++) {
-          ctx.lineTo(tracePointsRef.current[i].x, tracePointsRef.current[i].y)
-        }
-        ctx.stroke()
-      }
-
       // Calculate current position
       const x = centerX + radius * waveFn(freqA * timeRef.current + phase)
       const y = centerY + radius * waveFn(freqB * timeRef.current)
-
-      // Add to trace
-      if (showTrace) {
-        tracePointsRef.current.push({ x, y })
-        if (tracePointsRef.current.length > 500) {
-          tracePointsRef.current.shift()
-        }
-      }
 
       // Draw current point
       ctx.fillStyle = '#3b82f6'
@@ -141,11 +117,7 @@ const LissajousCanvas = ({
         cancelAnimationFrame(animationRef.current)
       }
     }
-  }, [freqA, freqB, size, speed, showTrace, waveform, customWaveform, phase])
-
-  useEffect(() => {
-    tracePointsRef.current = []
-  }, [showTrace])
+  }, [freqA, freqB, size, speed, waveform, customWaveform, phase])
 
   return <canvas ref={canvasRef} width={size} height={size} />
 }
@@ -157,11 +129,24 @@ type CurveEditorProps = {
 
 const CurveEditor = ({ points, onChange }: CurveEditorProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [dragging, setDragging] = useState<number | null>(null)
+  const [dimensions, setDimensions] = useState({ width: 600, height: 150 })
 
-  const width = 280
-  const height = 120
   const padding = 20
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        const width = containerRef.current.offsetWidth
+        setDimensions({ width, height: 150 })
+      }
+    }
+
+    updateSize()
+    window.addEventListener('resize', updateSize)
+    return () => window.removeEventListener('resize', updateSize)
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -170,6 +155,7 @@ const CurveEditor = ({ points, onChange }: CurveEditorProps) => {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    const { width, height } = dimensions
     ctx.clearRect(0, 0, width, height)
 
     // Grid
@@ -204,7 +190,7 @@ const CurveEditor = ({ points, onChange }: CurveEditorProps) => {
       ctx.arc(x, py, 6, 0, Math.PI * 2)
       ctx.fill()
     })
-  }, [points, dragging])
+  }, [points, dragging, dimensions])
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current
@@ -213,6 +199,8 @@ const CurveEditor = ({ points, onChange }: CurveEditorProps) => {
     const rect = canvas.getBoundingClientRect()
     const x = e.clientX - rect.left
     const y = e.clientY - rect.top
+
+    const { width, height } = dimensions
 
     points.forEach((py, i) => {
       const px = padding + (i / (points.length - 1)) * (width - padding * 2)
@@ -232,6 +220,7 @@ const CurveEditor = ({ points, onChange }: CurveEditorProps) => {
 
     const rect = canvas.getBoundingClientRect()
     const y = e.clientY - rect.top
+    const { height } = dimensions
     const normalized = -(y - height / 2) / (height / 2 - padding)
     const clamped = Math.max(-1, Math.min(1, normalized))
 
@@ -245,16 +234,24 @@ const CurveEditor = ({ points, onChange }: CurveEditorProps) => {
   }
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={width}
-      height={height}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      style={{ cursor: dragging !== null ? 'grabbing' : 'pointer', border: '1px solid #ccc', borderRadius: '4px' }}
-    />
+    <div ref={containerRef} style={{ width: '100%' }}>
+      <canvas
+        ref={canvasRef}
+        width={dimensions.width}
+        height={dimensions.height}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        style={{
+          cursor: dragging !== null ? 'grabbing' : 'pointer',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          width: '100%',
+          height: 'auto',
+        }}
+      />
+    </div>
   )
 }
 
@@ -262,7 +259,6 @@ const LissajousPage = () => {
   const [gridSize, setGridSize] = useState(8)
   const [cellSize, setCellSize] = useState(80)
   const [speed, setSpeed] = useState(1)
-  const [showTrace, setShowTrace] = useState(false)
   const [waveform, setWaveform] = useState<WaveformType>('sine')
   const [phase, setPhase] = useState(0)
   const [customWaveform, setCustomWaveform] = useState<number[]>(
@@ -330,8 +326,10 @@ const LissajousPage = () => {
                   step={0.1}
                 />
               </Box>
+            </Grid>
 
-              <Box sx={{ mt: 2 }}>
+            <Grid size={{ xs: 12, sm: 12, md: 6 }}>
+              <Box>
                 <Typography variant="caption" color="textSecondary" gutterBottom>
                   Phase Shift: {(phase / Math.PI).toFixed(2)}π
                 </Typography>
@@ -343,21 +341,9 @@ const LissajousPage = () => {
                   step={0.01}
                 />
               </Box>
-
-              <Box sx={{ mt: 2 }}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={showTrace}
-                      onChange={(e) => setShowTrace(e.target.checked)}
-                    />
-                  }
-                  label="Show trace"
-                />
-              </Box>
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <FormControl>
                 <FormLabel>Waveform</FormLabel>
                 <RadioGroup
@@ -388,13 +374,13 @@ const LissajousPage = () => {
               </FormControl>
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 8 }}>
               <Box>
                 <Typography variant="subtitle2" gutterBottom>
                   Waveform Editor
                 </Typography>
                 <Typography variant="caption" color="textSecondary" sx={{ mb: 1, display: 'block' }}>
-                  Drag points to customize
+                  Drag points to customize the selected waveform
                 </Typography>
                 <CurveEditor points={customWaveform} onChange={setCustomWaveform} />
               </Box>
@@ -429,7 +415,6 @@ const LissajousPage = () => {
                       freqB={col + 1}
                       size={cellSize}
                       speed={speed}
-                      showTrace={showTrace}
                       waveform={waveform}
                       customWaveform={customWaveform}
                       phase={phase}
