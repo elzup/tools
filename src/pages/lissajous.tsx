@@ -17,7 +17,7 @@ import { Title } from '../components/Title'
 
 const title = 'Lissajous Curves Grid'
 
-type WaveformType = 'sine' | 'triangle' | 'square' | 'sawtooth' | 'custom'
+type WaveformType = 'sine' | 'triangle' | 'square' | 'sawtooth'
 
 type LissajousCanvasProps = {
   freqA: number
@@ -73,10 +73,7 @@ const LissajousCanvas = ({
     const centerX = size / 2
     const centerY = size / 2
     const radius = size * 0.4
-    const waveFn = (t: number) =>
-      waveform === 'custom'
-        ? waveforms.custom(t, customWaveform)
-        : waveforms[waveform](t)
+    const waveFn = (t: number) => waveforms.custom(t, customWaveform)
 
     const animate = () => {
       ctx.clearRect(0, 0, size, size)
@@ -268,6 +265,15 @@ const LissajousPage = () => {
     Array.from({ length: 16 }, (_, i) => Math.sin((i / 16) * Math.PI * 2))
   )
 
+  useEffect(() => {
+    const waveFn = waveforms[waveform]
+    const newPoints = Array.from({ length: 16 }, (_, i) => {
+      const t = (i / 16) * Math.PI * 2
+      return waveFn(t)
+    })
+    setCustomWaveform(newPoints)
+  }, [waveform])
+
   return (
     <Layout title={title}>
       <Title>{title}</Title>
@@ -355,25 +361,18 @@ const LissajousPage = () => {
                 control={<Radio />}
                 label="Sawtooth"
               />
-              <FormControlLabel
-                value="custom"
-                control={<Radio />}
-                label="Custom"
-              />
             </RadioGroup>
           </FormControl>
 
-          {waveform === 'custom' && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle2" gutterBottom>
-                Custom Curve Editor
-              </Typography>
-              <Typography variant="caption" color="textSecondary" sx={{ mb: 1, display: 'block' }}>
-                Drag points to shape your custom waveform
-              </Typography>
-              <CurveEditor points={customWaveform} onChange={setCustomWaveform} />
-            </Box>
-          )}
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="subtitle2" gutterBottom>
+              Waveform Editor
+            </Typography>
+            <Typography variant="caption" color="textSecondary" sx={{ mb: 1, display: 'block' }}>
+              Drag points to customize the selected waveform
+            </Typography>
+            <CurveEditor points={customWaveform} onChange={setCustomWaveform} />
+          </Box>
         </Paper>
 
         <Paper elevation={1} sx={{ p: 2, overflow: 'auto' }}>
