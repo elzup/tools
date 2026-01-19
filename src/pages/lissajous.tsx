@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   Box,
+  FormControl,
   FormControlLabel,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Slider,
   Switch,
   Typography,
@@ -13,12 +17,26 @@ import { Title } from '../components/Title'
 
 const title = 'Lissajous Curves Grid'
 
+type WaveformType = 'sine' | 'triangle' | 'square' | 'sawtooth'
+
 type LissajousCanvasProps = {
   freqA: number
   freqB: number
   size: number
   speed: number
   showTrace: boolean
+  waveform: WaveformType
+}
+
+// Waveform functions
+const waveforms = {
+  sine: (t: number) => Math.sin(t),
+  triangle: (t: number) => {
+    const normalized = ((t / Math.PI) % 2) - 1
+    return 2 * Math.abs(normalized) - 1
+  },
+  square: (t: number) => (Math.sin(t) >= 0 ? 1 : -1),
+  sawtooth: (t: number) => 2 * ((t / (Math.PI * 2)) % 1) - 1,
 }
 
 const LissajousCanvas = ({
@@ -27,6 +45,7 @@ const LissajousCanvas = ({
   size,
   speed,
   showTrace,
+  waveform,
 }: LissajousCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number>()
@@ -43,6 +62,7 @@ const LissajousCanvas = ({
     const centerX = size / 2
     const centerY = size / 2
     const radius = size * 0.4
+    const waveFn = waveforms[waveform]
 
     const animate = () => {
       ctx.clearRect(0, 0, size, size)
@@ -64,8 +84,8 @@ const LissajousCanvas = ({
       }
 
       // Calculate current position
-      const x = centerX + radius * Math.sin(freqA * timeRef.current)
-      const y = centerY + radius * Math.sin(freqB * timeRef.current)
+      const x = centerX + radius * waveFn(freqA * timeRef.current)
+      const y = centerY + radius * waveFn(freqB * timeRef.current)
 
       // Add to trace
       if (showTrace) {
@@ -86,8 +106,8 @@ const LissajousCanvas = ({
       ctx.lineWidth = 1.5
       ctx.beginPath()
       for (let t = 0; t <= Math.PI * 2; t += 0.01) {
-        const px = centerX + radius * Math.sin(freqA * t)
-        const py = centerY + radius * Math.sin(freqB * t)
+        const px = centerX + radius * waveFn(freqA * t)
+        const py = centerY + radius * waveFn(freqB * t)
         if (t === 0) {
           ctx.moveTo(px, py)
         } else {
@@ -107,7 +127,7 @@ const LissajousCanvas = ({
         cancelAnimationFrame(animationRef.current)
       }
     }
-  }, [freqA, freqB, size, speed, showTrace])
+  }, [freqA, freqB, size, speed, showTrace, waveform])
 
   useEffect(() => {
     tracePointsRef.current = []
@@ -121,6 +141,7 @@ const LissajousPage = () => {
   const [cellSize, setCellSize] = useState(80)
   const [speed, setSpeed] = useState(1)
   const [showTrace, setShowTrace] = useState(false)
+  const [waveform, setWaveform] = useState<WaveformType>('sine')
 
   return (
     <Layout title={title}>
@@ -171,21 +192,38 @@ const LissajousPage = () => {
             />
           </Box>
 
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showTrace}
-                onChange={(e) => setShowTrace(e.target.checked)}
-              />
-            }
-            label="Show trace"
-          />
+          <Box sx={{ mb: 2 }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showTrace}
+                  onChange={(e) => setShowTrace(e.target.checked)}
+                />
+              }
+              label="Show trace"
+            />
+          </Box>
+
+          <FormControl fullWidth>
+            <InputLabel>Waveform</InputLabel>
+            <Select
+              value={waveform}
+              label="Waveform"
+              onChange={(e) => setWaveform(e.target.value as WaveformType)}
+            >
+              <MenuItem value="sine">Sine (Circle)</MenuItem>
+              <MenuItem value="triangle">Triangle (Hexagon-like)</MenuItem>
+              <MenuItem value="square">Square (Rectangle-like)</MenuItem>
+              <MenuItem value="sawtooth">Sawtooth</MenuItem>
+            </Select>
+          </FormControl>
         </Paper>
 
         <Paper elevation={1} sx={{ p: 2, overflow: 'auto' }}>
           <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
             Each cell shows a Lissajous curve with frequency ratio A:B (row:col).
-            Diagonal cells (1:1, 2:2, etc.) create circles.
+            Sine wave creates circles on diagonals. Triangle wave creates
+            hexagon-like shapes. Square wave creates rectangle-like shapes.
           </Typography>
 
           <GridContainer cellSize={cellSize} gridSize={gridSize}>
@@ -209,6 +247,7 @@ const LissajousPage = () => {
                       size={cellSize}
                       speed={speed}
                       showTrace={showTrace}
+                      waveform={waveform}
                     />
                   </GridCell>
                 ))}
