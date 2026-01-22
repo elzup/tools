@@ -265,6 +265,30 @@ const LissajousPage = () => {
     Array.from({ length: 16 }, (_, i) => Math.sin((i / 16) * Math.PI * 2))
   )
 
+  // Auto-adjust cell size based on window size
+  useEffect(() => {
+    const calculateCellSize = () => {
+      const windowWidth = window.innerWidth
+      const padding = 80 // Account for page padding and scrollbar
+      const headerWidth = 40
+      const gapSize = 4
+      const availableWidth = windowWidth - padding
+
+      // Calculate cell size: availableWidth = headerWidth + gridSize * cellSize + (gridSize + 1) * gapSize
+      const cellSize = Math.floor(
+        (availableWidth - headerWidth - (gridSize + 1) * gapSize) / gridSize
+      )
+
+      // Clamp between min and max values
+      const clampedSize = Math.max(40, Math.min(120, cellSize))
+      setCellSize(clampedSize)
+    }
+
+    calculateCellSize()
+    window.addEventListener('resize', calculateCellSize)
+    return () => window.removeEventListener('resize', calculateCellSize)
+  }, [gridSize])
+
   useEffect(() => {
     const waveFn = waveforms[waveform]
     const newPoints = Array.from({ length: 16 }, (_, i) => {
@@ -286,7 +310,11 @@ const LissajousPage = () => {
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Box>
-                <Typography variant="caption" color="textSecondary" gutterBottom>
+                <Typography
+                  variant="caption"
+                  color="textSecondary"
+                  gutterBottom
+                >
                   Grid Size: {gridSize}x{gridSize}
                 </Typography>
                 <Slider
@@ -300,7 +328,11 @@ const LissajousPage = () => {
               </Box>
 
               <Box sx={{ mt: 2 }}>
-                <Typography variant="caption" color="textSecondary" gutterBottom>
+                <Typography
+                  variant="caption"
+                  color="textSecondary"
+                  gutterBottom
+                >
                   Cell Size: {cellSize}px
                 </Typography>
                 <Slider
@@ -315,7 +347,11 @@ const LissajousPage = () => {
 
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Box>
-                <Typography variant="caption" color="textSecondary" gutterBottom>
+                <Typography
+                  variant="caption"
+                  color="textSecondary"
+                  gutterBottom
+                >
                   Animation Speed: {speed.toFixed(1)}x
                 </Typography>
                 <Slider
@@ -330,7 +366,11 @@ const LissajousPage = () => {
 
             <Grid size={{ xs: 12, sm: 12, md: 6 }}>
               <Box>
-                <Typography variant="caption" color="textSecondary" gutterBottom>
+                <Typography
+                  variant="caption"
+                  color="textSecondary"
+                  gutterBottom
+                >
                   Phase Shift: {(phase / Math.PI).toFixed(2)}π
                 </Typography>
                 <Slider
@@ -358,7 +398,7 @@ const LissajousPage = () => {
                   <FormControlLabel
                     value="triangle"
                     control={<Radio />}
-                    label="Triangle (Hexagon-like)"
+                    label="Triangle"
                   />
                   <FormControlLabel
                     value="square"
@@ -379,22 +419,23 @@ const LissajousPage = () => {
                 <Typography variant="subtitle2" gutterBottom>
                   Waveform Editor
                 </Typography>
-                <Typography variant="caption" color="textSecondary" sx={{ mb: 1, display: 'block' }}>
+                <Typography
+                  variant="caption"
+                  color="textSecondary"
+                  sx={{ mb: 1, display: 'block' }}
+                >
                   Drag points to customize the selected waveform
                 </Typography>
-                <CurveEditor points={customWaveform} onChange={setCustomWaveform} />
+                <CurveEditor
+                  points={customWaveform}
+                  onChange={setCustomWaveform}
+                />
               </Box>
             </Grid>
           </Grid>
         </Paper>
 
         <Paper elevation={1} sx={{ p: 2, mb: 2, overflowX: 'auto' }}>
-          <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-            Each cell shows a Lissajous curve with frequency ratio A:B (row:col).
-            Sine wave creates circles on diagonals. Try 3:2 or 2:3 ratios with phase shift π/2 (0.50π) to see hexagons!
-            Triangle wave creates hexagon-like shapes. Square wave creates rectangle-like shapes.
-          </Typography>
-
           <GridContainer cellSize={cellSize} gridSize={gridSize}>
             {/* Column headers */}
             <HeaderCell />
@@ -459,7 +500,10 @@ const Container = styled.div`
 
 const GridContainer = styled.div<{ cellSize: number; gridSize: number }>`
   display: grid;
-  grid-template-columns: 40px repeat(${(props) => props.gridSize}, ${(props) => props.cellSize}px);
+  grid-template-columns: 40px repeat(
+      ${(props) => props.gridSize},
+      ${(props) => props.cellSize}px
+    );
   gap: 4px;
   width: fit-content;
   margin: 0 auto;
