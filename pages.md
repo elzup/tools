@@ -26,6 +26,7 @@
 | frag-problab.tsx        | Math         | フラグメント確率実験                          | @mui                                  | 現在           |     | 確率シミュレーション   | 4    |
 | custom-ratio-graph.tsx  | Math         | カスタム比率グラフ作成                        | @mui                                  | 現在           |     | グラフ作成             | 4    |
 | googol.tsx              | Math         | Googol可視化 - 10^100歯車装置シミュレーション | @react-three, three, @mui             | 現在           | \*  | 2D/3D表示対応          | 6    |
+| upset-viewer.tsx        | Math         | Venn図・UpSetプロットによる集合可視化ツール   | @upsetjs/react, @mui                  | 現在           | \*  | 集合演算・可視化       | 5    |
 | noopener.tsx            | Security     | noopener デモ - セキュリティ実演              | @mui                                  | 現在           |     | セキュリティ教育       | 3    |
 | xss.tsx                 | Security     | XSS デモ - クロスサイトスクリプティング実演   | prettier                              | **レガシー**   |     | セキュリティ教育       | 3    |
 | hard-confirm.tsx        | Security     | Submit ループ - UI/UX 実験                    | @mui                                  | 現在           |     | UX 実験                | 3    |
@@ -94,6 +95,7 @@
 - cryptowat-chart.tsx
 - random.tsx
 - googol.tsx
+- upset-viewer.tsx
 
 これらはブラウザ API や重いライブラリ（P5.js、Three.js 等）を使用するため、SSR が無効化されています。
 
