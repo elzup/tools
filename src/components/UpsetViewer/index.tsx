@@ -19,51 +19,28 @@ import {
   exportSVG,
 } from '@upsetjs/react'
 
-type Elem = { name: string; sets: string[] }
+import { Elem, ParserType, parsers, PARSER_TYPES } from './parsers'
+
 type ViewMode = 'upset' | 'venn' | 'karnaugh'
 
-const DEFAULT_INPUT = `A: 1, 2, 3, 4, 5
-B: 3, 4, 5, 6, 7
-C: 5, 6, 7, 8, 9`
-
-const parseInput = (input: string): Elem[] => {
-  const setMap = new Map<string, string[]>()
-
-  input
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    .forEach((line) => {
-      const colonIndex = line.indexOf(':')
-      if (colonIndex === -1) return
-      const setName = line.slice(0, colonIndex).trim()
-      const elements = line
-        .slice(colonIndex + 1)
-        .split(',')
-        .map((e) => e.trim())
-        .filter((e) => e.length > 0)
-
-      elements.forEach((el) => {
-        const existing = setMap.get(el)
-        if (existing) {
-          existing.push(setName)
-        } else {
-          setMap.set(el, [setName])
-        }
-      })
-    })
-
-  return [...setMap.entries()].map(([name, sets]) => ({ name, sets }))
-}
-
 const UpsetViewer = () => {
-  const [input, setInput] = useState(DEFAULT_INPUT)
+  const [parserType, setParserType] = useState<ParserType>('setList')
+  const parser = parsers[parserType]
+  const [input, setInput] = useState(parser.defaultInput)
   const [selection, setSelection] = useState<ISetLike<Elem> | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('upset')
   const [isDark, setIsDark] = useState(false)
   const svgRef = useRef<SVGSVGElement>(null)
 
-  const elems = useMemo(() => parseInput(input), [input])
+  const handleParserChange = useCallback(
+    (newType: ParserType) => {
+      setParserType(newType)
+      setInput(parsers[newType].defaultInput)
+    },
+    []
+  )
+
+  const elems = useMemo(() => parser.parse(input), [parser, input])
   const { sets, combinations } = useMemo(
     () => extractCombinations(elems),
     [elems]
@@ -97,10 +74,21 @@ const UpsetViewer = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Paper sx={{ p: 2 }}>
-        <Typography variant="subtitle2" gutterBottom>
-          Sets (1行に1集合: &quot;名前: 要素1, 要素2, ...&quot;)
-        </Typography>
+      <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {PARSER_TYPES.length > 1 && (
+          <ToggleButtonGroup
+            value={parserType}
+            exclusive
+            onChange={(_, v) => v && handleParserChange(v)}
+            size="small"
+          >
+            {PARSER_TYPES.map((t) => (
+              <ToggleButton key={t} value={t}>
+                {parsers[t].label}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        )}
         <TextField
           multiline
           fullWidth
@@ -108,7 +96,7 @@ const UpsetViewer = () => {
           maxRows={10}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={'A: 1, 2, 3\nB: 2, 3, 4'}
+          placeholder={parser.placeholder}
           variant="outlined"
           size="small"
         />
