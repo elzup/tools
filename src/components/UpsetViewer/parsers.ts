@@ -1,6 +1,8 @@
+import { parse as parseTagSet } from 'tagset-parser'
+
 export type Elem = { name: string; sets: string[] }
 
-export type ParserType = 'setList'
+export type ParserType = 'setList' | 'tagSet'
 
 export type ParserDef = {
   label: string
@@ -45,12 +47,36 @@ const parseSetList = (input: string): Elem[] => {
   return [...setMap.entries()].map(([name, sets]) => ({ name, sets }))
 }
 
+/**
+ * TagSet DSL format:
+ * 例:
+ *   set A 赤
+ *   set B 青
+ *   item A&B x,y
+ *   A : 1, 2
+ */
+const parseTagSetDSL = (input: string): Elem[] => {
+  const ast = parseTagSet(input)
+  const setLabels = ast.sets.map((s) => s.label)
+
+  return ast.items.flatMap((item) => {
+    const memberSets = setLabels.filter((_, i) => (item.bitmask & (1 << i)) !== 0)
+    return item.values.map((v) => ({ name: v, sets: memberSets }))
+  })
+}
+
 export const parsers: Record<ParserType, ParserDef> = {
   setList: {
     label: 'Set List',
     placeholder: 'A: 1, 2, 3\nB: 2, 3, 4',
     defaultInput: `A: 1, 2, 3, 4, 5\nB: 3, 4, 5, 6, 7\nC: 5, 6, 7, 8, 9`,
     parse: parseSetList,
+  },
+  tagSet: {
+    label: 'TagSet DSL',
+    placeholder: 'set A 赤\nset B 青\nA,B : x, y\nA : 1, 2',
+    defaultInput: `set A 赤\nset B 青\nset C 緑\nA : 1, 2, 3\nB : 4, 5\nA,B : 6, 7\nA,C : 8\nA,B,C : 9`,
+    parse: parseTagSetDSL,
   },
 }
 
