@@ -7,6 +7,7 @@ type Params = {
   staminaCap: number
   shopCandy: number
   stoneRefill: number
+  morningNightCandy: number
   eventCost: number
   dailyQuestCost: number
   morningConsume: number
@@ -15,9 +16,10 @@ type Params = {
 const COLORS = {
   existing: '#c62828',          // 既存キャンディ (暗い赤)
   naturalRecovery: '#66bb6a',   // 自然回復 (緑)
-  shopCandy: '#ffa726',         // ショップ (オレンジ)
-  stoneRefill: '#42a5f5',       // 石割りx3 (青)
-  relicCollection: '#ab47bc',   // 世界樹聖物→キャンディ (紫)
+  shopCandy: '#9c27b0',         // ショップ (芋紫)
+  stoneRefill: '#00bfa5',       // 石割りx3 (エメラルド)
+  morningNightCandy: '#e91e63', // 朝夜キャン (ピンク)
+  relicCollection: '#2e7d32',   // 回収 (世界樹聖物寄りの緑)
   relic: '#388e3c',             // 世界樹聖物蓄積 (濃い緑)
   relicNatural: '#81c784',      // 世界樹聖物 自然回復分 (明るい緑)
   stock: '#e53935',             // 貯蓄飴 オーバーフロー分 (赤)
@@ -26,17 +28,18 @@ const COLORS = {
   consumeTraining: '#9fa8da',   // 育成消化 (さらに薄インディゴ)
 } as const
 
-const LEGEND_ITEMS: { color: string; label: string; isStock?: boolean }[] = [
-  { color: COLORS.existing, label: '既存キャンディ' },
+const LEGEND_ITEMS: { color: string; label: string; pattern?: 'stock' | 'relicCollection' }[] = [
+  { color: COLORS.existing, label: 'キャンディ' },
   { color: COLORS.naturalRecovery, label: '自然回復' },
   { color: COLORS.shopCandy, label: 'ショップ' },
   { color: COLORS.stoneRefill, label: '石割りx3' },
-  { color: COLORS.relicCollection, label: '世界樹聖物→キャンディ' },
-  { color: COLORS.stock, label: '貯蓄飴', isStock: true },
+  { color: COLORS.morningNightCandy, label: '朝夜キャン' },
+  { color: COLORS.relicCollection, label: '回収', pattern: 'relicCollection' },
+  { color: COLORS.stock, label: '貯蓄飴', pattern: 'stock' },
   { color: COLORS.consumeEvent, label: 'イベント消化' },
   { color: COLORS.consumeDaily, label: 'デイリーノルマ' },
   { color: COLORS.consumeTraining, label: '育成消化' },
-  { color: COLORS.relic, label: '世界樹聖物 既存' },
+  { color: COLORS.relic, label: '世界樹聖物' },
   { color: COLORS.relicNatural, label: '世界樹聖物 増分' },
 ]
 
@@ -60,12 +63,13 @@ function buildHourlyData(params: Params): HourData[] {
   let natural = 0
   let shop = 0
   let stone = 0
+  let mnCandy = 0
   let relicStamina = 0
   let relicToCandyAmt = 0
   let stock = 0
   let consumedTotal = 0
 
-  const getTotal = () => existing + natural + shop + stone + relicStamina
+  const getTotal = () => existing + natural + shop + stone + mnCandy + relicStamina
 
   const consume = (amount: number) => {
     const total = getTotal()
@@ -76,6 +80,7 @@ function buildHourlyData(params: Params): HourData[] {
     natural = 0
     shop = 0
     stone = 0
+    mnCandy = 0
     relicStamina = 0
   }
 
@@ -84,6 +89,7 @@ function buildHourlyData(params: Params): HourData[] {
     natural = 0
     shop = 0
     stone = 0
+    mnCandy = 0
     relicStamina = 0
   }
 
@@ -93,7 +99,8 @@ function buildHourlyData(params: Params): HourData[] {
     if (natural > 0) segs.push({ value: natural, color: COLORS.naturalRecovery })
     if (shop > 0) segs.push({ value: shop, color: COLORS.shopCandy })
     if (stone > 0) segs.push({ value: stone, color: COLORS.stoneRefill })
-    if (relicStamina > 0) segs.push({ value: relicStamina, color: COLORS.relicCollection })
+    if (mnCandy > 0) segs.push({ value: mnCandy, color: COLORS.morningNightCandy })
+    if (relicStamina > 0) segs.push({ value: relicStamina, color: 'url(#relicCollectionPattern)' })
     return segs
   }
 
@@ -116,29 +123,20 @@ function buildHourlyData(params: Params): HourData[] {
       consume(params.morningConsume)
     }
 
-    // 18:00 イベント
+    // 18:00 イベント (すべて積み上げ、1000超えも表示)
     if (h === 18) {
-      if (getTotal() + params.shopCandy > params.staminaCap) {
-        stock += params.shopCandy
-      } else {
-        shop = params.shopCandy
-      }
-
-      if (getTotal() + params.stoneRefill > params.staminaCap) {
-        stock += params.stoneRefill
-      } else {
-        stone = params.stoneRefill
-      }
+      shop = params.shopCandy
+      stone = params.stoneRefill
+      mnCandy = params.morningNightCandy
 
       // 世界樹聖物回収 (carry over + 18h分)
       const relicAmt = relicCarryOver + Math.floor(relicPerHour * 18)
-      if (getTotal() + relicAmt > params.staminaCap) {
-        stock += relicAmt
-        relicToCandyAmt = 0
-      } else {
-        relicStamina = relicAmt
-        relicToCandyAmt = relicAmt
-      }
+      relicStamina = relicAmt
+      relicToCandyAmt = relicAmt
+
+      // 1000超過分を貯蓄飴として記録
+      const overflow = Math.max(0, getTotal() - params.staminaCap)
+      stock = overflow
 
     }
 
@@ -180,6 +178,7 @@ function buildHourlyData(params: Params): HourData[] {
       natural = 0
       shop = 0
       stone = 0
+      mnCandy = 0
       relicStamina = 0
     } else {
       data.push({
@@ -248,6 +247,11 @@ const StaminaChart = ({ params }: Props) => {
             <rect width="6" height="6" fill={COLORS.stock} />
             <line x1="0" y1="0" x2="0" y2="6" stroke="#fff" strokeWidth="2" opacity="0.3" />
           </pattern>
+          {/* 回収用の斜線パターン */}
+          <pattern id="relicCollectionPattern" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="6" height="6" fill={COLORS.relicCollection} />
+            <line x1="0" y1="0" x2="0" y2="6" stroke="#fff" strokeWidth="2" opacity="0.3" />
+          </pattern>
         </defs>
         {/* グリッド上 */}
         {upGrids.map((v) => {
@@ -282,28 +286,6 @@ const StaminaChart = ({ params }: Props) => {
             </g>
           )
         })}
-
-        {/* キャンディ上限ライン */}
-        <line
-          x1={MARGIN.left} x2={SVG_WIDTH - MARGIN.right}
-          y1={zeroY - params.staminaCap * pxPerUnit}
-          y2={zeroY - params.staminaCap * pxPerUnit}
-          stroke="#ef5350" strokeWidth={1.5} strokeDasharray="6,3" opacity={0.6}
-        />
-        <text
-          x={MARGIN.left - 6}
-          y={zeroY - params.staminaCap * pxPerUnit + 4}
-          textAnchor="end" fontSize={8} fill="#ef5350"
-        >
-          {params.staminaCap}
-        </text>
-        <text
-          x={SVG_WIDTH - MARGIN.right + 2}
-          y={zeroY - params.staminaCap * pxPerUnit + 4}
-          fontSize={8} fill="#ef5350"
-        >
-          {params.staminaCap}
-        </text>
 
         {/* 自然回復上限ライン */}
         <line
@@ -466,7 +448,16 @@ const StaminaChart = ({ params }: Props) => {
                 width: 12, height: 12,
                 backgroundColor: item.color,
                 borderRadius: '2px',
-                ...(item.isStock && {
+                ...(item.pattern === 'stock' && {
+                  backgroundImage: `repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(255,255,255,0.3) 2px,
+                    rgba(255,255,255,0.3) 4px
+                  )`,
+                }),
+                ...(item.pattern === 'relicCollection' && {
                   backgroundImage: `repeating-linear-gradient(
                     45deg,
                     transparent,

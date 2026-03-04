@@ -24,6 +24,7 @@ type Params = {
   staminaCap: number // キャンディ上限
   shopCandy: number // ショップキャンディ
   stoneRefill: number // 石割りx3
+  morningNightCandy: number // 朝夜キャン
   eventCost: number // イベント消費
   dailyQuestCost: number // デイリーノルマ
   morningConsume: number // 朝消費量
@@ -37,6 +38,7 @@ const DEFAULT_PARAMS: Params = {
   staminaCap: 1000,
   shopCandy: 100,
   stoneRefill: 300,
+  morningNightCandy: 100,
   eventCost: 200,
   dailyQuestCost: 100,
   morningConsume: 40,
@@ -119,6 +121,15 @@ function calcTimeline(params: Params): TimelineEvent[] {
   } else {
     stamina += params.stoneRefill
     push('18:00', '石割りx3', 0, `+${params.stoneRefill}`)
+  }
+
+  // 18:00 朝夜キャン
+  if (stamina + params.morningNightCandy > params.staminaCap) {
+    stock += params.morningNightCandy
+    push('18:00', '朝夜キャン', 0, `+${params.morningNightCandy} → 貯蓄飴`)
+  } else {
+    stamina += params.morningNightCandy
+    push('18:00', '朝夜キャン', 0, `+${params.morningNightCandy}`)
   }
 
   // 18:00 世界樹聖物回収
@@ -247,6 +258,11 @@ const StaminaCalc = () => {
               label="石割りx3"
               value={params.stoneRefill}
               onChange={(v) => updateParam('stoneRefill', v)}
+            />
+            <ParamField
+              label="朝夜キャン"
+              value={params.morningNightCandy}
+              onChange={(v) => updateParam('morningNightCandy', v)}
             />
             <ParamField
               label="イベント消費"
