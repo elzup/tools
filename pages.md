@@ -14,6 +14,7 @@
 | devtools-camp.tsx       | Tool/Game    | DevTools キャンプ - 開発者ツール練習          | devtools-detect, rooks, @mui          | 現在           |     | -                      | 6    |
 | script-buttons.tsx      | Tool/Game    | スクリプトボタン実行ツール                    | @mui, styled-components               | 現在           |     | ローカルストレージ使用 | 5    |
 | scope-timer.tsx         | Tool/Game    | スコープタイマー - ミリ秒精度の実験用タイマー |                                       | 現在           |     | ミリ秒表示             | 7    |
+| stamina-calc.tsx        | Tool/Game    | スタミナ/聖遺物/ストック運用シミュレーター    | @mui, styled-components               | 現在           |     | ゲームリソース管理     | 5    |
 | 1px.tsx                 | DevTool      | 1px の画像データ URL 生成ツール               | react-color, @mui                     | 現在           |     | カラーピッカー使用     | 4    |
 | global-ip.tsx           | DevTool      | グローバルパブリック IP 取得ツール            | fetch API                             | 現在           |     | 外部 API 使用          | 3    |
 | code-explorer.tsx       | DevTool      | コード探索・解析ツール                        |                                       | 現在           | \*  | PWA 対応               | 9    |

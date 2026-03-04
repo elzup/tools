@@ -100,6 +100,11 @@ const routings: RoutingGroup[] = [
         label: 'Scope Timer',
         path: '/scope-timer',
       },
+      {
+        icon: faCalculator,
+        label: 'スタミナ計算機',
+        path: '/stamina-calc',
+      },
     ],
   },
   {
