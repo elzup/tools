@@ -100,11 +100,6 @@ const routings: RoutingGroup[] = [
         label: 'Scope Timer',
         path: '/scope-timer',
       },
-      {
-        icon: faCalculator,
-        label: 'スタミナ計算機',
-        path: '/stamina-calc',
-      },
     ],
   },
   {
@@ -350,6 +345,11 @@ const secretRoutings: RoutingGroup[] = [
   {
     label: 'Secret Tools',
     routings: [
+      {
+        icon: faCalculator,
+        label: 'スタミナ計算機',
+        path: '/stamina-calc',
+      },
       {
         icon: faSkull,
         label: 'Debug Console',
