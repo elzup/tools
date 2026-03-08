@@ -32,9 +32,9 @@ type Params = {
 
 const DEFAULT_PARAMS: Params = {
   naturalRecoveryPerHour: 10,
-  naturalRecoveryCap: 160,
+  naturalRecoveryCap: 162,
   relicGenerationPer10h: 192,
-  relicCollectionAmount: 400,
+  relicCollectionAmount: 346,
   staminaCap: 1000,
   shopCandy: 100,
   stoneRefill: 300,
@@ -201,8 +201,32 @@ function calcOverflowCheck(params: Params): {
   }
 }
 
+function formatHoursMinutes(hours: number): string {
+  const h = Math.floor(hours)
+  const m = Math.round((hours - h) * 60)
+  return `${h}時間${m}分`
+}
+
+function calcRecoveryTime(params: Params): {
+  naturalRecoveryTime: number
+  relicToCapTime: number
+} {
+  const naturalRecoveryTime = params.naturalRecoveryCap / params.naturalRecoveryPerHour
+  const relicPerHour = params.relicGenerationPer10h / 10
+  const relicToCapTime = params.relicCollectionAmount / relicPerHour
+  return { naturalRecoveryTime, relicToCapTime }
+}
+
+function calcCandyNeededAt18(params: Params, currentHour: number): number {
+  if (currentHour >= 18) return params.naturalRecoveryCap
+  const hoursUntil18 = 18 - currentHour
+  const recoveryUntil18 = params.naturalRecoveryPerHour * hoursUntil18
+  return Math.max(0, params.naturalRecoveryCap - recoveryUntil18)
+}
+
 const StaminaCalc = () => {
   const [params, setParams] = useState<Params>(DEFAULT_PARAMS)
+  const [currentHour, setCurrentHour] = useState(() => new Date().getHours())
 
   const timeline = calcTimeline(params)
   const overflowCheck = calcOverflowCheck(params)
@@ -315,6 +339,63 @@ const StaminaCalc = () => {
               label="世界樹聖物回収量 (18h)"
               value={String(calcRelicAtHour(params, 18))}
               color="#2196f3"
+            />
+          </Box>
+        </Paper>
+
+        {/* 回復時間 & 18時逆算 */}
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            回復時間 & 18時逆算
+          </Typography>
+          <Box display="flex" gap={3} flexWrap="wrap" mb={2}>
+            <SummaryCard
+              label="自然回復 0→上限"
+              value={formatHoursMinutes(calcRecoveryTime(params).naturalRecoveryTime)}
+              color="#66bb6a"
+              sub={`${params.naturalRecoveryCap} / ${params.naturalRecoveryPerHour}/h`}
+            />
+            <SummaryCard
+              label="世界樹聖物 0→上限"
+              value={formatHoursMinutes(calcRecoveryTime(params).relicToCapTime)}
+              color="#388e3c"
+              sub={`${params.relicCollectionAmount} / ${params.relicGenerationPer10h / 10}/h`}
+            />
+          </Box>
+          <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
+            <TextField
+              label="現在時刻 (時)"
+              type="number"
+              size="small"
+              value={currentHour}
+              onChange={(e) => {
+                const v = Number(e.target.value)
+                if (!isNaN(v) && v >= 0 && v <= 23) setCurrentHour(v)
+              }}
+              inputProps={{ min: 0, max: 23 }}
+              sx={{ width: 120 }}
+            />
+            <SummaryCard
+              label={`${currentHour}時→18時にMAXにするには`}
+              value={
+                currentHour >= 18
+                  ? '既に18時以降'
+                  : `${calcCandyNeededAt18(params, currentHour)}`
+              }
+              color={
+                currentHour >= 18
+                  ? '#888'
+                  : calcCandyNeededAt18(params, currentHour) === 0
+                    ? '#4caf50'
+                    : '#ff9800'
+              }
+              sub={
+                currentHour < 18
+                  ? calcCandyNeededAt18(params, currentHour) === 0
+                    ? '自然回復だけでMAX到達'
+                    : `残り${18 - currentHour}hで回復${params.naturalRecoveryPerHour * (18 - currentHour)}`
+                  : undefined
+              }
             />
           </Box>
         </Paper>
