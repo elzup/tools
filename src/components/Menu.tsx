@@ -226,6 +226,11 @@ const routings: RoutingGroup[] = [
         label: 'Random Generator',
         path: '/random',
       },
+      {
+        icon: faCalculator,
+        label: 'Float有効桁数デモ',
+        path: '/float-precision',
+      },
     ],
   },
   {
