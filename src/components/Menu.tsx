@@ -9,6 +9,7 @@ import {
 import {
   IconDefinition,
   faBowlingBall,
+  faCalendarDay,
   faCog,
   faCalculator,
   faChartLine,
@@ -179,6 +180,11 @@ const routings: RoutingGroup[] = [
         icon: faDiagramProject,
         label: 'Venn, Upset viewer',
         path: '/upset-viewer',
+      },
+      {
+        icon: faCalendarDay,
+        label: '曜日計算 Explainer',
+        path: '/weekday-calc',
       },
     ],
   },
