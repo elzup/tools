@@ -13,6 +13,8 @@ import {
   TableRow,
   Chip,
   Alert,
+  FormControlLabel,
+  Switch,
 } from '@mui/material'
 import styled from 'styled-components'
 import {
@@ -56,21 +58,25 @@ const todayStr = () => {
   return `${y}-${m}-${day}`
 }
 
-type HiddenValueProps = {
+type RevealNodeProps = {
+  testMode: boolean
+  className?: string
+  sx?: Record<string, unknown>
+  masked: React.ReactNode
   children: React.ReactNode
-  hidden: boolean
 }
 
-const HiddenValue = ({ children, hidden }: HiddenValueProps) => {
+const RevealNode = ({ testMode, className, sx, masked, children }: RevealNodeProps) => {
   const [revealed, setRevealed] = useState(false)
-  const isHidden = hidden && !revealed
+  const isHidden = testMode && !revealed
 
   return (
     <Box
-      className={`hidden-value ${isHidden ? 'hidden-value--masked' : ''}`}
-      onClick={() => { if (hidden) setRevealed((v) => !v) }}
+      className={`${className ?? ''} ${isHidden ? 'node--masked' : ''}`}
+      sx={sx}
+      onClick={() => { if (testMode) setRevealed((v) => !v) }}
     >
-      {isHidden ? '?' : children}
+      {isHidden ? masked : children}
     </Box>
   )
 }
@@ -101,6 +107,20 @@ const WeekdayCalcExplainer = () => {
     if (e.key === 'Enter') handleCalc()
   }
 
+  const handleRandom = () => {
+    const minDate = new Date(1582, 9, 15).getTime()
+    const maxDate = new Date(2582, 9, 15).getTime()
+    const d = new Date(minDate + Math.random() * (maxDate - minDate))
+    const str = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
+    setDateInput(str)
+    const r = calculateWeekday(str)
+    if (r) {
+      setError('')
+      setResult(r)
+      setTestKey((k) => k + 1)
+    }
+  }
+
   return (
     <Style>
       <Box className="input-section">
@@ -115,39 +135,51 @@ const WeekdayCalcExplainer = () => {
         <Button variant="contained" onClick={handleCalc}>
           Explain
         </Button>
-        <Button
-          variant={testMode ? 'contained' : 'outlined'}
-          color="secondary"
-          onClick={() => { setTestMode((v) => !v); setTestKey((k) => k + 1) }}
-          size="small"
-        >
-          Test
+        <Button variant="outlined" onClick={handleRandom} size="small">
+          Random
         </Button>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={testMode}
+              onChange={() => { setTestMode((v) => !v); setTestKey((k) => k + 1) }}
+              color="secondary"
+              size="small"
+            />
+          }
+          label="Test"
+        />
       </Box>
 
       {error && <Alert severity="error">{error}</Alert>}
 
       {result && (
         <Box key={testKey}>
-          <Paper className="result-card" elevation={2}>
+          <RevealNode
+            testMode={testMode}
+            className="result-card"
+            masked={
+              <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                {result.input}
+              </Typography>
+            }
+          >
             <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
               {result.input}
             </Typography>
-            <HiddenValue hidden={testMode}>
-              <Typography
-                variant="h3"
-                sx={{
-                  fontWeight: 'bold',
-                  color: WEEKDAY_COLORS[result.weekdayIndex],
-                }}
-              >
-                {result.weekday}
-              </Typography>
-            </HiddenValue>
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 'bold',
+                color: WEEKDAY_COLORS[result.weekdayIndex],
+              }}
+            >
+              {result.weekday}
+            </Typography>
             {result.isLeapYear && (
               <Chip label="閏年" color="info" size="small" />
             )}
-          </Paper>
+          </RevealNode>
 
           <Box className="formula-section">
             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
@@ -175,35 +207,45 @@ const WeekdayCalcExplainer = () => {
                   const needsMod = step.value >= 7
                   return (
                     <Box key={step.name} className="flow-branch-col">
-                      <Box
+                      <RevealNode
+                        testMode={testMode}
                         className="flow-node flow-node--calc"
                         sx={{ borderColor: `${NODE_COLORS[step.name]} !important` }}
+                        masked={
+                          <Typography variant="caption" className="flow-label">
+                            {step.label}
+                          </Typography>
+                        }
                       >
                         <Typography variant="caption" className="flow-label">
                           {step.label}
                         </Typography>
-                        <HiddenValue hidden={testMode}>
-                          <Typography variant="h5" className="flow-value">
-                            {step.value}
-                          </Typography>
-                        </HiddenValue>
-                        <Typography variant="caption" className="flow-explain">
-                          {testMode ? '' : step.explain}
+                        <Typography variant="h5" className="flow-value">
+                          {step.value}
                         </Typography>
-                      </Box>
+                        <Typography variant="caption" className="flow-explain">
+                          {step.explain}
+                        </Typography>
+                      </RevealNode>
                       {needsMod ? (
                         <>
                           <Box className="flow-arrow flow-arrow--small" />
-                          <Box className="flow-node flow-node--mod7-pre">
+                          <RevealNode
+                            testMode={testMode}
+                            className="flow-node flow-node--mod7-pre"
+                            masked={
+                              <Typography variant="caption" className="flow-label">
+                                %7
+                              </Typography>
+                            }
+                          >
                             <Typography variant="caption" className="flow-label">
                               %7
                             </Typography>
-                            <HiddenValue hidden={testMode}>
-                              <Typography variant="body1" className="flow-value">
-                                {mod7Val}
-                              </Typography>
-                            </HiddenValue>
-                          </Box>
+                            <Typography variant="body1" className="flow-value">
+                              {mod7Val}
+                            </Typography>
+                          </RevealNode>
                         </>
                       ) : (
                         <Box className="flow-spacer" />
@@ -225,19 +267,26 @@ const WeekdayCalcExplainer = () => {
               {result.steps
                 .filter((s) => s.name === 'sum')
                 .map((step) => (
-                  <Box key={step.name} className="flow-node flow-node--sum">
+                  <RevealNode
+                    key={step.name}
+                    testMode={testMode}
+                    className="flow-node flow-node--sum"
+                    masked={
+                      <Typography variant="body2" className="flow-label">
+                        {step.label}
+                      </Typography>
+                    }
+                  >
                     <Typography variant="body2" className="flow-label">
                       {step.label}
                     </Typography>
-                    <HiddenValue hidden={testMode}>
-                      <Typography variant="h4" className="flow-value">
-                        {step.value}
-                      </Typography>
-                    </HiddenValue>
-                    <Typography variant="caption" className="flow-explain">
-                      {testMode ? '' : step.explain}
+                    <Typography variant="h4" className="flow-value">
+                      {step.value}
                     </Typography>
-                  </Box>
+                    <Typography variant="caption" className="flow-explain">
+                      {step.explain}
+                    </Typography>
+                  </RevealNode>
                 ))}
               <Box className="flow-arrow" />
 
@@ -245,36 +294,47 @@ const WeekdayCalcExplainer = () => {
               {result.steps
                 .filter((s) => s.name === 'mod7')
                 .map((step) => (
-                  <Box key={step.name} className="flow-node flow-node--mod">
+                  <RevealNode
+                    key={step.name}
+                    testMode={testMode}
+                    className="flow-node flow-node--mod"
+                    masked={
+                      <Typography variant="body2" className="flow-label">
+                        {step.label}
+                      </Typography>
+                    }
+                  >
                     <Typography variant="body2" className="flow-label">
                       {step.label}
                     </Typography>
-                    <HiddenValue hidden={testMode}>
-                      <Typography variant="h4" className="flow-value">
-                        {step.value}
-                      </Typography>
-                    </HiddenValue>
-                  </Box>
+                    <Typography variant="h4" className="flow-value">
+                      {step.value}
+                    </Typography>
+                  </RevealNode>
                 ))}
               <Box className="flow-arrow" />
 
               {/* 結果ノード */}
-              <Box
+              <RevealNode
+                testMode={testMode}
                 className="flow-node flow-node--result"
                 sx={{
                   borderColor: testMode ? '#90a4ae !important' : `${WEEKDAY_COLORS[result.weekdayIndex]} !important`,
                 }}
-              >
-                <HiddenValue hidden={testMode}>
-                  <Typography
-                    variant="h5"
-                    className="flow-value"
-                    sx={{ color: WEEKDAY_COLORS[result.weekdayIndex] }}
-                  >
-                    {result.weekday}
+                masked={
+                  <Typography variant="body2" className="flow-label">
+                    曜日
                   </Typography>
-                </HiddenValue>
-              </Box>
+                }
+              >
+                <Typography
+                  variant="h5"
+                  className="flow-value"
+                  sx={{ color: WEEKDAY_COLORS[result.weekdayIndex] }}
+                >
+                  {result.weekday}
+                </Typography>
+              </RevealNode>
             </Box>
 
             <Box className="reference-section">
@@ -298,6 +358,11 @@ const WeekdayCalcExplainer = () => {
               />
             </Box>
           </Box>
+
+          <YearCombinedTable
+            highlightYear={result ? parseInt(result.input.slice(0, 4)) % 100 : undefined}
+            borderColor={NODE_COLORS.year_extract}
+          />
         </Box>
       )}
     </Style>
@@ -358,6 +423,45 @@ const WeekdayBar = () => (
             {i}
           </Typography>
           <Typography variant="caption">{label}</Typography>
+        </Box>
+      ))}
+    </Box>
+  </Paper>
+)
+
+// (y + floor(y/4)) % 7 の早見表 (1列: y → コード)
+const YEAR_COMBINED_MOD7: number[] = Array.from({ length: 100 }, (_, y) =>
+  (y + Math.floor(y / 4)) % 7
+)
+
+const YearCombinedTable = ({ highlightYear, borderColor }: { highlightYear?: number; borderColor: string }) => (
+  <Paper elevation={0} sx={{ border: `2px solid ${borderColor}`, p: '2px 0', width: 'fit-content' }}>
+    <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: '2px', px: '4px' }}>
+      年コード (y+⌊y/4⌋)%7
+    </Typography>
+    <Box className="year-combined-columns">
+      {Array.from({ length: 4 }, (_, col) => (
+        <Box key={col} className="year-combined-col">
+          {Array.from({ length: 28 }, (_, row) => {
+            const y = col * 28 + row
+            if (y > 99) return <Box key={y} className="year-combined-cell" />
+            const code = YEAR_COMBINED_MOD7[y]
+            const isZero = code === 0
+            const isSameAsLastDigit = code === y % 10
+            const classes = [
+              'year-combined-cell',
+              y === highlightYear ? 'year-combined-highlight' : '',
+              row > 0 && row % 4 === 0 ? 'year-combined-gap' : '',
+              isZero ? 'year-combined-zero' : '',
+              isSameAsLastDigit ? 'year-combined-same' : '',
+            ].filter(Boolean).join(' ')
+            return (
+              <Box key={y} className={classes}>
+                <span className="year-combined-y">{String(y).padStart(2, '0')}</span>
+                <span className="year-combined-code">{code}</span>
+              </Box>
+            )
+          })}
         </Box>
       ))}
     </Box>
@@ -447,6 +551,9 @@ const Style = styled.div`
     flex-direction: column;
     align-items: center;
     gap: 8px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fff;
   }
 
   .formula-section {
@@ -676,27 +783,62 @@ const Style = styled.div`
     line-height: 1.3;
   }
 
-  .hidden-value {
-    cursor: default;
-  }
-
-  .hidden-value--masked {
+  .node--masked {
     cursor: pointer;
-    background: #e0e0e0;
-    border-radius: 4px;
-    min-width: 28px;
-    min-height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: #9e9e9e;
-    font-size: 1.2rem;
+    background: #eeeeee !important;
+    border-color: #bdbdbd !important;
     user-select: none;
 
     &:hover {
-      background: #bdbdbd;
+      background: #e0e0e0 !important;
     }
+  }
+
+  .year-combined-columns {
+    display: flex;
+    gap: 12px;
+  }
+
+  .year-combined-col {
+    font-size: 0.8rem;
+    width: 48px;
+  }
+
+  .year-combined-cell {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 4px;
+    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
+
+    .year-combined-y {
+      color: #9e9e9e;
+    }
+    .year-combined-code {
+      font-weight: 700;
+    }
+  }
+
+  .year-combined-gap {
+    margin-top: 4px;
+  }
+
+  .year-combined-zero {
+    .year-combined-code {
+      color: #e53935;
+    }
+  }
+
+  .year-combined-same {
+    .year-combined-y {
+      color: #2196f3;
+      font-weight: 600;
+    }
+  }
+
+  .year-combined-highlight {
+    background: #bbdefb;
+    border-radius: 2px;
   }
 
   .century-grid {
