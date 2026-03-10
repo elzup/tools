@@ -56,12 +56,34 @@ const todayStr = () => {
   return `${y}-${m}-${day}`
 }
 
+type HiddenValueProps = {
+  children: React.ReactNode
+  hidden: boolean
+}
+
+const HiddenValue = ({ children, hidden }: HiddenValueProps) => {
+  const [revealed, setRevealed] = useState(false)
+  const isHidden = hidden && !revealed
+
+  return (
+    <Box
+      className={`hidden-value ${isHidden ? 'hidden-value--masked' : ''}`}
+      onClick={() => { if (hidden) setRevealed((v) => !v) }}
+    >
+      {isHidden ? '?' : children}
+    </Box>
+  )
+}
+
 const WeekdayCalcExplainer = () => {
   const [dateInput, setDateInput] = useState(todayStr())
   const [result, setResult] = useState<WeekdayResult | null>(() =>
     calculateWeekday(todayStr())
   )
   const [error, setError] = useState('')
+  const [testMode, setTestMode] = useState(false)
+  // テストモード切り替え or 再計算で revealed をリセットするための key
+  const [testKey, setTestKey] = useState(0)
 
   const handleCalc = () => {
     const r = calculateWeekday(dateInput)
@@ -72,6 +94,7 @@ const WeekdayCalcExplainer = () => {
     }
     setError('')
     setResult(r)
+    setTestKey((k) => k + 1)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -92,25 +115,35 @@ const WeekdayCalcExplainer = () => {
         <Button variant="contained" onClick={handleCalc}>
           Explain
         </Button>
+        <Button
+          variant={testMode ? 'contained' : 'outlined'}
+          color="secondary"
+          onClick={() => { setTestMode((v) => !v); setTestKey((k) => k + 1) }}
+          size="small"
+        >
+          Test
+        </Button>
       </Box>
 
       {error && <Alert severity="error">{error}</Alert>}
 
       {result && (
-        <>
+        <Box key={testKey}>
           <Paper className="result-card" elevation={2}>
             <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
               {result.input}
             </Typography>
-            <Typography
-              variant="h3"
-              sx={{
-                fontWeight: 'bold',
-                color: WEEKDAY_COLORS[result.weekdayIndex],
-              }}
-            >
-              {result.weekday}
-            </Typography>
+            <HiddenValue hidden={testMode}>
+              <Typography
+                variant="h3"
+                sx={{
+                  fontWeight: 'bold',
+                  color: WEEKDAY_COLORS[result.weekdayIndex],
+                }}
+              >
+                {result.weekday}
+              </Typography>
+            </HiddenValue>
             {result.isLeapYear && (
               <Chip label="閏年" color="info" size="small" />
             )}
@@ -149,11 +182,13 @@ const WeekdayCalcExplainer = () => {
                         <Typography variant="caption" className="flow-label">
                           {step.label}
                         </Typography>
-                        <Typography variant="h5" className="flow-value">
-                          {step.value}
-                        </Typography>
+                        <HiddenValue hidden={testMode}>
+                          <Typography variant="h5" className="flow-value">
+                            {step.value}
+                          </Typography>
+                        </HiddenValue>
                         <Typography variant="caption" className="flow-explain">
-                          {step.explain}
+                          {testMode ? '' : step.explain}
                         </Typography>
                       </Box>
                       {needsMod ? (
@@ -163,9 +198,11 @@ const WeekdayCalcExplainer = () => {
                             <Typography variant="caption" className="flow-label">
                               %7
                             </Typography>
-                            <Typography variant="body1" className="flow-value">
-                              {mod7Val}
-                            </Typography>
+                            <HiddenValue hidden={testMode}>
+                              <Typography variant="body1" className="flow-value">
+                                {mod7Val}
+                              </Typography>
+                            </HiddenValue>
                           </Box>
                         </>
                       ) : (
@@ -192,11 +229,13 @@ const WeekdayCalcExplainer = () => {
                     <Typography variant="body2" className="flow-label">
                       {step.label}
                     </Typography>
-                    <Typography variant="h4" className="flow-value">
-                      {step.value}
-                    </Typography>
+                    <HiddenValue hidden={testMode}>
+                      <Typography variant="h4" className="flow-value">
+                        {step.value}
+                      </Typography>
+                    </HiddenValue>
                     <Typography variant="caption" className="flow-explain">
-                      {step.explain}
+                      {testMode ? '' : step.explain}
                     </Typography>
                   </Box>
                 ))}
@@ -210,12 +249,11 @@ const WeekdayCalcExplainer = () => {
                     <Typography variant="body2" className="flow-label">
                       {step.label}
                     </Typography>
-                    <Typography variant="h4" className="flow-value">
-                      {step.value}
-                    </Typography>
-                    <Typography variant="caption" className="flow-explain">
-                      {step.explain}
-                    </Typography>
+                    <HiddenValue hidden={testMode}>
+                      <Typography variant="h4" className="flow-value">
+                        {step.value}
+                      </Typography>
+                    </HiddenValue>
                   </Box>
                 ))}
               <Box className="flow-arrow" />
@@ -224,16 +262,18 @@ const WeekdayCalcExplainer = () => {
               <Box
                 className="flow-node flow-node--result"
                 sx={{
-                  borderColor: `${WEEKDAY_COLORS[result.weekdayIndex]} !important`,
+                  borderColor: testMode ? '#90a4ae !important' : `${WEEKDAY_COLORS[result.weekdayIndex]} !important`,
                 }}
               >
-                <Typography
-                  variant="h5"
-                  className="flow-value"
-                  sx={{ color: WEEKDAY_COLORS[result.weekdayIndex] }}
-                >
-                  {result.weekday}
-                </Typography>
+                <HiddenValue hidden={testMode}>
+                  <Typography
+                    variant="h5"
+                    className="flow-value"
+                    sx={{ color: WEEKDAY_COLORS[result.weekdayIndex] }}
+                  >
+                    {result.weekday}
+                  </Typography>
+                </HiddenValue>
               </Box>
             </Box>
 
@@ -258,7 +298,7 @@ const WeekdayCalcExplainer = () => {
               />
             </Box>
           </Box>
-        </>
+        </Box>
       )}
     </Style>
   )
@@ -634,6 +674,29 @@ const Style = styled.div`
     flex-direction: column;
     align-items: center;
     line-height: 1.3;
+  }
+
+  .hidden-value {
+    cursor: default;
+  }
+
+  .hidden-value--masked {
+    cursor: pointer;
+    background: #e0e0e0;
+    border-radius: 4px;
+    min-width: 28px;
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #9e9e9e;
+    font-size: 1.2rem;
+    user-select: none;
+
+    &:hover {
+      background: #bdbdbd;
+    }
   }
 
   .century-grid {
