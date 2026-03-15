@@ -7,10 +7,12 @@ export type WeekdayStep = {
 
 export type WeekdayResult = {
   input: string
+  month: number
   steps: WeekdayStep[]
   weekday: string
   weekdayIndex: number
   isLeapYear: boolean
+  leapAdjust: number
 }
 
 const MONTH_CODES: Record<number, number> = {
@@ -156,10 +158,12 @@ export function calculateWeekday(dateStr: string): WeekdayResult | null {
 
   return {
     input: dateStr,
+    month,
     steps,
     weekday: `${WEEKDAY_NAMES[mod7]} / ${WEEKDAY_NAMES_JA[mod7]}`,
     weekdayIndex: mod7,
     isLeapYear: isLeap,
+    leapAdjust,
   }
 }
 

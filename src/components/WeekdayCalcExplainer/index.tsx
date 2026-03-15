@@ -81,6 +81,64 @@ const RevealNode = ({ testMode, className, sx, masked, children }: RevealNodePro
   )
 }
 
+// 覚え方グループ: 同じグループは同色で表示
+const MONTH_MEMO_GROUP: Record<number, string> = {
+  1: 'zero',   // 1,10月=0
+  10: 'zero',
+  4: 'swap',   // 4月=6 ↔ 6月=4
+  6: 'swap',
+  2: 'three',  // 2,3月=3 → 4月=3+3=6
+  3: 'three',
+  9: 'chain',  // 9,12月=5 → 5月=1 → 1月=0
+  12: 'chain',
+  5: 'chain',
+  11: 'solo3', // 11月=3
+  7: 'memorize', // 暗記
+  8: 'memorize',
+}
+
+const MonthCodeGrid = ({ borderColor }: { borderColor: string }) => (
+  <Paper elevation={0} sx={{ border: `2px solid ${borderColor}`, p: 0.5 }}>
+    <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>
+      月コード (m)
+    </Typography>
+    <Box className="mcode-grid">
+      {/* ヘッダ行: 0-6 */}
+      <Box className="mcode-cell mcode-header" />
+      {Array.from({ length: 7 }, (_, i) => (
+        <Box key={i} className="mcode-cell mcode-header">{i}</Box>
+      ))}
+      {/* 各月の行 */}
+      {Array.from({ length: 12 }, (_, i) => {
+        const month = i + 1
+        const code = MONTH_CODES[month]
+        const group = MONTH_MEMO_GROUP[month]
+        return (
+          <>
+            <Box key={`m${month}`} className="mcode-cell mcode-month">{month}月</Box>
+            {Array.from({ length: 7 }, (_, c) => (
+              <Box
+                key={`${month}-${c}`}
+                className={`mcode-cell ${c === code ? `mcode-active mcode-g-${group}` : ''}`}
+              >
+                {c === code ? code : ''}
+              </Box>
+            ))}
+          </>
+        )
+      })}
+    </Box>
+    <Box className="mcode-legend">
+      <span className="mcode-leg mcode-g-zero">0: 1,10月</span>
+      <span className="mcode-leg mcode-g-swap">swap: 4↔6</span>
+      <span className="mcode-leg mcode-g-three">3: 2,3月→4月=6</span>
+      <span className="mcode-leg mcode-g-chain">chain: 9,12→5→1</span>
+      <span className="mcode-leg mcode-g-solo3">3: 11月</span>
+      <span className="mcode-leg mcode-g-memorize">暗記: 7,8月</span>
+    </Box>
+  </Paper>
+)
+
 const WeekdayCalcExplainer = () => {
   const [dateInput, setDateInput] = useState(todayStr())
   const [result, setResult] = useState<WeekdayResult | null>(() =>
@@ -176,9 +234,18 @@ const WeekdayCalcExplainer = () => {
             >
               {result.weekday}
             </Typography>
-            {result.isLeapYear && (
-              <Chip label="閏年" color="info" size="small" />
-            )}
+            <Box sx={{ display: 'flex', gap: 0.5 }}>
+              <Chip label={`${result.month}月`} size="small" variant="outlined" />
+              <Chip
+                label={result.isLeapYear ? '閏年' : '平年'}
+                color={result.isLeapYear ? 'info' : 'default'}
+                size="small"
+                variant={result.isLeapYear ? 'filled' : 'outlined'}
+              />
+              {result.leapAdjust !== 0 && (
+                <Chip label="閏年補正 −1" color="warning" size="small" />
+              )}
+            </Box>
           </RevealNode>
 
           <Box className="formula-section">
@@ -340,15 +407,7 @@ const WeekdayCalcExplainer = () => {
             <Box className="reference-section">
               <Box className="ref-row">
                 <CenturyGrid borderColor={NODE_COLORS.century_code} />
-                <CompactTable
-                  title="月コード (m)"
-                  headers={['月', 'コード']}
-                  rows={Object.entries(MONTH_CODES).map(([m, c]) => [
-                    `${m}`,
-                    String(c),
-                  ])}
-                  borderColor={NODE_COLORS.month_code}
-                />
+                <MonthCodeGrid borderColor={NODE_COLORS.month_code} />
               </Box>
               <WeekdayBar />
               <YearCodeGrid
@@ -359,10 +418,28 @@ const WeekdayCalcExplainer = () => {
             </Box>
           </Box>
 
-          <YearCombinedTable
-            highlightYear={result ? parseInt(result.input.slice(0, 4)) % 100 : undefined}
-            borderColor={NODE_COLORS.year_extract}
-          />
+          <Box className="year-tables-row">
+            <YearCombinedTable
+              highlightYear={result ? parseInt(result.input.slice(0, 4)) % 100 : undefined}
+              borderColor={NODE_COLORS.year_extract}
+            />
+            <YearCombinedGrid10
+              highlightYear={result ? parseInt(result.input.slice(0, 4)) % 100 : undefined}
+              borderColor={NODE_COLORS.year_extract}
+            />
+            <YearCodeGroupBox
+              highlightYear={result ? parseInt(result.input.slice(0, 4)) % 100 : undefined}
+              borderColor={NODE_COLORS.year_extract}
+            />
+          </Box>
+
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body2">
+              <a href="https://speed-calendar.com/print/" target="_blank" rel="noopener noreferrer">
+                練習用カレンダー印刷 (speed-calendar.com)
+              </a>
+            </Typography>
+          </Box>
         </Box>
       )}
     </Style>
@@ -437,7 +514,7 @@ const YEAR_COMBINED_MOD7: number[] = Array.from({ length: 100 }, (_, y) =>
 const YearCombinedTable = ({ highlightYear, borderColor }: { highlightYear?: number; borderColor: string }) => (
   <Paper elevation={0} sx={{ border: `2px solid ${borderColor}`, p: '2px 0', width: 'fit-content' }}>
     <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: '2px', px: '4px' }}>
-      年コード (y+⌊y/4⌋)%7
+      年コード (y+⌊y/4⌋)%7 — 28区切り
     </Typography>
     <Box className="year-combined-columns">
       {Array.from({ length: 4 }, (_, col) => (
@@ -451,7 +528,7 @@ const YearCombinedTable = ({ highlightYear, borderColor }: { highlightYear?: num
             const classes = [
               'year-combined-cell',
               y === highlightYear ? 'year-combined-highlight' : '',
-              row > 0 && row % 4 === 0 ? 'year-combined-gap' : '',
+              y > 0 && y % 10 === 0 ? 'year-combined-gap10' : y > 0 && y % 4 === 0 ? 'year-combined-gap' : '',
               isZero ? 'year-combined-zero' : '',
               isSameAsLastDigit ? 'year-combined-same' : '',
             ].filter(Boolean).join(' ')
@@ -464,6 +541,68 @@ const YearCombinedTable = ({ highlightYear, borderColor }: { highlightYear?: num
           })}
         </Box>
       ))}
+    </Box>
+  </Paper>
+)
+
+// 年コードを 0-6 でグループ化した一覧
+const YEAR_CODE_GROUPS: number[][] = Array.from({ length: 7 }, (_, code) =>
+  YEAR_COMBINED_MOD7.reduce<number[]>((acc, v, y) => (v === code ? [...acc, y] : acc), [])
+)
+
+const YearCodeGroupBox = ({ highlightYear, borderColor }: { highlightYear?: number; borderColor: string }) => (
+  <Paper elevation={0} sx={{ border: `2px solid ${borderColor}`, p: '2px 4px', width: 'fit-content' }}>
+    <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: '2px' }}>
+      年コード — グループ別
+    </Typography>
+    <Box className="year-code-groups">
+      {YEAR_CODE_GROUPS.map((years, code) => (
+        <Box key={code} className="year-code-group-row">
+          <span className="year-code-group-label">{code}</span>
+          <span className="year-code-group-years">
+            {years.map((y) => (
+              <span
+                key={y}
+                className={`year-code-group-y${y === highlightYear ? ' year-combined-highlight' : ''}`}
+              >
+                {String(y).padStart(2, '0')}
+              </span>
+            ))}
+          </span>
+        </Box>
+      ))}
+    </Box>
+  </Paper>
+)
+
+const YearCombinedGrid10 = ({ highlightYear, borderColor }: { highlightYear?: number; borderColor: string }) => (
+  <Paper elevation={0} sx={{ border: `2px solid ${borderColor}`, p: '2px 0', width: 'fit-content' }}>
+    <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: '2px', px: '4px' }}>
+      年コード (y+⌊y/4⌋)%7 — 10区切り
+    </Typography>
+    <Box className="year-combined-grid10">
+      {Array.from({ length: 100 }, (_, i) => {
+        const col = Math.floor(i / 10)
+        const row = i % 10
+        const y = row * 10 + col
+        const code = YEAR_COMBINED_MOD7[y]
+        const isHighlight = y === highlightYear
+        const isZero = code === 0
+        const isSameAsLastDigit = code === y % 10
+        const classes = [
+          'year-combined-cell',
+          isHighlight ? 'year-combined-highlight' : '',
+          isZero ? 'year-combined-zero' : '',
+          isSameAsLastDigit ? 'year-combined-same' : '',
+          y % 4 === 0 && y % 10 !== 0 ? 'year-grid10-sep' : '',
+        ].filter(Boolean).join(' ')
+        return (
+          <Box key={y} className={classes}>
+            <span className="year-combined-y">{String(y).padStart(2, '0')}</span>
+            <span className="year-combined-code">{code}</span>
+          </Box>
+        )
+      })}
     </Box>
   </Paper>
 )
@@ -794,6 +933,14 @@ const Style = styled.div`
     }
   }
 
+  .year-tables-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-top: 24px;
+  }
+
   .year-combined-columns {
     display: flex;
     gap: 12px;
@@ -802,6 +949,10 @@ const Style = styled.div`
   .year-combined-col {
     font-size: 0.8rem;
     width: 48px;
+  }
+
+  .year-combined-col .year-combined-cell {
+    border-top: 1px solid transparent;
   }
 
   .year-combined-cell {
@@ -813,6 +964,7 @@ const Style = styled.div`
 
     .year-combined-y {
       color: #9e9e9e;
+      margin-right: 4px;
     }
     .year-combined-code {
       font-weight: 700;
@@ -820,7 +972,11 @@ const Style = styled.div`
   }
 
   .year-combined-gap {
-    margin-top: 4px;
+    border-top-color: #e0e0e0 !important;
+  }
+
+  .year-combined-gap10 {
+    border-top-color: #ccc !important;
   }
 
   .year-combined-zero {
@@ -839,6 +995,103 @@ const Style = styled.div`
   .year-combined-highlight {
     background: #bbdefb;
     border-radius: 2px;
+  }
+
+  .year-combined-grid10 {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 0 4px;
+    font-size: 0.8rem;
+    padding: 0 4px;
+
+    .year-combined-cell {
+      border-top: 1px solid transparent;
+    }
+  }
+
+  .year-grid10-sep {
+    border-top-color: #ccc !important;
+  }
+
+  .year-code-groups {
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .year-code-group-row {
+    display: flex;
+    gap: 4px;
+    line-height: 1.4;
+  }
+
+  .year-code-group-label {
+    font-weight: 700;
+    width: 14px;
+    text-align: right;
+    color: #757575;
+    flex-shrink: 0;
+  }
+
+  .year-code-group-years {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 6px;
+  }
+
+  .year-code-group-y {
+    color: #9e9e9e;
+  }
+
+  .mcode-grid {
+    display: grid;
+    grid-template-columns: auto repeat(7, 1fr);
+    gap: 1px;
+    font-size: 0.7rem;
+    text-align: center;
+  }
+
+  .mcode-cell {
+    padding: 1px 3px;
+    line-height: 1.5;
+  }
+
+  .mcode-header {
+    font-weight: 700;
+    color: #757575;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .mcode-month {
+    font-weight: 600;
+    text-align: right;
+    color: #616161;
+    font-size: 0.65rem;
+  }
+
+  .mcode-active {
+    font-weight: 700;
+    border-radius: 3px;
+  }
+
+  .mcode-g-zero { background: #e3f2fd; color: #1565c0; }
+  .mcode-g-swap { background: #fce4ec; color: #c62828; }
+  .mcode-g-three { background: #e8f5e9; color: #2e7d32; }
+  .mcode-g-chain { background: #fff3e0; color: #e65100; }
+  .mcode-g-solo3 { background: #f3e5f5; color: #6a1b9a; }
+  .mcode-g-memorize { background: #eceff1; color: #37474f; }
+
+  .mcode-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 6px;
+    margin-top: 4px;
+    font-size: 0.55rem;
+  }
+
+  .mcode-leg {
+    padding: 0 3px;
+    border-radius: 2px;
+    font-weight: 600;
   }
 
   .century-grid {
