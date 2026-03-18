@@ -24,6 +24,7 @@ import {
   WEEKDAY_NAMES,
   WEEKDAY_NAMES_JA,
   type WeekdayResult,
+  type WeekdayStep,
 } from './weekdayCalc'
 
 // floor(y/4) mod 7 の早見表 (y%7 は暗算で足す)
@@ -179,6 +180,58 @@ const WeekdayCalcExplainer = () => {
     }
   }
 
+  const renderBranchCol = (step: WeekdayStep) => {
+    const mod7Val = ((step.value % 7) + 7) % 7
+    const needsMod = step.value >= 7
+    return (
+      <Box key={step.name} className="flow-branch-col">
+        <RevealNode
+          testMode={testMode}
+          className="flow-node flow-node--calc"
+          sx={{ borderColor: `${NODE_COLORS[step.name]} !important` }}
+          masked={
+            <Typography variant="caption" className="flow-label">
+              {step.label}
+            </Typography>
+          }
+        >
+          <Typography variant="caption" className="flow-label">
+            {step.label}
+          </Typography>
+          <Typography variant="h5" className="flow-value">
+            {step.value}
+          </Typography>
+          <Typography variant="caption" className="flow-explain">
+            {step.explain}
+          </Typography>
+        </RevealNode>
+        {needsMod ? (
+          <>
+            <Box className="flow-arrow flow-arrow--small" />
+            <RevealNode
+              testMode={testMode}
+              className="flow-node flow-node--mod7-pre"
+              masked={
+                <Typography variant="caption" className="flow-label">
+                  %7
+                </Typography>
+              }
+            >
+              <Typography variant="caption" className="flow-label">
+                %7
+              </Typography>
+              <Typography variant="body1" className="flow-value">
+                {mod7Val}
+              </Typography>
+            </RevealNode>
+          </>
+        ) : (
+          <Box className="flow-spacer" />
+        )}
+      </Box>
+    )
+  }
+
   return (
     <Style>
       <Box className="input-section">
@@ -267,65 +320,55 @@ const WeekdayCalcExplainer = () => {
               </Box>
               <Box className="flow-arrow" />
 
-              {/* 分岐: D, y, floor(y/4), m, C を並列表示 */}
+              {/* 分岐: C, 年コード(y+⌊y/4⌋), m, D を並列表示 */}
               <Box className="flow-branch">
-                {result.steps.slice(0, 5).map((step) => {
-                  const mod7Val = ((step.value % 7) + 7) % 7
-                  const needsMod = step.value >= 7
-                  return (
-                    <Box key={step.name} className="flow-branch-col">
-                      <RevealNode
-                        testMode={testMode}
-                        className="flow-node flow-node--calc"
-                        sx={{ borderColor: `${NODE_COLORS[step.name]} !important` }}
-                        masked={
-                          <Typography variant="caption" className="flow-label">
-                            {step.label}
-                          </Typography>
-                        }
-                      >
-                        <Typography variant="caption" className="flow-label">
-                          {step.label}
-                        </Typography>
-                        <Typography variant="h5" className="flow-value">
-                          {step.value}
-                        </Typography>
-                        <Typography variant="caption" className="flow-explain">
-                          {step.explain}
-                        </Typography>
-                      </RevealNode>
-                      {needsMod ? (
-                        <>
-                          <Box className="flow-arrow flow-arrow--small" />
-                          <RevealNode
-                            testMode={testMode}
-                            className="flow-node flow-node--mod7-pre"
-                            masked={
-                              <Typography variant="caption" className="flow-label">
-                                %7
-                              </Typography>
-                            }
-                          >
-                            <Typography variant="caption" className="flow-label">
-                              %7
-                            </Typography>
-                            <Typography variant="body1" className="flow-value">
-                              {mod7Val}
-                            </Typography>
-                          </RevealNode>
-                        </>
-                      ) : (
-                        <Box className="flow-spacer" />
-                      )}
-                    </Box>
-                  )
-                })}
+                {/* C */}
+                {renderBranchCol(result.steps[0])}
+
+                {/* Year group: y + floor(y/4) → 年コード */}
+                <Box className="flow-branch-year-group">
+                  <Box className="flow-branch-year-pair">
+                    {renderBranchCol(result.steps[1])}
+                    {renderBranchCol(result.steps[2])}
+                  </Box>
+                  <Box className="flow-year-merge">
+                    <Box className="flow-merge-line" />
+                    <Box className="flow-merge-line" />
+                  </Box>
+                  <Box className="flow-arrow flow-arrow--small" />
+                  <RevealNode
+                    testMode={testMode}
+                    className="flow-node flow-node--year-combined"
+                    sx={{ borderColor: `${NODE_COLORS.year_extract} !important` }}
+                    masked={
+                      <Typography variant="caption" className="flow-label">
+                        年コード
+                      </Typography>
+                    }
+                  >
+                    <Typography variant="caption" className="flow-label">
+                      年コード (y+⌊y/4⌋)%7
+                    </Typography>
+                    <Typography variant="h5" className="flow-value">
+                      {((result.steps[1].value + result.steps[2].value) % 7 + 7) % 7}
+                    </Typography>
+                    <Typography variant="caption" className="flow-explain">
+                      ({result.steps[1].value} + {result.steps[2].value}) % 7 = {((result.steps[1].value + result.steps[2].value) % 7 + 7) % 7}
+                    </Typography>
+                  </RevealNode>
+                </Box>
+
+                {/* m */}
+                {renderBranchCol(result.steps[3])}
+
+                {/* D */}
+                {renderBranchCol(result.steps[4])}
               </Box>
 
               {/* 合流矢印 */}
               <Box className="flow-merge-arrows">
-                {result.steps.slice(0, 5).map((step) => (
-                  <Box key={step.name} className="flow-merge-line" />
+                {['century', 'year', 'month', 'day'].map((k) => (
+                  <Box key={k} className="flow-merge-line" />
                 ))}
               </Box>
               <Box className="flow-arrow" />
@@ -820,6 +863,60 @@ const Style = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
+  }
+
+  .flow-branch-year-group {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .flow-branch-year-pair {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .flow-year-merge {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    height: 20px;
+
+    .flow-merge-line {
+      flex: 1;
+      position: relative;
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 2px;
+        height: 10px;
+        background: #90a4ae;
+      }
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 10px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #90a4ae;
+      }
+    }
+  }
+
+  .flow-node--year-combined {
+    background: #e3f2fd;
+    padding: 6px 12px;
+    min-width: 0;
   }
 
   .flow-arrow--small {
