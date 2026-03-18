@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Box,
   Button,
@@ -65,9 +65,10 @@ type RevealNodeProps = {
   sx?: Record<string, unknown>
   masked: React.ReactNode
   children: React.ReactNode
+  onReveal?: () => void
 }
 
-const RevealNode = ({ testMode, className, sx, masked, children }: RevealNodeProps) => {
+const RevealNode = ({ testMode, className, sx, masked, children, onReveal }: RevealNodeProps) => {
   const [revealed, setRevealed] = useState(false)
   const isHidden = testMode && !revealed
 
@@ -75,7 +76,14 @@ const RevealNode = ({ testMode, className, sx, masked, children }: RevealNodePro
     <Box
       className={`${className ?? ''} ${isHidden ? 'node--masked' : ''}`}
       sx={sx}
-      onClick={() => { if (testMode) setRevealed((v) => !v) }}
+      onClick={() => {
+        if (testMode) {
+          setRevealed((v) => {
+            if (!v && onReveal) onReveal()
+            return !v
+          })
+        }
+      }}
     >
       {isHidden ? masked : children}
     </Box>
@@ -150,6 +158,37 @@ const WeekdayCalcExplainer = () => {
   // テストモード切り替え or 再計算で revealed をリセットするための key
   const [testKey, setTestKey] = useState(0)
 
+  // ストップウォッチ
+  const [swStartTime, setSwStartTime] = useState<number | null>(null)
+  const [swElapsed, setSwElapsed] = useState<number | null>(null)
+  const [swRunning, setSwRunning] = useState(false)
+  const swIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const stopStopwatch = useCallback(() => {
+    setSwRunning(false)
+    if (swIntervalRef.current !== null) {
+      clearInterval(swIntervalRef.current)
+      swIntervalRef.current = null
+    }
+  }, [])
+
+  const startStopwatch = useCallback(() => {
+    stopStopwatch()
+    const now = Date.now()
+    setSwStartTime(now)
+    setSwElapsed(0)
+    setSwRunning(true)
+    swIntervalRef.current = setInterval(() => {
+      setSwElapsed(Date.now() - now)
+    }, 10)
+  }, [stopStopwatch])
+
+  useEffect(() => {
+    return () => {
+      if (swIntervalRef.current !== null) clearInterval(swIntervalRef.current)
+    }
+  }, [])
+
   const handleCalc = () => {
     const r = calculateWeekday(dateInput)
     if (r === null) {
@@ -177,6 +216,7 @@ const WeekdayCalcExplainer = () => {
       setError('')
       setResult(r)
       setTestKey((k) => k + 1)
+      if (testMode) startStopwatch()
     }
   }
 
@@ -253,13 +293,20 @@ const WeekdayCalcExplainer = () => {
           control={
             <Switch
               checked={testMode}
-              onChange={() => { setTestMode((v) => !v); setTestKey((k) => k + 1) }}
+              onChange={() => { setTestMode((v) => !v); setTestKey((k) => k + 1); stopStopwatch(); setSwElapsed(null) }}
               color="secondary"
               size="small"
             />
           }
           label="Test"
         />
+        {testMode && swElapsed !== null && (
+          <Box className={`stopwatch ${swRunning ? 'stopwatch--running' : 'stopwatch--stopped'}`}>
+            <Typography variant="h6" sx={{ fontVariantNumeric: 'tabular-nums', fontFamily: 'monospace' }}>
+              {(swElapsed / 1000).toFixed(2)}s
+            </Typography>
+          </Box>
+        )}
       </Box>
 
       {error && <Alert severity="error">{error}</Alert>}
@@ -436,6 +483,7 @@ const WeekdayCalcExplainer = () => {
                     曜日
                   </Typography>
                 }
+                onReveal={stopStopwatch}
               >
                 <Typography
                   variant="h5"
@@ -723,6 +771,23 @@ const Style = styled.div`
     gap: 12px;
     align-items: center;
     margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .stopwatch {
+    padding: 2px 12px;
+    border-radius: 8px;
+    border: 2px solid #90a4ae;
+  }
+
+  .stopwatch--running {
+    border-color: #4caf50;
+    background: #e8f5e9;
+  }
+
+  .stopwatch--stopped {
+    border-color: #ff9800;
+    background: #fff3e0;
   }
 
   .result-card {
