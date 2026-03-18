@@ -163,14 +163,23 @@ const WeekdayCalcExplainer = () => {
   const [swElapsed, setSwElapsed] = useState<number | null>(null)
   const [swRunning, setSwRunning] = useState(false)
   const swIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [swHistory, setSwHistory] = useState<{ date: string; elapsed: number }[]>([])
+  const swDateRef = useRef<string>('')
 
   const stopStopwatch = useCallback(() => {
-    setSwRunning(false)
     if (swIntervalRef.current !== null) {
       clearInterval(swIntervalRef.current)
       swIntervalRef.current = null
     }
-  }, [])
+    setSwRunning((wasRunning) => {
+      if (wasRunning) {
+        const finalElapsed = swStartTime !== null ? Date.now() - swStartTime : 0
+        setSwElapsed(finalElapsed)
+        setSwHistory((prev) => [...prev, { date: swDateRef.current, elapsed: finalElapsed }])
+      }
+      return false
+    })
+  }, [swStartTime])
 
   const startStopwatch = useCallback(() => {
     stopStopwatch()
@@ -216,7 +225,10 @@ const WeekdayCalcExplainer = () => {
       setError('')
       setResult(r)
       setTestKey((k) => k + 1)
-      if (testMode) startStopwatch()
+      if (testMode) {
+        swDateRef.current = str
+        startStopwatch()
+      }
     }
   }
 
@@ -293,7 +305,7 @@ const WeekdayCalcExplainer = () => {
           control={
             <Switch
               checked={testMode}
-              onChange={() => { setTestMode((v) => !v); setTestKey((k) => k + 1); stopStopwatch(); setSwElapsed(null) }}
+              onChange={() => { setTestMode((v) => !v); setTestKey((k) => k + 1); stopStopwatch(); setSwElapsed(null); setSwHistory([]) }}
               color="secondary"
               size="small"
             />
@@ -309,6 +321,27 @@ const WeekdayCalcExplainer = () => {
         )}
       </Box>
 
+      {testMode && swHistory.length > 0 && (
+        <Box className="sw-history">
+          <Box className="sw-history-list">
+            {[...swHistory].reverse().map((h, i) => (
+              <Box key={swHistory.length - 1 - i} className="sw-history-item">
+                <span className="sw-history-no">#{swHistory.length - i}</span>
+                <span className="sw-history-date">{h.date}</span>
+                <span className="sw-history-time">{(h.elapsed / 1000).toFixed(2)}s</span>
+              </Box>
+            ))}
+          </Box>
+          {swHistory.length >= 2 && (
+            <Typography variant="caption" sx={{ color: '#757575' }}>
+              avg: {(swHistory.reduce((s, h) => s + h.elapsed, 0) / swHistory.length / 1000).toFixed(2)}s
+              {' / '}best: {(Math.min(...swHistory.map((h) => h.elapsed)) / 1000).toFixed(2)}s
+              {' / '}{swHistory.length}回
+            </Typography>
+          )}
+        </Box>
+      )}
+
       {error && <Alert severity="error">{error}</Alert>}
 
       {result && (
@@ -316,6 +349,7 @@ const WeekdayCalcExplainer = () => {
           <RevealNode
             testMode={testMode}
             className="result-card"
+            onReveal={stopStopwatch}
             masked={
               <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                 {result.input}
@@ -788,6 +822,47 @@ const Style = styled.div`
   .stopwatch--stopped {
     border-color: #ff9800;
     background: #fff3e0;
+  }
+
+  .sw-history {
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fafafa;
+  }
+
+  .sw-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 4px;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+
+  .sw-history-item {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    font-family: monospace;
+  }
+
+  .sw-history-no {
+    color: #9e9e9e;
+    width: 28px;
+    text-align: right;
+  }
+
+  .sw-history-date {
+    color: #616161;
+    min-width: 100px;
+  }
+
+  .sw-history-time {
+    font-weight: 700;
   }
 
   .result-card {
