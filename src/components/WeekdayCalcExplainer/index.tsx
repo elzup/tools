@@ -175,7 +175,9 @@ const WeekdayCalcExplainer = () => {
       if (wasRunning) {
         const finalElapsed = swStartTime !== null ? Date.now() - swStartTime : 0
         setSwElapsed(finalElapsed)
-        setSwHistory((prev) => [...prev, { date: swDateRef.current, elapsed: finalElapsed }])
+        if (finalElapsed < 60_000) {
+          setSwHistory((prev) => [...prev, { date: swDateRef.current, elapsed: finalElapsed }])
+        }
       }
       return false
     })
