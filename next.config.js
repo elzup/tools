@@ -14,6 +14,9 @@ const withPWA = withPWAfn({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['three'],
+  compiler: {
+    styledComponents: true,
+  },
 }
 
 module.exports = withBundleAnalyzer(withPWA(nextConfig))
