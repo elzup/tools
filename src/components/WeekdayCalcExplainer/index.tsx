@@ -90,6 +90,9 @@ const RevealNode = ({ testMode, className, sx, masked, children, onReveal }: Rev
   )
 }
 
+// 6 は -1 としても表記
+const CODE_LABEL = (code: number) => (code === 6 ? '6/-1' : `${code}`)
+
 // 覚え方グループ: 同じグループは同色で表示
 const MONTH_MEMO_GROUP: Record<number, string> = {
   1: 'zero',   // 1,10月=0
@@ -115,7 +118,7 @@ const MonthCodeGrid = ({ borderColor }: { borderColor: string }) => (
       {/* ヘッダ行: 0-6 */}
       <Box className="mcode-cell mcode-header" />
       {Array.from({ length: 7 }, (_, i) => (
-        <Box key={i} className="mcode-cell mcode-header">{i}</Box>
+        <Box key={i} className="mcode-cell mcode-header">{CODE_LABEL(i)}</Box>
       ))}
       {/* 各月の行 */}
       {Array.from({ length: 12 }, (_, i) => {
@@ -537,8 +540,7 @@ const WeekdayCalcExplainer = () => {
                 <MonthCodeGrid borderColor={NODE_COLORS.month_code} />
               </Box>
               <WeekdayBar />
-              <YearCodeGrid
-                yearCodes={YEAR_DIV4_MOD7}
+              <YearCodeGroupBox
                 highlightYear={result ? parseInt(result.input.slice(0, 4)) % 100 : undefined}
                 borderColor={NODE_COLORS.year_extract}
               />
@@ -551,10 +553,6 @@ const WeekdayCalcExplainer = () => {
               borderColor={NODE_COLORS.year_extract}
             />
             <YearCombinedGrid10
-              highlightYear={result ? parseInt(result.input.slice(0, 4)) % 100 : undefined}
-              borderColor={NODE_COLORS.year_extract}
-            />
-            <YearCodeGroupBox
               highlightYear={result ? parseInt(result.input.slice(0, 4)) % 100 : undefined}
               borderColor={NODE_COLORS.year_extract}
             />
@@ -678,14 +676,15 @@ const YEAR_CODE_GROUPS: number[][] = Array.from({ length: 7 }, (_, code) =>
 )
 
 const YearCodeGroupBox = ({ highlightYear, borderColor }: { highlightYear?: number; borderColor: string }) => (
-  <Paper elevation={0} sx={{ border: `2px solid ${borderColor}`, p: '2px 4px', width: 'fit-content' }}>
-    <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: '2px' }}>
+  <Paper elevation={0} sx={{ border: `2px solid ${borderColor}`, p: '4px 6px', width: 'fit-content' }}>
+    <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: '4px' }}>
       年コード — グループ別
     </Typography>
     <Box className="year-code-groups">
       {YEAR_CODE_GROUPS.map((years, code) => (
         <Box key={code} className="year-code-group-row">
-          <span className="year-code-group-label">{code}</span>
+          <span className={`year-code-group-label ycg-code-${code}`}>{CODE_LABEL(code)}</span>
+          <span className="year-code-group-sep">:</span>
           <span className="year-code-group-years">
             {years.map((y) => (
               <span
@@ -752,7 +751,7 @@ const CenturyGrid = ({ borderColor }: { borderColor: string }) => (
     <Box className="century-grid">
       {CENTURY_GRID_COLS.map((code) => (
         <Box key={code} className="century-grid-cell century-grid-header">
-          {code}
+          {CODE_LABEL(code)}
         </Box>
       ))}
       {CENTURY_ROWS.flat().map((c, i) => (
@@ -1253,21 +1252,45 @@ const Style = styled.div`
   }
 
   .year-code-groups {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-variant-numeric: tabular-nums;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
   .year-code-group-row {
     display: flex;
+    align-items: baseline;
     gap: 4px;
-    line-height: 1.4;
+    line-height: 1.5;
+    padding: 1px 4px;
+    border-radius: 4px;
+    &:hover {
+      background: rgba(0, 0, 0, 0.03);
+    }
   }
 
   .year-code-group-label {
     font-weight: 700;
-    width: 14px;
+    min-width: 28px;
     text-align: right;
-    color: #757575;
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    padding: 0 2px;
+    border-radius: 3px;
+  }
+
+  .ycg-code-0 { color: #2e7d32; background: #e8f5e9; }
+  .ycg-code-1 { color: #1565c0; background: #e3f2fd; }
+  .ycg-code-2 { color: #6a1b9a; background: #f3e5f5; }
+  .ycg-code-3 { color: #e65100; background: #fff3e0; }
+  .ycg-code-4 { color: #c62828; background: #ffebee; }
+  .ycg-code-5 { color: #00838f; background: #e0f7fa; }
+  .ycg-code-6 { color: #4e342e; background: #efebe9; }
+
+  .year-code-group-sep {
+    color: #bdbdbd;
     flex-shrink: 0;
   }
 
@@ -1278,7 +1301,7 @@ const Style = styled.div`
   }
 
   .year-code-group-y {
-    color: #9e9e9e;
+    color: #616161;
   }
 
   .mcode-grid {
