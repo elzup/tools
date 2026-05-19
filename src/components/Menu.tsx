@@ -9,6 +9,7 @@ import {
 import {
   IconDefinition,
   faBowlingBall,
+  faBoxes,
   faCalendarDay,
   faCog,
   faCalculator,
@@ -100,6 +101,11 @@ const routings: RoutingGroup[] = [
         icon: faClock,
         label: 'Scope Timer',
         path: '/scope-timer',
+      },
+      {
+        icon: faBoxes,
+        label: '3D ドミノ倒し',
+        path: '/domino-3d',
       },
     ],
   },
