@@ -23,90 +23,91 @@ import React, { Suspense, useCallback, useMemo, useRef, useState } from 'react'
 
 type LayoutType = 'straight' | 'curve' | 'spiral' | 'zigzag' | 'circle'
 
+type Dims = {
+  width: number
+  height: number
+  depth: number
+}
+
 type DominoSpec = {
   position: [number, number, number]
   rotationY: number
   color: string
+  dims: Dims
+  mass: number
 }
 
-const DOMINO_WIDTH = 0.3
-const DOMINO_HEIGHT = 1.6
-const DOMINO_DEPTH = 0.7
+const DOMINO_WIDTH_BASE = 0.3
+const DOMINO_HEIGHT_BASE = 1.6
+const DOMINO_DEPTH_BASE = 0.7
 
 function generateLayout(
   layout: LayoutType,
   count: number,
-  spacing: number
+  dimsArr: Dims[],
+  massArr: number[],
+  gapRatio: number
 ): DominoSpec[] {
-  const baseY = DOMINO_HEIGHT / 2
-
-  const hueFor = (index: number) =>
-    `hsl(${(index * 360) / Math.max(count, 1)}, 70%, 55%)`
-
-  if (layout === 'straight') {
-    return Array.from({ length: count }, (_, index) => ({
-      position: [index * spacing - ((count - 1) * spacing) / 2, baseY, 0],
-      rotationY: 0,
-      color: hueFor(index),
-    }))
+  // Per-segment center-to-center spacing: covers half-width of each + face gap
+  // (face gap = min(height) * gapRatio so the taller side can still topple onto the shorter)
+  const segments: number[] = []
+  for (let i = 0; i < count - 1; i++) {
+    const a = dimsArr[i]
+    const b = dimsArr[i + 1]
+    segments.push(
+      (a.width + b.width) / 2 + Math.min(a.height, b.height) * gapRatio
+    )
   }
+  const cumLen = [0]
+  for (const s of segments) cumLen.push(cumLen[cumLen.length - 1] + s)
+  const total = cumLen[count - 1] || 1
 
-  if (layout === 'zigzag') {
-    return Array.from({ length: count }, (_, index) => {
-      const offset = index * spacing - ((count - 1) * spacing) / 2
-      const z = Math.sin(index * 0.7) * 1.5
-      const next = Math.sin((index + 1) * 0.7) * 1.5
-      const angle = Math.atan2(next - z, spacing)
-      return {
-        position: [offset, baseY, z] as [number, number, number],
-        rotationY: angle,
-        color: hueFor(index),
-      }
-    })
-  }
+  const hueFor = (i: number) =>
+    `hsl(${(i * 360) / Math.max(count, 1)}, 70%, 55%)`
 
-  if (layout === 'curve') {
-    const radius = (count * spacing) / Math.PI
-    return Array.from({ length: count }, (_, index) => {
-      const angle = (index / (count - 1)) * Math.PI - Math.PI / 2
-      const x = Math.cos(angle) * radius
-      const z = Math.sin(angle) * radius
-      const tangent = angle + Math.PI / 2
-      return {
-        position: [x, baseY, z] as [number, number, number],
-        rotationY: -tangent,
-        color: hueFor(index),
-      }
-    })
-  }
+  return Array.from({ length: count }, (_, i) => {
+    const dims = dimsArr[i]
+    const baseY = dims.height / 2
+    const s = cumLen[i]
+    const u = total > 0 ? s / total : 0
 
-  if (layout === 'circle') {
-    const radius = (count * spacing) / (2 * Math.PI)
-    return Array.from({ length: count }, (_, index) => {
-      const angle = (index / count) * Math.PI * 2
-      const x = Math.cos(angle) * radius
-      const z = Math.sin(angle) * radius
-      const tangent = angle + Math.PI / 2
-      return {
-        position: [x, baseY, z] as [number, number, number],
-        rotationY: -tangent,
-        color: hueFor(index),
-      }
-    })
-  }
+    let position: [number, number, number]
+    let rotationY: number
 
-  // spiral
-  return Array.from({ length: count }, (_, index) => {
-    const t = index * 0.4
-    const radius = 1.5 + t * 0.25
-    const angle = t
-    const x = Math.cos(angle) * radius
-    const z = Math.sin(angle) * radius
-    const tangent = angle + Math.PI / 2
+    if (layout === 'straight') {
+      position = [s - total / 2, baseY, 0]
+      rotationY = 0
+    } else if (layout === 'zigzag') {
+      const x = s - total / 2
+      const freq = ((count - 1) * 0.7) / Math.max(total, 0.001)
+      const z = Math.sin(s * freq) * 1.5
+      const dz = Math.cos(s * freq) * 1.5 * freq
+      position = [x, baseY, z]
+      rotationY = Math.atan2(dz, 1)
+    } else if (layout === 'curve') {
+      const r = total / Math.PI
+      const angle = u * Math.PI - Math.PI / 2
+      position = [Math.cos(angle) * r, baseY, Math.sin(angle) * r]
+      rotationY = -(angle + Math.PI / 2)
+    } else if (layout === 'circle') {
+      const r = total / (2 * Math.PI)
+      const angle = u * 2 * Math.PI
+      position = [Math.cos(angle) * r, baseY, Math.sin(angle) * r]
+      rotationY = -(angle + Math.PI / 2)
+    } else {
+      // spiral — keep original parametric shape; arc length is approximate
+      const t = u * Math.max(count - 1, 0) * 0.4
+      const radius = 1.5 + t * 0.25
+      position = [Math.cos(t) * radius, baseY, Math.sin(t) * radius]
+      rotationY = -(t + Math.PI / 2)
+    }
+
     return {
-      position: [x, baseY, z] as [number, number, number],
-      rotationY: -tangent,
-      color: hueFor(index),
+      position,
+      rotationY,
+      color: hueFor(i),
+      dims,
+      mass: massArr[i],
     }
   })
 }
@@ -130,17 +131,15 @@ const Domino = ({ spec, bodyRef }: DominoProps) => {
       colliders="cuboid"
       restitution={0.05}
       friction={0.6}
-      mass={0.5}
+      mass={spec.mass}
       linearDamping={0.05}
       angularDamping={0.05}
     >
-      <mesh castShadow receiveShadow>
-        <boxGeometry args={[DOMINO_WIDTH, DOMINO_HEIGHT, DOMINO_DEPTH]} />
-        <meshStandardMaterial
-          color={spec.color}
-          roughness={0.4}
-          metalness={0.1}
+      <mesh>
+        <boxGeometry
+          args={[spec.dims.width, spec.dims.height, spec.dims.depth]}
         />
+        <meshLambertMaterial color={spec.color} />
       </mesh>
     </RigidBody>
   )
@@ -149,9 +148,9 @@ const Domino = ({ spec, bodyRef }: DominoProps) => {
 const Floor = () => (
   <RigidBody type="fixed" friction={0.8}>
     <CuboidCollider args={[25, 0.1, 25]} position={[0, -0.1, 0]} />
-    <mesh position={[0, -0.1, 0]} receiveShadow>
+    <mesh position={[0, -0.1, 0]}>
       <boxGeometry args={[50, 0.2, 50]} />
-      <meshStandardMaterial color="#2a2a2a" />
+      <meshLambertMaterial color="#2a2a2a" />
     </mesh>
     {/* grid lines */}
     <gridHelper args={[50, 50, '#444', '#333']} position={[0, 0.01, 0]} />
@@ -160,16 +159,11 @@ const Floor = () => (
 
 type SceneProps = {
   specs: DominoSpec[]
-  pushSignal: number
+  sceneKey: string
   registerBody: (index: number, body: RapierRigidBody | null) => void
 }
 
-const Scene = ({ specs, pushSignal, registerBody }: SceneProps) => {
-  const sceneKey = useMemo(
-    () => `${specs.length}-${pushSignal}`,
-    [specs.length, pushSignal]
-  )
-
+const Scene = ({ specs, sceneKey, registerBody }: SceneProps) => {
   return (
     <Physics gravity={[0, -9.81, 0]} key={sceneKey}>
       <Floor />
@@ -187,13 +181,43 @@ const Scene = ({ specs, pushSignal, registerBody }: SceneProps) => {
 const Domino3D = () => {
   const [layout, setLayout] = useState<LayoutType>('straight')
   const [count, setCount] = useState(20)
-  const [spacing, setSpacing] = useState(1.0)
+  const [scale, setScale] = useState(1.0)
+  const [growth, setGrowth] = useState(1.0)
+  const [gapRatio, setGapRatio] = useState(0.5)
   const [pushSignal, setPushSignal] = useState(0)
   const bodiesRef = useRef<Array<RapierRigidBody | null>>([])
 
+  const dimsArr = useMemo<Dims[]>(
+    () =>
+      Array.from({ length: count }, (_, i) => {
+        const factor = count <= 1 ? 1 : Math.pow(growth, i / (count - 1))
+        return {
+          width: DOMINO_WIDTH_BASE * scale * factor,
+          height: DOMINO_HEIGHT_BASE * scale * factor,
+          depth: DOMINO_DEPTH_BASE * scale * factor,
+        }
+      }),
+    [count, scale, growth]
+  )
+
+  const massArr = useMemo(
+    () =>
+      Array.from({ length: count }, (_, i) => {
+        const factor = count <= 1 ? 1 : Math.pow(growth, i / (count - 1))
+        return 0.5 * Math.pow(scale * factor, 3)
+      }),
+    [count, scale, growth]
+  )
+
   const specs = useMemo(
-    () => generateLayout(layout, count, spacing),
-    [layout, count, spacing]
+    () => generateLayout(layout, count, dimsArr, massArr, gapRatio),
+    [layout, count, dimsArr, massArr, gapRatio]
+  )
+
+  // Rebuild physics world on any layout change so stale bodies don't collide with new positions
+  const sceneKey = useMemo(
+    () => `${layout}-${count}-${scale}-${growth}-${gapRatio}-${pushSignal}`,
+    [layout, count, scale, growth, gapRatio, pushSignal]
   )
 
   const registerBody = useCallback(
@@ -209,8 +233,16 @@ const Domino3D = () => {
     const spec = specs[0]
     const dirX = Math.cos(spec.rotationY)
     const dirZ = -Math.sin(spec.rotationY)
-    first.applyImpulse({ x: dirX * 2.5, y: 0, z: dirZ * 2.5 }, true)
-    first.applyTorqueImpulse({ x: dirZ * 1.2, y: 0, z: -dirX * 1.2 }, true)
+    const impulseMag = 2.5 * spec.mass
+    const torqueMag = 1.2 * spec.mass * spec.dims.height
+    first.applyImpulse(
+      { x: dirX * impulseMag, y: 0, z: dirZ * impulseMag },
+      true
+    )
+    first.applyTorqueImpulse(
+      { x: dirZ * torqueMag, y: 0, z: -dirX * torqueMag },
+      true
+    )
   }, [specs])
 
   const handleReset = useCallback(() => {
@@ -231,6 +263,7 @@ const Domino3D = () => {
           direction={{ xs: 'column', md: 'row' }}
           spacing={2}
           alignItems={{ md: 'center' }}
+          flexWrap="wrap"
         >
           <FormControl size="small" sx={{ minWidth: 160 }}>
             <InputLabel id="domino-layout-label">配置パターン</InputLabel>
@@ -248,7 +281,7 @@ const Domino3D = () => {
             </Select>
           </FormControl>
 
-          <Box sx={{ minWidth: 200 }}>
+          <Box sx={{ minWidth: 160 }}>
             <Typography variant="caption">枚数: {count}</Typography>
             <Slider
               size="small"
@@ -260,16 +293,44 @@ const Domino3D = () => {
             />
           </Box>
 
-          <Box sx={{ minWidth: 200 }}>
+          <Box sx={{ minWidth: 160 }}>
             <Typography variant="caption">
-              間隔: {spacing.toFixed(2)}
+              サイズ: ×{scale.toFixed(2)}
             </Typography>
             <Slider
               size="small"
-              value={spacing}
-              onChange={(_, value) => setSpacing(value as number)}
-              min={0.6}
-              max={1.6}
+              value={scale}
+              onChange={(_, value) => setScale(value as number)}
+              min={0.4}
+              max={2.5}
+              step={0.05}
+            />
+          </Box>
+
+          <Box sx={{ minWidth: 180 }}>
+            <Typography variant="caption">
+              成長: ×{growth.toFixed(2)} (最後 / 最初)
+            </Typography>
+            <Slider
+              size="small"
+              value={growth}
+              onChange={(_, value) => setGrowth(value as number)}
+              min={0.5}
+              max={3.0}
+              step={0.05}
+            />
+          </Box>
+
+          <Box sx={{ minWidth: 160 }}>
+            <Typography variant="caption">
+              次への間隔: 高さ ×{gapRatio.toFixed(2)}
+            </Typography>
+            <Slider
+              size="small"
+              value={gapRatio}
+              onChange={(_, value) => setGapRatio(value as number)}
+              min={0.2}
+              max={0.95}
               step={0.05}
             />
           </Box>
@@ -288,7 +349,8 @@ const Domino3D = () => {
           color="text.secondary"
           sx={{ mt: 1, display: 'block' }}
         >
-          ドラッグで視点回転 / ホイールでズーム / 右クリックでパン
+          ドラッグで視点回転 / ホイールでズーム / 右クリックでパン ・ 成長 &gt;
+          1 で巨大連鎖、&lt; 1 で縮小チェーン
         </Typography>
       </Paper>
 
@@ -302,26 +364,15 @@ const Domino3D = () => {
         }}
       >
         <Canvas
-          shadows
           camera={{ position: [12, 10, 14], fov: 50 }}
-          dpr={[1, 2]}
+          dpr={[1, 1.5]}
         >
-          <ambientLight intensity={0.4} />
-          <directionalLight
-            position={[10, 20, 10]}
-            intensity={1.2}
-            castShadow
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
-            shadow-camera-left={-20}
-            shadow-camera-right={20}
-            shadow-camera-top={20}
-            shadow-camera-bottom={-20}
-          />
+          <ambientLight intensity={0.6} />
+          <directionalLight position={[10, 20, 10]} intensity={0.8} />
           <Suspense fallback={null}>
             <Scene
               specs={specs}
-              pushSignal={pushSignal}
+              sceneKey={sceneKey}
               registerBody={registerBody}
             />
           </Suspense>
