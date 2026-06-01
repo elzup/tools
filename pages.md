@@ -43,6 +43,7 @@
 | shingeki.tsx           | Art          | 進撃プロット可視化                               | styled-components                              | 現在           | \*  | データ可視化           | 5    |
 | creative-coding.tsx    | Graphical    | クリエイティブコーディングプレイグラウンド       | react-p5, p5                                   | **要更新**     | \*  | P5.js 使用             | 4    |
 | d3-play.tsx            | Graphical    | D3.js 実験プレイグラウンド                       | @elzup/kit, lodash, styled-components          | 現在           |     | データ可視化実験       | 5    |
+| rgb-combo.tsx          | Graphical    | RGB 全組み合わせ網羅・原色点滅(時間混色)可視化   | @elzup/kit, @mui, react-use, styled-components  | 現在           |     | R/G/B 個別分割数調整   | 5    |
 | word-search.tsx        | ProtoType    | 単語検索ゲーム                                   | @mui                                           | 現在           |     | ゲームプロトタイプ     | 5    |
 | ellip-billiards.tsx    | ProtoType    | 楕円ビリヤードシミュレーション                   | matter-js                                      | **要更新**     |     | 物理シミュレーション   | 4    |
 | diginima.tsx           | ProtoType    | デジニマ - デジタル実験                          |                                                | 現在           |     | プロトタイプ           | 3    |
