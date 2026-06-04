@@ -82,8 +82,27 @@ const projectCube = ({ r, g, b }: Rgb): { x: number; y: number } => {
 const levelIndex = (v: number, levels: number): number =>
   levels <= 1 ? 0 : Math.round((v / 255) * (levels - 1))
 
+// アクティブな原色を幅 w の縞で交互配置する CSS background (並置混色)。
+// 例: [R, B] → R,B,R,B... の斜めストライプ
+const stripeBg = (colors: string[], w: number): string => {
+  if (colors.length <= 1) return colors[0] ?? 'rgb(0, 0, 0)'
+
+  const stops = colors
+    .map((c, i) => `${c} ${i * w}px ${(i + 1) * w}px`)
+    .join(', ')
+
+  return `repeating-linear-gradient(45deg, ${stops})`
+}
+
+// 混色の見せ方: blink=時間混色(点滅) / stripe=空間混色(ボーダー並置)
+type MixMode = 'blink' | 'stripe'
+
+// 並置 (ボーダー) の縞幅。細かいほど目で混ざる
+const stripeWidth = (size: number): number => Math.max(1, Math.round(size / 24))
+
 type Config = {
   levels: Levels
+  mixMode: MixMode
   speedMs: number
   cellPx: number
   view: ViewMode
@@ -92,6 +111,7 @@ type Config = {
 
 const initConfig: Config = {
   levels: { r: 3, g: 3, b: 3 },
+  mixMode: 'blink',
   speedMs: 16,
   cellPx: 56,
   view: 'grid',
@@ -103,6 +123,7 @@ type ColorCellProps = {
   g: number
   b: number
   levels: Levels
+  mixMode: MixMode
   flashColor: string
   size: number
   label: string
@@ -112,20 +133,23 @@ type ColorCellProps = {
 // 下に必ず R/G/B 3 原色をその level 番号付きで出す。
 // r/g/b を数値で渡すことで、点滅色が変わらないセルは props 不変となり再描画されない。
 const ColorCell = memo(
-  ({ r, g, b, levels, flashColor, size, label }: ColorCellProps) => {
+  ({ r, g, b, levels, mixMode, flashColor, size, label }: ColorCellProps) => {
     const mix = `rgb(${r}, ${g}, ${b})`
     const parts = [
       { key: 'r', css: `rgb(${r}, 0, 0)`, lv: levelIndex(r, levels.r) },
       { key: 'g', css: `rgb(0, ${g}, 0)`, lv: levelIndex(g, levels.g) },
       { key: 'b', css: `rgb(0, 0, ${b})`, lv: levelIndex(b, levels.b) },
     ]
+    const activeColors = parts.filter((p) => p.lv > 0).map((p) => p.css)
+    const mixBg =
+      mixMode === 'blink' ? flashColor : stripeBg(activeColors, stripeWidth(size))
 
     return (
       <CellGroup title={label}>
         <Pair style={{ gap: PAIR_GAP }}>
           <Cell
-            style={{ background: flashColor, width: size, height: size }}
-            title={`点滅 (時間混色)`}
+            style={{ background: mixBg, width: size, height: size }}
+            title={mixMode === 'blink' ? '点滅 (時間混色)' : '並置 (空間混色)'}
           />
           <Cell
             style={{ background: mix, width: size, height: size }}
@@ -150,19 +174,19 @@ const ColorCell = memo(
 ColorCell.displayName = 'ColorCell'
 
 type MapCellProps = {
-  flashColor: string
+  color: string
   size: number
   x: number
   y: number
   label: string
 }
 
-// RGB 立方体座標 (キャビネット投影) の該当位置に点滅スウォッチを配置する
-const MapColorCell = memo(({ flashColor, size, x, y, label }: MapCellProps) => (
+// RGB 立方体座標 (キャビネット投影) の該当位置にスウォッチを配置する
+const MapColorCell = memo(({ color, size, x, y, label }: MapCellProps) => (
   <MapCell
     title={label}
     style={{
-      background: flashColor,
+      background: color,
       width: size,
       height: size,
       left: `${x}%`,
@@ -175,12 +199,14 @@ MapColorCell.displayName = 'MapColorCell'
 const RgbCombo = () => {
   const [config, setConfig] = useState<Config>(initConfig)
   const [phase, setPhase] = useState(0)
-  const { levels, speedMs, cellPx, view, hideMono } = config
+  const { levels, mixMode, speedMs, cellPx, view, hideMono } = config
 
-  useInterval(() => setPhase((p) => p + 1), speedMs)
+  // 点滅モードのときだけアニメーションを回す (並置は静止なので不要)
+  useInterval(() => setPhase((p) => p + 1), mixMode === 'blink' ? speedMs : null)
 
   const setLevel = (key: ChannelKey, value: number) =>
     setConfig((c) => ({ ...c, levels: { ...c.levels, [key]: value } }))
+  const setMixMode = (mixMode: MixMode) => setConfig((c) => ({ ...c, mixMode }))
   const setSpeedMs = (speedMs: number) => setConfig((c) => ({ ...c, speedMs }))
   const setCellPx = (cellPx: number) => setConfig((c) => ({ ...c, cellPx }))
   const setView = (view: ViewMode) => setConfig((c) => ({ ...c, view }))
@@ -224,17 +250,29 @@ const RgbCombo = () => {
           />
         </Box>
 
-        <Box sx={{ width: 180 }}>
-          <Typography>点滅間隔: {speedMs}ms</Typography>
-          <Slider
-            value={speedMs}
-            valueLabelDisplay="auto"
-            onChange={(_, v) => setSpeedMs(Number(v))}
-            step={8}
-            min={16}
-            max={500}
-          />
-        </Box>
+        <ToggleButtonGroup
+          size="small"
+          exclusive
+          value={mixMode}
+          onChange={(_, v: MixMode | null) => v && setMixMode(v)}
+        >
+          <ToggleButton value="blink">点滅(時間)</ToggleButton>
+          <ToggleButton value="stripe">ボーダー(空間)</ToggleButton>
+        </ToggleButtonGroup>
+
+        {mixMode === 'blink' && (
+          <Box sx={{ width: 180 }}>
+            <Typography>点滅間隔: {speedMs}ms</Typography>
+            <Slider
+              value={speedMs}
+              valueLabelDisplay="auto"
+              onChange={(_, v) => setSpeedMs(Number(v))}
+              step={8}
+              min={16}
+              max={500}
+            />
+          </Box>
+        )}
 
         <ToggleButtonGroup
           size="small"
@@ -255,12 +293,15 @@ const RgbCombo = () => {
 
       <Typography sx={{ my: 1 }}>
         全組み合わせ {levels.r} × {levels.g} × {levels.b} = <strong>{combos.length}</strong>{' '}
-        色 / 表示 <strong>{shown.length}</strong> 色 ・ 左=点滅 / 右=目標色
+        色 / 表示 <strong>{shown.length}</strong> 色 ・ 左=
+        {mixMode === 'blink' ? '点滅(時間)' : 'ボーダー(空間)'} / 右=目標色(加法)
       </Typography>
 
       {view === 'grid' ? (
         <Grid
-          style={{ gridTemplateColumns: `repeat(auto-fill, ${cellPx * 2 + PAIR_GAP}px)` }}
+          style={{
+            gridTemplateColumns: `repeat(auto-fill, ${cellPx * 2 + PAIR_GAP}px)`,
+          }}
         >
           {shown.map((combo) => (
             <ColorCell
@@ -269,6 +310,7 @@ const RgbCombo = () => {
               g={combo.g}
               b={combo.b}
               levels={levels}
+              mixMode={mixMode}
               flashColor={blinkColor(combo, phase)}
               size={cellPx}
               label={toCss(combo)}
@@ -282,12 +324,22 @@ const RgbCombo = () => {
           <AxisLabel style={{ left: '34%', top: '64%' }}>↗ B</AxisLabel>
           {shown.map((combo) => {
             const { x, y } = projectCube(combo)
+            const size = Math.min(cellPx, 28)
+            const color =
+              mixMode === 'blink'
+                ? blinkColor(combo, phase)
+                : stripeBg(
+                    CHANNELS.filter((c) => combo[c.key] > 0).map((c) =>
+                      toCss({ r: 0, g: 0, b: 0, [c.key]: combo[c.key] })
+                    ),
+                    stripeWidth(size)
+                  )
 
             return (
               <MapColorCell
                 key={`${combo.r}-${combo.g}-${combo.b}`}
-                flashColor={blinkColor(combo, phase)}
-                size={Math.min(cellPx, 28)}
+                color={color}
+                size={size}
                 x={x}
                 y={y}
                 label={toCss(combo)}
