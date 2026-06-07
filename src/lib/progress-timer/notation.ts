@@ -58,3 +58,15 @@ export function formatClock(min: number): string {
 export function formatCumulative(min: number): string {
   return formatClock(min)
 }
+
+/** 小数分 → 秒つき時刻 (H:MM:SS, 分秒 2 桁, 負は符号付き)。現在時刻表示用。 */
+export function formatClockSec(minFloat: number): string {
+  const totalSec = Math.floor(minFloat * 60)
+  const sign = totalSec < 0 ? '-' : ''
+  const abs = Math.abs(totalSec)
+  const h = Math.floor(abs / 3600)
+  const m = Math.floor((abs % 3600) / 60)
+  const s = abs % 60
+
+  return `${sign}${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}

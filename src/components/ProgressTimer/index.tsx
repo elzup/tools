@@ -1,9 +1,10 @@
-import { Button } from '@mui/material'
+import { Button, ToggleButton, ToggleButtonGroup } from '@mui/material'
 import { useState } from 'react'
 import styled from 'styled-components'
 import {
   encodePlanText,
   formatClock,
+  formatClockSec,
   formatCumulative,
   formatDuration,
   parseClock,
@@ -43,7 +44,7 @@ const ProgressTimer = () => {
             width={64}
           />
         </Field>
-        <span className="now">現在 {formatClock(Math.floor(t.nowMin))}</span>
+        <span className="now">現在 {formatClockSec(t.nowMin)}</span>
         <span className="total">
           合計 {formatCumulative(t.totalMin)} / 終了{' '}
           {formatClock(t.endClockMin)}
@@ -101,14 +102,17 @@ const ProgressTimer = () => {
       {/* 横タイムライン (予定 + 実績) */}
       <Timeline t={t} />
 
-      {/* 編集モード切替 */}
+      {/* 編集モード切替 (segmented control) */}
       <ModeBar>
-        <ModeButton $active={mode === 'list'} onClick={() => setMode('list')}>
-          リスト編集
-        </ModeButton>
-        <ModeButton $active={mode === 'text'} onClick={() => setMode('text')}>
-          テキスト編集
-        </ModeButton>
+        <ToggleButtonGroup
+          value={mode}
+          exclusive
+          size="small"
+          onChange={(_, v: Mode | null) => v && setMode(v)}
+        >
+          <ToggleButton value="list">リスト編集</ToggleButton>
+          <ToggleButton value="text">テキスト編集</ToggleButton>
+        </ToggleButtonGroup>
         {mode === 'list' && (
           <Button variant="text" size="small" onClick={t.addStep}>
             + 行追加
@@ -282,19 +286,8 @@ const TrackFill = styled.div`
 const ModeBar = styled.div`
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   margin-bottom: 12px;
-`
-
-const ModeButton = styled.button<{ $active: boolean }>`
-  font: inherit;
-  font-size: 0.85rem;
-  padding: 4px 12px;
-  border: 1px solid ${(p) => (p.$active ? '#4080ff' : '#ccc')};
-  border-radius: 6px;
-  background: ${(p) => (p.$active ? '#4080ff' : '#fff')};
-  color: ${(p) => (p.$active ? '#fff' : '#555')};
-  cursor: pointer;
 `
 
 const TextArea = styled.textarea`

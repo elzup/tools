@@ -4,6 +4,7 @@ import {
   parseClock,
   formatClock,
   formatCumulative,
+  formatClockSec,
 } from '../../../lib/progress-timer/notation'
 
 describe('parseDuration', () => {
@@ -65,6 +66,16 @@ describe('parseClock / formatClock', () => {
   })
   test('REQ-N11: 24h 超過は時を保持', () => {
     expect(formatClock(1500)).toBe('25:00')
+  })
+})
+
+describe('formatClockSec', () => {
+  test('REQ-N14: 秒つき H:MM:SS', () => {
+    expect(formatClockSec(840)).toBe('14:00:00')
+    expect(formatClockSec(880.5)).toBe('14:40:30') // 0.5分 = 30秒
+    expect(formatClockSec(0)).toBe('0:00:00')
+    // 小数分の秒切り捨て: 46.6分 = 46分36秒
+    expect(formatClockSec(46.6)).toBe('0:46:36')
   })
 })
 

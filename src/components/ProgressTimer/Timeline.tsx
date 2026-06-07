@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import styled from 'styled-components'
 import {
   formatClock,
+  formatClockSec,
   formatCumulative,
   formatDuration,
 } from '../../lib/progress-timer'
@@ -159,7 +160,7 @@ export function Timeline({ t }: Props) {
             {/* 再生ヘッド (現在時刻) */}
             {playheadPct !== null && playheadPct >= 0 && playheadPct <= 100 && (
               <Playhead style={{ left: `${playheadPct}%` }}>
-                <span className="t">{formatClock(Math.floor(t.nowMin))}</span>
+                <span className="t">{formatClockSec(t.nowMin)}</span>
               </Playhead>
             )}
           </Bar>
