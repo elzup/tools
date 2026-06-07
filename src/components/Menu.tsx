@@ -25,6 +25,7 @@ import {
   faGlobe,
   faGraduationCap,
   faHome,
+  faHourglassHalf,
   faKeyboard,
   faLeaf,
   faListOl,
@@ -102,6 +103,11 @@ const routings: RoutingGroup[] = [
         icon: faClock,
         label: 'Scope Timer',
         path: '/scope-timer',
+      },
+      {
+        icon: faHourglassHalf,
+        label: '進行タイマー',
+        path: '/progress-timer',
       },
       {
         icon: faBoxes,
