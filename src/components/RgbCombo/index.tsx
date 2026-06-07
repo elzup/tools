@@ -7,7 +7,7 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
-import { memo, useMemo, useState } from 'react'
+import { CSSProperties, memo, useMemo, useState } from 'react'
 import { useInterval } from 'react-use'
 import styled from 'styled-components'
 import { Box } from '../common/mui'
@@ -82,23 +82,29 @@ const projectCube = ({ r, g, b }: Rgb): { x: number; y: number } => {
 const levelIndex = (v: number, levels: number): number =>
   levels <= 1 ? 0 : Math.round((v / 255) * (levels - 1))
 
-// アクティブな原色を幅 w の縞で交互配置する CSS background (並置混色)。
-// 例: [R, B] → R,B,R,B... の斜めストライプ
-const stripeBg = (colors: string[], w: number): string => {
-  if (colors.length <= 1) return colors[0] ?? 'rgb(0, 0, 0)'
+// 2D タイル混色 (空間混色) の CSS。市松模様を conic-gradient 1 枚で作り、
+// background-size でタイル数を制御する (div を量産しないので軽い)。
+//   R level = 横分割数, B level = 縦分割数, G level = 縦タイル数 (3 次元目を縦に積む)
+//   市松の 2 色は R 原色 / B 原色。緑(G) は色ではなく縦の繰り返し回数として使う。
+const tileStyle = (combo: Rgb, levels: Levels): CSSProperties => {
+  const rl = Math.max(1, levelIndex(combo.r, levels.r))
+  const bl = Math.max(1, levelIndex(combo.b, levels.b))
+  const gl = Math.max(1, levelIndex(combo.g, levels.g))
+  // R×B の 2D 市松を 1 スライスとし、3 次元目 G を縦に gl 回積む
+  const cols = rl
+  const rows = bl * gl
+  const colorA = `rgb(${combo.r}, 0, 0)`
+  const colorB = `rgb(0, 0, ${combo.b})`
 
-  const stops = colors
-    .map((c, i) => `${c} ${i * w}px ${(i + 1) * w}px`)
-    .join(', ')
-
-  return `repeating-linear-gradient(45deg, ${stops})`
+  return {
+    // conic 1 タイル = 2×2 の市松。background-size で (cols × rows) の格子にタイリングする
+    backgroundImage: `conic-gradient(${colorB} 0deg 90deg, ${colorA} 90deg 180deg, ${colorB} 180deg 270deg, ${colorA} 270deg)`,
+    backgroundSize: `${200 / cols}% ${200 / rows}%`,
+  }
 }
 
-// 混色の見せ方: blink=時間混色(点滅) / stripe=空間混色(ボーダー並置)
-type MixMode = 'blink' | 'stripe'
-
-// 並置 (ボーダー) の縞幅。細かいほど目で混ざる
-const stripeWidth = (size: number): number => Math.max(1, Math.round(size / 24))
+// 混色の見せ方: blink=時間混色(点滅) / tile=空間混色(2D 市松タイル)
+type MixMode = 'blink' | 'tile'
 
 type Config = {
   levels: Levels
@@ -140,23 +146,28 @@ const ColorCell = memo(
       { key: 'g', css: `rgb(0, ${g}, 0)`, lv: levelIndex(g, levels.g) },
       { key: 'b', css: `rgb(0, 0, ${b})`, lv: levelIndex(b, levels.b) },
     ]
-    const activeColors = parts.filter((p) => p.lv > 0).map((p) => p.css)
-    const mixBg =
-      mixMode === 'blink' ? flashColor : stripeBg(activeColors, stripeWidth(size))
+    const mixStyle: CSSProperties =
+      mixMode === 'blink'
+        ? { background: flashColor }
+        : tileStyle({ r, g, b }, levels)
 
     return (
       <CellGroup title={label}>
         <Pair style={{ gap: PAIR_GAP }}>
           <Cell
-            style={{ background: mixBg, width: size, height: size }}
-            title={mixMode === 'blink' ? '点滅 (時間混色)' : '並置 (空間混色)'}
+            style={{ ...mixStyle, width: size, height: size }}
+            title={
+              mixMode === 'blink' ? '点滅 (時間混色)' : 'タイル (空間混色)'
+            }
           />
           <Cell
             style={{ background: mix, width: size, height: size }}
             title={`目標色 ${mix}`}
           />
         </Pair>
-        <Parts style={{ width: size * 2 + PAIR_GAP, height: Math.round(size / 3) }}>
+        <Parts
+          style={{ width: size * 2 + PAIR_GAP, height: Math.round(size / 3) }}
+        >
           {parts.map((c) => (
             <Part
               key={c.key}
@@ -174,7 +185,7 @@ const ColorCell = memo(
 ColorCell.displayName = 'ColorCell'
 
 type MapCellProps = {
-  color: string
+  bg: CSSProperties
   size: number
   x: number
   y: number
@@ -182,11 +193,11 @@ type MapCellProps = {
 }
 
 // RGB 立方体座標 (キャビネット投影) の該当位置にスウォッチを配置する
-const MapColorCell = memo(({ color, size, x, y, label }: MapCellProps) => (
+const MapColorCell = memo(({ bg, size, x, y, label }: MapCellProps) => (
   <MapCell
     title={label}
     style={{
-      background: color,
+      ...bg,
       width: size,
       height: size,
       left: `${x}%`,
@@ -202,7 +213,10 @@ const RgbCombo = () => {
   const { levels, mixMode, speedMs, cellPx, view, hideMono } = config
 
   // 点滅モードのときだけアニメーションを回す (並置は静止なので不要)
-  useInterval(() => setPhase((p) => p + 1), mixMode === 'blink' ? speedMs : null)
+  useInterval(
+    () => setPhase((p) => p + 1),
+    mixMode === 'blink' ? speedMs : null
+  )
 
   const setLevel = (key: ChannelKey, value: number) =>
     setConfig((c) => ({ ...c, levels: { ...c.levels, [key]: value } }))
@@ -210,7 +224,8 @@ const RgbCombo = () => {
   const setSpeedMs = (speedMs: number) => setConfig((c) => ({ ...c, speedMs }))
   const setCellPx = (cellPx: number) => setConfig((c) => ({ ...c, cellPx }))
   const setView = (view: ViewMode) => setConfig((c) => ({ ...c, view }))
-  const toggleHideMono = () => setConfig((c) => ({ ...c, hideMono: !c.hideMono }))
+  const toggleHideMono = () =>
+    setConfig((c) => ({ ...c, hideMono: !c.hideMono }))
 
   const combos = useMemo(() => buildCombos(levels), [levels])
   // 混色になっていない単色 (アクティブ 1 ch 以下: 単一原色・黒) を隠す
@@ -257,7 +272,7 @@ const RgbCombo = () => {
           onChange={(_, v: MixMode | null) => v && setMixMode(v)}
         >
           <ToggleButton value="blink">点滅(時間)</ToggleButton>
-          <ToggleButton value="stripe">ボーダー(空間)</ToggleButton>
+          <ToggleButton value="tile">タイル(空間)</ToggleButton>
         </ToggleButtonGroup>
 
         {mixMode === 'blink' && (
@@ -292,15 +307,18 @@ const RgbCombo = () => {
       </Controls>
 
       <Typography sx={{ my: 1 }}>
-        全組み合わせ {levels.r} × {levels.g} × {levels.b} = <strong>{combos.length}</strong>{' '}
-        色 / 表示 <strong>{shown.length}</strong> 色 ・ 左=
-        {mixMode === 'blink' ? '点滅(時間)' : 'ボーダー(空間)'} / 右=目標色(加法)
+        全組み合わせ {levels.r} × {levels.g} × {levels.b} ={' '}
+        <strong>{combos.length}</strong> 色 / 表示{' '}
+        <strong>{shown.length}</strong> 色 ・ 左=
+        {mixMode === 'blink' ? '点滅(時間)' : 'タイル(空間)'} / 右=目標色(加法)
       </Typography>
 
       {view === 'grid' ? (
         <Grid
           style={{
-            gridTemplateColumns: `repeat(auto-fill, ${cellPx * 2 + PAIR_GAP}px)`,
+            gridTemplateColumns: `repeat(auto-fill, ${
+              cellPx * 2 + PAIR_GAP
+            }px)`,
           }}
         >
           {shown.map((combo) => (
@@ -325,20 +343,15 @@ const RgbCombo = () => {
           {shown.map((combo) => {
             const { x, y } = projectCube(combo)
             const size = Math.min(cellPx, 28)
-            const color =
+            const bg: CSSProperties =
               mixMode === 'blink'
-                ? blinkColor(combo, phase)
-                : stripeBg(
-                    CHANNELS.filter((c) => combo[c.key] > 0).map((c) =>
-                      toCss({ r: 0, g: 0, b: 0, [c.key]: combo[c.key] })
-                    ),
-                    stripeWidth(size)
-                  )
+                ? { background: blinkColor(combo, phase) }
+                : tileStyle(combo, levels)
 
             return (
               <MapColorCell
                 key={`${combo.r}-${combo.g}-${combo.b}`}
-                color={color}
+                bg={bg}
                 size={size}
                 x={x}
                 y={y}
