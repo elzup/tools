@@ -244,6 +244,11 @@ const routings: RoutingGroup[] = [
         label: 'Float有効桁数デモ',
         path: '/float-precision',
       },
+      {
+        icon: faStopCircle,
+        label: 'ストロボ効果',
+        path: '/strobe',
+      },
     ],
   },
   {

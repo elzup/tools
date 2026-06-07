@@ -38,6 +38,7 @@
 | mermaid-ui.tsx         | Experiments  | Mermaid UI - ダイアグラム生成                    | mermaid                                        | **レガシー**   | \*  | 図表生成               | 6    |
 | random.tsx             | Experiments  | ランダム検査ツール                               | @elzup/kit                                     | 現在           | \*  | 乱数検証               | 3    |
 | float-precision.tsx    | Experiments  | 浮動小数点の有効桁数を体験的に学べるデモ         | @mui, styled-components                        | 現在           |     | 教育・体験型           | 6    |
+| strobe.tsx             | Experiments  | ストロボ効果(回転が止まって見える)体験           | @mui, styled-components                        | 現在           | \*  | 教育・体験型/canvas    | 6    |
 | svg-play.tsx           | Art          | SVG プレイグラウンド                             |                                                | 現在           |     | SVG 実験               | 4    |
 | divergence-meter.tsx   | Art          | ダイバージェンスメーター表示                     | @mui                                           | 現在           |     | アニメ風表示           | 5    |
 | shingeki.tsx           | Art          | 進撃プロット可視化                               | styled-components                              | 現在           | \*  | データ可視化           | 5    |
