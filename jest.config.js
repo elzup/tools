@@ -6,7 +6,7 @@ module.exports = {
   testPathIgnorePatterns: ['.qawolf/', 'e2e', '.next/', 'node_modules/'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   transformIgnorePatterns: [
-    '/node_modules/',
+    '/node_modules/(?!(d3|d3-.+|internmap|delaunator|robust-predicates)/)',
     '^.+\\.module\\.(css|sass|scss)$',
   ],
   moduleNameMapper: {
