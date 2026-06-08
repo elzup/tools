@@ -24,6 +24,22 @@ export const stepLabel = (name: string, i: number): string =>
 const pct = (v: number, total: number): number =>
   total <= 0 ? 0 : (v / total) * 100
 
+/** 境界ラベルを互い違い(上下2段)に配置し、両端は内側寄せで見切れを防ぐ。 */
+const tickStyle = (
+  leftPct: number,
+  b: number,
+  count: number
+): React.CSSProperties => ({
+  left: `${leftPct}%`,
+  top: b % 2 === 0 ? 0 : 14,
+  transform:
+    b === 0
+      ? 'translateX(0)'
+      : b === count
+        ? 'translateX(-100%)'
+        : 'translateX(-50%)',
+})
+
 type Props = { t: ProgressTimerApi }
 
 export function Timeline({ t }: Props) {
@@ -80,7 +96,7 @@ export function Timeline({ t }: Props) {
         <LaneLabel>予定</LaneLabel>
         <Axis>
           {Array.from({ length: n + 1 }, (_, b) => (
-            <Tick key={b} style={{ left: `${pct(planCumAt(b), totalMin)}%` }}>
+            <Tick key={b} style={tickStyle(pct(planCumAt(b), totalMin), b, n)}>
               {formatClock(planAbsAt(b))}
             </Tick>
           ))}
@@ -105,7 +121,7 @@ export function Timeline({ t }: Props) {
         </Bar>
         <Axis className="cum">
           {Array.from({ length: n + 1 }, (_, b) => (
-            <Tick key={b} style={{ left: `${pct(planCumAt(b), totalMin)}%` }}>
+            <Tick key={b} style={tickStyle(pct(planCumAt(b), totalMin), b, n)}>
               {formatCumulative(planCumAt(b))}
             </Tick>
           ))}
@@ -173,7 +189,7 @@ export function Timeline({ t }: Props) {
                 <Tick
                   key={b}
                   className={Math.round(a) !== p ? 'diff' : ''}
-                  style={{ left: `${pct(actAbsAt(b) - actStart0, actSpan)}%` }}
+                  style={tickStyle(pct(actAbsAt(b) - actStart0, actSpan), b, n)}
                 >
                   {formatClock(Math.round(a))}
                 </Tick>
@@ -217,7 +233,7 @@ const LaneLabel = styled.div`
 
 const Axis = styled.div`
   position: relative;
-  height: 16px;
+  height: 30px;
 
   &.cum {
     color: #aaa;
@@ -226,7 +242,6 @@ const Axis = styled.div`
 
 const Tick = styled.span`
   position: absolute;
-  transform: translateX(-50%);
   font-size: 0.72rem;
   color: #777;
   white-space: nowrap;
@@ -250,24 +265,35 @@ const Seg = styled.div<{ $current: boolean }>`
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding: 0 2px 0 8px;
   border: 1px solid;
   border-radius: 6px;
   box-sizing: border-box;
   box-shadow: ${(p) => (p.$current ? '0 0 0 2px #4080ff inset' : 'none')};
 
+  /* 文字は端で見切れて fade out (省略記号でなくスーッと消す) */
+  .name,
+  .dur {
+    max-width: 100%;
+    white-space: nowrap;
+    z-index: 1;
+    -webkit-mask-image: linear-gradient(
+      to right,
+      #000 calc(100% - 12px),
+      transparent
+    );
+    mask-image: linear-gradient(to right, #000 calc(100% - 12px), transparent);
+  }
   .name {
     font-size: 0.85rem;
     font-weight: 600;
-    line-height: 1.1;
-    white-space: nowrap;
-    z-index: 1;
+    line-height: 1.15;
   }
   .dur {
     font-size: 0.72rem;
     color: #555;
-    z-index: 1;
   }
 `
 
