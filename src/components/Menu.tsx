@@ -13,6 +13,7 @@ import {
   faCalendarDay,
   faCog,
   faCalculator,
+  faCarSide,
   faChartLine,
   faDiagramProject,
   faClipboard,
@@ -41,6 +42,7 @@ import {
   faSkull,
   faSortNumericAsc,
   faSpider,
+  faStroopwafel,
   faUserSecret,
   faWandSparkles,
   faWindowMinimize,
@@ -108,11 +110,6 @@ const routings: RoutingGroup[] = [
         icon: faHourglassHalf,
         label: '進行タイマー',
         path: '/progress-timer',
-      },
-      {
-        icon: faBoxes,
-        label: '3D ドミノ倒し',
-        path: '/domino-3d',
       },
     ],
   },
@@ -185,11 +182,6 @@ const routings: RoutingGroup[] = [
         path: '/gray-code',
       },
       {
-        icon: faChartLine,
-        label: 'Lissajous Curves Grid',
-        path: '/lissajous',
-      },
-      {
         icon: faDiagramProject,
         label: 'Venn, Upset viewer',
         path: '/upset-viewer',
@@ -198,6 +190,41 @@ const routings: RoutingGroup[] = [
         icon: faCalendarDay,
         label: '曜日計算 Explainer',
         path: '/weekday-calc',
+      },
+    ],
+  },
+  {
+    label: '科学館 / Science',
+    routings: [
+      {
+        icon: faStopCircle,
+        label: 'ストロボ効果',
+        path: '/strobe',
+      },
+      {
+        icon: faCarSide,
+        label: 'シートベルト慣性ロック',
+        path: '/seatbelt',
+      },
+      {
+        icon: faStroopwafel,
+        label: '無限チョコパズル',
+        path: '/infinite-chocolate',
+      },
+      {
+        icon: faBowlingBall,
+        label: '楕円ビリヤード',
+        path: '/ellip-billiards',
+      },
+      {
+        icon: faBoxes,
+        label: '3D ドミノ倒し',
+        path: '/domino-3d',
+      },
+      {
+        icon: faChartLine,
+        label: 'Lissajous Curves Grid',
+        path: '/lissajous',
       },
     ],
   },
@@ -249,11 +276,6 @@ const routings: RoutingGroup[] = [
         icon: faCalculator,
         label: 'Float有効桁数デモ',
         path: '/float-precision',
-      },
-      {
-        icon: faStopCircle,
-        label: 'ストロボ効果',
-        path: '/strobe',
       },
     ],
   },
@@ -309,11 +331,6 @@ const routings: RoutingGroup[] = [
         icon: faPuzzlePiece,
         label: 'word search',
         path: '/word-search',
-      },
-      {
-        icon: faBowlingBall,
-        label: '楕円ビリヤード',
-        path: '/ellip-billiards',
       },
       {
         icon: faSpider,
