@@ -6,7 +6,7 @@ const Domino3D = dynamic(() => import('../components/Domino3D'), {
   ssr: false,
 })
 
-const title = '3D ドミノ倒し'
+const title = 'ドミノ倒し'
 
 const Domino3DPage = () => {
   return (

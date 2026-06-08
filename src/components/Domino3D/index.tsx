@@ -227,23 +227,44 @@ const Domino3D = () => {
     []
   )
 
+  const pushDomino = useCallback(
+    (index: number, directionSign: 1 | -1) => {
+      const body = bodiesRef.current[index]
+      const spec = specs[index]
+      if (!body || !spec) return
+
+      const dirX = Math.cos(spec.rotationY)
+      const dirZ = -Math.sin(spec.rotationY)
+      const impulseMag = 0.75 * spec.mass
+      const torqueMag = 0.45 * spec.mass * spec.dims.height
+
+      body.applyImpulse(
+        {
+          x: dirX * impulseMag * directionSign,
+          y: 0,
+          z: dirZ * impulseMag * directionSign,
+        },
+        true
+      )
+      body.applyTorqueImpulse(
+        {
+          x: dirZ * torqueMag * directionSign,
+          y: 0,
+          z: -dirX * torqueMag * directionSign,
+        },
+        true
+      )
+    },
+    [specs]
+  )
+
   const handlePush = useCallback(() => {
-    const first = bodiesRef.current[0]
-    if (!first) return
-    const spec = specs[0]
-    const dirX = Math.cos(spec.rotationY)
-    const dirZ = -Math.sin(spec.rotationY)
-    const impulseMag = 2.5 * spec.mass
-    const torqueMag = 1.2 * spec.mass * spec.dims.height
-    first.applyImpulse(
-      { x: dirX * impulseMag, y: 0, z: dirZ * impulseMag },
-      true
-    )
-    first.applyTorqueImpulse(
-      { x: dirZ * torqueMag, y: 0, z: -dirX * torqueMag },
-      true
-    )
-  }, [specs])
+    pushDomino(0, 1)
+  }, [pushDomino])
+
+  const handleReversePush = useCallback(() => {
+    pushDomino(count - 1, -1)
+  }, [count, pushDomino])
 
   const handleReset = useCallback(() => {
     bodiesRef.current = []
@@ -339,6 +360,9 @@ const Domino3D = () => {
             <Button variant="contained" onClick={handlePush}>
               先頭を倒す
             </Button>
+            <Button variant="outlined" onClick={handleReversePush}>
+              逆方向に倒す
+            </Button>
             <Button variant="outlined" onClick={handleReset}>
               リセット
             </Button>
@@ -363,10 +387,7 @@ const Domino3D = () => {
           background: 'linear-gradient(to bottom, #1a1d2e 0%, #0d0e18 100%)',
         }}
       >
-        <Canvas
-          camera={{ position: [12, 10, 14], fov: 50 }}
-          dpr={[1, 1.5]}
-        >
+        <Canvas camera={{ position: [12, 10, 14], fov: 50 }} dpr={[1, 1.5]}>
           <ambientLight intensity={0.6} />
           <directionalLight position={[10, 20, 10]} intensity={0.8} />
           <Suspense fallback={null}>
