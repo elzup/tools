@@ -9,6 +9,7 @@ import {
   SelectChangeEvent,
   Slider,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material'
 import { OrbitControls } from '@react-three/drei'
@@ -19,7 +20,13 @@ import {
   RapierRigidBody,
   RigidBody,
 } from '@react-three/rapier'
-import React, { Suspense, useCallback, useMemo, useRef, useState } from 'react'
+import React, {
+  Suspense,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 
 type LayoutType = 'straight' | 'curve' | 'spiral' | 'zigzag' | 'circle'
 
@@ -114,11 +121,15 @@ function generateLayout(
 
 type DominoProps = {
   spec: DominoSpec
+  tilted?: boolean
   bodyRef: (body: RapierRigidBody | null) => void
 }
 
-const Domino = ({ spec, bodyRef }: DominoProps) => {
+const Domino = ({ spec, tilted = false, bodyRef }: DominoProps) => {
   const localRef = useRef<RapierRigidBody | null>(null)
+  const tiltAngle = tilted ? 0.22 : 0
+  const dirX = Math.cos(spec.rotationY)
+  const dirZ = -Math.sin(spec.rotationY)
 
   return (
     <RigidBody
@@ -127,7 +138,7 @@ const Domino = ({ spec, bodyRef }: DominoProps) => {
         bodyRef(value)
       }}
       position={spec.position}
-      rotation={[0, spec.rotationY, 0]}
+      rotation={[dirZ * tiltAngle, spec.rotationY, -dirX * tiltAngle]}
       colliders="cuboid"
       restitution={0.05}
       friction={0.6}
@@ -160,10 +171,11 @@ const Floor = () => (
 type SceneProps = {
   specs: DominoSpec[]
   sceneKey: string
+  isStarterTilted: boolean
   registerBody: (index: number, body: RapierRigidBody | null) => void
 }
 
-const Scene = ({ specs, sceneKey, registerBody }: SceneProps) => {
+const Scene = ({ specs, sceneKey, isStarterTilted, registerBody }: SceneProps) => {
   return (
     <Physics gravity={[0, -9.81, 0]} key={sceneKey}>
       <Floor />
@@ -171,6 +183,7 @@ const Scene = ({ specs, sceneKey, registerBody }: SceneProps) => {
         <Domino
           key={index}
           spec={spec}
+          tilted={index === 0 && isStarterTilted}
           bodyRef={(body) => registerBody(index, body)}
         />
       ))}
@@ -185,6 +198,7 @@ const Domino3D = () => {
   const [growth, setGrowth] = useState(1.0)
   const [gapRatio, setGapRatio] = useState(0.5)
   const [pushSignal, setPushSignal] = useState(0)
+  const [resetSignal, setResetSignal] = useState(0)
   const bodiesRef = useRef<Array<RapierRigidBody | null>>([])
 
   const dimsArr = useMemo<Dims[]>(
@@ -216,8 +230,8 @@ const Domino3D = () => {
 
   // Rebuild physics world on any layout change so stale bodies don't collide with new positions
   const sceneKey = useMemo(
-    () => `${layout}-${count}-${scale}-${growth}-${gapRatio}-${pushSignal}`,
-    [layout, count, scale, growth, gapRatio, pushSignal]
+    () => `${layout}-${count}-${scale}-${growth}-${gapRatio}-${resetSignal}-${pushSignal}`,
+    [layout, count, scale, growth, gapRatio, resetSignal, pushSignal]
   )
 
   const registerBody = useCallback(
@@ -227,54 +241,33 @@ const Domino3D = () => {
     []
   )
 
-  const pushDomino = useCallback(
-    (index: number, directionSign: 1 | -1) => {
-      const body = bodiesRef.current[index]
-      const spec = specs[index]
-      if (!body || !spec) return
-
-      const dirX = Math.cos(spec.rotationY)
-      const dirZ = -Math.sin(spec.rotationY)
-      const impulseMag = 0.75 * spec.mass
-      const torqueMag = 0.45 * spec.mass * spec.dims.height
-
-      body.applyImpulse(
-        {
-          x: dirX * impulseMag * directionSign,
-          y: 0,
-          z: dirZ * impulseMag * directionSign,
-        },
-        true
-      )
-      body.applyTorqueImpulse(
-        {
-          x: dirZ * torqueMag * directionSign,
-          y: 0,
-          z: -dirX * torqueMag * directionSign,
-        },
-        true
-      )
-    },
-    [specs]
-  )
-
   const handlePush = useCallback(() => {
-    pushDomino(0, 1)
-  }, [pushDomino])
+    setPushSignal((value) => value + 1)
+  }, [])
 
-  const handleReversePush = useCallback(() => {
-    pushDomino(count - 1, -1)
-  }, [count, pushDomino])
 
   const handleReset = useCallback(() => {
     bodiesRef.current = []
-    setPushSignal((value) => value + 1)
+    setResetSignal((value) => value + 1)
+  }, [])
+
+  const handleGapRatioChange = useCallback((value: number) => {
+    setGapRatio(Math.min(Math.max(value, 0.2), 0.95))
+  }, [])
+
+  const handleReboundPreset = useCallback(() => {
+    setLayout('straight')
+    setScale(1.0)
+    setGrowth(1.0)
+    setGapRatio(0.8245)
+    bodiesRef.current = []
+    setResetSignal((value) => value + 1)
   }, [])
 
   const handleLayoutChange = useCallback((event: SelectChangeEvent) => {
     setLayout(event.target.value as LayoutType)
     bodiesRef.current = []
-    setPushSignal((value) => value + 1)
+    setResetSignal((value) => value + 1)
   }, [])
 
   return (
@@ -349,10 +342,21 @@ const Domino3D = () => {
             <Slider
               size="small"
               value={gapRatio}
-              onChange={(_, value) => setGapRatio(value as number)}
+              onChange={(_, value) => handleGapRatioChange(value as number)}
               min={0.2}
               max={0.95}
-              step={0.05}
+              step={0.0005}
+            />
+            <TextField
+              type="number"
+              size="small"
+              value={gapRatio}
+              onChange={(event) => {
+                const value = Number(event.target.value)
+                if (!Number.isNaN(value)) handleGapRatioChange(value)
+              }}
+              inputProps={{ min: 0.2, max: 0.95, step: 0.0005 }}
+              sx={{ width: 112 }}
             />
           </Box>
 
@@ -360,8 +364,8 @@ const Domino3D = () => {
             <Button variant="contained" onClick={handlePush}>
               先頭を倒す
             </Button>
-            <Button variant="outlined" onClick={handleReversePush}>
-              逆方向に倒す
+            <Button variant="outlined" onClick={handleReboundPreset}>
+              折り返し再現
             </Button>
             <Button variant="outlined" onClick={handleReset}>
               リセット
@@ -374,7 +378,7 @@ const Domino3D = () => {
           sx={{ mt: 1, display: 'block' }}
         >
           ドラッグで視点回転 / ホイールでズーム / 右クリックでパン ・ 成長 &gt;
-          1 で巨大連鎖、&lt; 1 で縮小チェーン
+          1 で巨大連鎖、&lt; 1 で縮小チェーン ・ 折り返し再現は直線/成長1.00/間隔0.8245
         </Typography>
       </Paper>
 
@@ -394,6 +398,7 @@ const Domino3D = () => {
             <Scene
               specs={specs}
               sceneKey={sceneKey}
+              isStarterTilted={pushSignal > 0}
               registerBody={registerBody}
             />
           </Suspense>
