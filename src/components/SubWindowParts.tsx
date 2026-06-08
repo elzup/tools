@@ -22,7 +22,7 @@ const SubWindowParts = () => (
       {`window.open(location.href, '_blank', 'height=300,width=300')`}
     </Button>
 
-    <Code>{stringify(window.opener)}</Code>
+    <Code format="json">{stringify(window.opener)}</Code>
   </div>
 )
 
