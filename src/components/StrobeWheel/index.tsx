@@ -15,10 +15,10 @@ import styled from 'styled-components'
 //   flash = 短いフラッシュ + 暗転 (残像で snapshot が見える、実際のストロボに近い)
 type StrobeMode = 'hold' | 'flash'
 
-// 表示モード: wheel=回転円盤 / flip=絵文字パラパラ漫画
+// 表示モード: wheel=スポーク円盤 / flip=分割先端に絵文字を付けた回転リング (パラパラ漫画)
 type DisplayMode = 'wheel' | 'flip'
 
-// パラパラ漫画の絵文字シーケンス (1 周 = frames を一巡)
+// パラパラ漫画リングに並べる絵文字シーケンス (分割先端へ順に配置)
 const FLIP_SEQS = {
   clock: {
     label: '時計',
@@ -28,28 +28,24 @@ const FLIP_SEQS = {
     label: '月',
     frames: ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘'],
   },
-  arrow: {
-    label: '矢印',
-    frames: ['⬆️', '↗️', '➡️', '↘️', '⬇️', '↙️', '⬅️', '↖️'],
-  },
 } as const
 
 type FlipKey = keyof typeof FLIP_SEQS
 
 type Config = {
   displayMode: DisplayMode
-  rotHz: number // 回転数 / コマ送り速度 (Hz = 周/秒)
+  rotHz: number // 回転数 (Hz = 周/秒)
   strobeHz: number // ストロボ点滅周波数 (Hz)
   strobeOn: boolean
   mode: StrobeMode
-  spokes: number // 放射スポーク本数 (ワゴンホイール効果用)
+  spokes: number // 分割数 (スポーク本数 / 絵文字の個数)
   flipSeq: FlipKey
 }
 
 const DEFAULT: Config = {
   displayMode: 'wheel', // 既定は従来の円盤を維持
-  rotHz: 2,
-  strobeHz: 1.6, // 回転数とわずかにずらし、ロード直後はゆっくり動いて見える状態にする
+  rotHz: 0.2,
+  strobeHz: 30,
   strobeOn: true,
   mode: 'hold',
   spokes: 6,
@@ -72,7 +68,9 @@ const apparentHz = (rotHz: number, strobeHz: number): number => {
 const apparentLabel = (hz: number): string => {
   if (Math.abs(hz) < 0.03) return '静止して見える'
 
-  return hz > 0 ? `前進 ${hz.toFixed(2)} Hz` : `後退 ${Math.abs(hz).toFixed(2)} Hz`
+  return hz > 0
+    ? `前進 ${hz.toFixed(2)} Hz`
+    : `後退 ${Math.abs(hz).toFixed(2)} Hz`
 }
 
 // 連続位相を strobe で標本化した「見かけの位相」(周。整数部含む)を返す。
@@ -96,23 +94,24 @@ const flashBrightness = (c: Config, t: number): number => {
   return phase < FLASH_DUTY ? 1 : 0.05
 }
 
+const clearStage = (ctx: CanvasRenderingContext2D): void => {
+  ctx.clearRect(0, 0, CANVAS, CANVAS)
+  ctx.fillStyle = '#111'
+  ctx.fillRect(0, 0, CANVAS, CANVAS)
+}
+
 const drawWheel = (
   ctx: CanvasRenderingContext2D,
   angle: number,
   spokes: number,
   brightness: number
 ): void => {
-  const cx = CANVAS / 2
-  const cy = CANVAS / 2
   const radius = CANVAS / 2 - 16
 
-  ctx.clearRect(0, 0, CANVAS, CANVAS)
-  ctx.fillStyle = '#111'
-  ctx.fillRect(0, 0, CANVAS, CANVAS)
-
+  clearStage(ctx)
   ctx.save()
   ctx.globalAlpha = brightness
-  ctx.translate(cx, cy)
+  ctx.translate(CANVAS / 2, CANVAS / 2)
   ctx.rotate(angle)
 
   // 外周リング
@@ -134,10 +133,9 @@ const drawWheel = (
   }
 
   // 基準マーカー (単一回転の静止が分かるよう目立つ色で)
-  const markX = radius - 26
   ctx.fillStyle = '#ff5252'
   ctx.beginPath()
-  ctx.arc(markX, 0, 18, 0, TAU)
+  ctx.arc(radius - 26, 0, 18, 0, TAU)
   ctx.fill()
 
   // 中心ハブ
@@ -149,20 +147,68 @@ const drawWheel = (
   ctx.restore()
 }
 
+// 分割の先端に絵文字を付けた回転リングを描く (パラパラ漫画モード)
+const drawEmojiRing = (
+  ctx: CanvasRenderingContext2D,
+  angle: number,
+  count: number,
+  frames: readonly string[],
+  brightness: number
+): void => {
+  const ringR = CANVAS / 2 - 46
+  const fontSize = Math.max(20, Math.min(64, (TAU * ringR) / count - 6))
+
+  clearStage(ctx)
+  ctx.save()
+  ctx.globalAlpha = brightness
+  ctx.translate(CANVAS / 2, CANVAS / 2)
+
+  // 各方向の分割線 (絵文字がくっつく軸を薄く描く)
+  ctx.strokeStyle = '#333'
+  ctx.lineWidth = 2
+  for (let i = 0; i < count; i++) {
+    const a = (TAU * i) / count + angle
+    ctx.beginPath()
+    ctx.moveTo(0, 0)
+    ctx.lineTo(Math.cos(a) * ringR, Math.sin(a) * ringR)
+    ctx.stroke()
+  }
+
+  // 中心ハブ
+  ctx.fillStyle = '#555'
+  ctx.beginPath()
+  ctx.arc(0, 0, 8, 0, TAU)
+  ctx.fill()
+
+  // 先端の絵文字 (字の向きは正立のまま位置だけ回す)
+  ctx.font = `${fontSize}px serif`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  for (let i = 0; i < count; i++) {
+    const a = (TAU * i) / count + angle
+    ctx.fillText(
+      frames[i % frames.length],
+      Math.cos(a) * ringR,
+      Math.sin(a) * ringR
+    )
+  }
+
+  ctx.restore()
+}
+
 const StrobeWheel = () => {
   const [config, setConfig] = useState<Config>(DEFAULT)
   const { displayMode, rotHz, strobeHz, strobeOn, mode, spokes, flipSeq } =
     config
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const emojiRef = useRef<HTMLSpanElement>(null)
 
   // 描画ループは ref 経由で最新値を読む (rAF を張り替えない)
   const cfgRef = useRef(config)
   cfgRef.current = config
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    const ctx = canvas?.getContext('2d') ?? null
+    const ctx = canvasRef.current?.getContext('2d') ?? null
+    if (!ctx) return
 
     let raf = 0
     const start = performance.now()
@@ -170,22 +216,13 @@ const StrobeWheel = () => {
     const loop = (now: number) => {
       const t = (now - start) / 1000
       const c = cfgRef.current
-      const cycle = sampledCycle(c, t)
+      const angle = TAU * sampledCycle(c, t)
       const brightness = flashBrightness(c, t)
 
       if (c.displayMode === 'wheel') {
-        if (ctx) drawWheel(ctx, TAU * cycle, c.spokes, brightness)
+        drawWheel(ctx, angle, c.spokes, brightness)
       } else {
-        const emoji = emojiRef.current
-
-        if (emoji) {
-          const frames = FLIP_SEQS[c.flipSeq].frames
-          const frac = ((cycle % 1) + 1) % 1 // 0..1 (負位相も正に正規化)
-          const idx = Math.floor(frac * frames.length) % frames.length
-
-          emoji.textContent = frames[idx]
-          emoji.style.opacity = String(brightness)
-        }
+        drawEmojiRing(ctx, angle, c.spokes, FLIP_SEQS[c.flipSeq].frames, brightness) // prettier-ignore
       }
 
       raf = requestAnimationFrame(loop)
@@ -203,26 +240,15 @@ const StrobeWheel = () => {
 
   const apparent = strobeOn ? apparentHz(rotHz, strobeHz) : rotHz
   const isFlip = displayMode === 'flip'
-  const speedLabel = isFlip ? 'コマ送り速度' : '円盤の回転数'
 
   return (
     <Wrap>
-      <Stage>
-        <canvas
-          ref={canvasRef}
-          width={CANVAS}
-          height={CANVAS}
-          style={{
-            display: isFlip ? 'none' : 'block',
-            width: '100%',
-            maxWidth: CANVAS,
-            borderRadius: 8,
-          }}
-        />
-        <EmojiStage style={{ display: isFlip ? 'flex' : 'none' }}>
-          <span ref={emojiRef} />
-        </EmojiStage>
-      </Stage>
+      <canvas
+        ref={canvasRef}
+        width={CANVAS}
+        height={CANVAS}
+        style={{ width: '100%', maxWidth: CANVAS, borderRadius: 8 }}
+      />
 
       <Controls>
         <ToggleButtonGroup
@@ -237,8 +263,8 @@ const StrobeWheel = () => {
 
         <Field>
           <Typography gutterBottom>
-            {speedLabel}: <strong>{rotHz.toFixed(2)} Hz</strong>
-            {isFlip ? ' (周/秒)' : ` (${Math.round(rotHz * 60)} rpm)`}
+            円盤の回転数: <strong>{rotHz.toFixed(2)} Hz</strong> (
+            {Math.round(rotHz * 60)} rpm)
           </Typography>
           <Slider
             value={rotHz}
@@ -293,13 +319,27 @@ const StrobeWheel = () => {
             disabled={!strobeOn}
             onClick={sync}
           >
-            速度に同期
+            回転数に同期
           </Button>
         </Row>
 
-        {isFlip ? (
+        <Field>
+          <Typography gutterBottom>
+            {isFlip ? '分割数 (絵文字の個数)' : 'スポーク本数'}: {spokes}
+          </Typography>
+          <Slider
+            value={spokes}
+            min={1}
+            max={16}
+            step={1}
+            marks
+            onChange={(_, v) => update('spokes', v as number)}
+          />
+        </Field>
+
+        {isFlip && (
           <Field>
-            <Typography gutterBottom>コマ (絵文字)</Typography>
+            <Typography gutterBottom>絵文字</Typography>
             <ToggleButtonGroup
               value={flipSeq}
               exclusive
@@ -308,37 +348,23 @@ const StrobeWheel = () => {
             >
               {(Object.keys(FLIP_SEQS) as FlipKey[]).map((key) => (
                 <ToggleButton key={key} value={key}>
-                  {FLIP_SEQS[key].frames[0]} {FLIP_SEQS[key].label} (
-                  {FLIP_SEQS[key].frames.length})
+                  {FLIP_SEQS[key].frames[0]} {FLIP_SEQS[key].label}
                 </ToggleButton>
               ))}
             </ToggleButtonGroup>
           </Field>
-        ) : (
-          <Field>
-            <Typography gutterBottom>スポーク本数: {spokes}</Typography>
-            <Slider
-              value={spokes}
-              min={1}
-              max={16}
-              step={1}
-              marks
-              onChange={(_, v) => update('spokes', v as number)}
-            />
-          </Field>
         )}
 
         <Status $stopped={Math.abs(apparent) < 0.03}>
-          {isFlip ? '見かけのコマ送り' : '見かけの回転'}:{' '}
-          <strong>{apparentLabel(apparent)}</strong>
+          見かけの回転: <strong>{apparentLabel(apparent)}</strong>
         </Status>
 
         <Help>
-          {speedLabel}は変えず、ストロボの点滅を{isFlip ? 'コマ送り' : '回転'}
-          速度に近づけてみてください。点滅が速度（やその整数倍）に一致すると、毎回同じ
-          {isFlip ? 'コマ' : '位置'}で照らされるため<strong>止まって見えます</strong>。
-          少しずらすと、ゆっくり前進・後退して見える（ワゴンホイール効果 /
-          逆再生）のが体験できます。
+          回転数は変えず、ストロボの点滅を回転数に近づけてみてください。点滅が回転数
+          （やその整数倍）に一致すると、毎回同じ位置で照らされるため
+          <strong>止まって見えます</strong>
+          。少しずらすと、ゆっくり前進・後退して
+          見える（ワゴンホイール効果）のが体験できます。
         </Help>
       </Controls>
     </Wrap>
@@ -350,24 +376,6 @@ const Wrap = styled.div`
   flex-wrap: wrap;
   gap: 24px;
   align-items: flex-start;
-`
-
-const Stage = styled.div`
-  width: 100%;
-  max-width: ${CANVAS}px;
-`
-
-const EmojiStage = styled.div`
-  width: 100%;
-  max-width: ${CANVAS}px;
-  aspect-ratio: 1;
-  align-items: center;
-  justify-content: center;
-  background: #111;
-  border-radius: 8px;
-  font-size: 210px;
-  line-height: 1;
-  user-select: none;
 `
 
 const Controls = styled.div`
