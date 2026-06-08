@@ -194,7 +194,7 @@ const routings: RoutingGroup[] = [
     ],
   },
   {
-    label: '科学館 / Science',
+    label: 'Science',
     routings: [
       {
         icon: faStopCircle,
