@@ -273,12 +273,14 @@ const Seg = styled.div<{ $current: boolean }>`
   box-sizing: border-box;
   box-shadow: ${(p) => (p.$current ? '0 0 0 2px #4080ff inset' : 'none')};
 
-  /* 文字は端で見切れて fade out (省略記号でなくスーッと消す) */
-  .name,
-  .dur {
+  /* 名前のみ端で見切れて fade out (省略記号でなくスーッと消す) */
+  .name {
     max-width: 100%;
     white-space: nowrap;
     z-index: 1;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.15;
     -webkit-mask-image: linear-gradient(
       to right,
       #000 calc(100% - 12px),
@@ -286,12 +288,10 @@ const Seg = styled.div<{ $current: boolean }>`
     );
     mask-image: linear-gradient(to right, #000 calc(100% - 12px), transparent);
   }
-  .name {
-    font-size: 0.85rem;
-    font-weight: 600;
-    line-height: 1.15;
-  }
+  /* 配分は短いので常にフル表示 (fade しない) */
   .dur {
+    z-index: 1;
+    white-space: nowrap;
     font-size: 0.72rem;
     color: #555;
   }
