@@ -15,95 +15,89 @@ type GraphBlock = {
   mmd: MmdGroup
 }
 
-function useBlocks(text?: string): GraphBlock[] {
-  return useMemo(() => {
-    if (text === undefined) return []
+export function buildShingekiBlocks(text?: string): GraphBlock[] {
+  if (text === undefined) return []
 
-    const allLines = text.split('\n')
-    const l = allLines.length
-    const vertexes: MmdVertex[] = []
+  const allLines = text.split('\n')
+  const l = allLines.length
+  const vertexes: MmdVertex[] = []
 
-    const { blocks } = allLines.reduce(
-      ({ blocks, lines, prevTitle }, line, i) => {
-        const isLast = i === l - 1
-        const title = line.match(/%%%subgraph (.*?);?$/)?.[1]
+  const { blocks } = allLines.reduce(
+    ({ blocks, lines, prevTitle }, line, i) => {
+      const isLast = i === l - 1
+      const title = line.match(/%%%subgraph (.*?);?$/)?.[1]
 
-        if (isLast || title !== undefined) {
-          if (isLast) lines.push(line)
-          const mmdText = lines.join('\n')
-          const mmd = parseMarmaid(mmdText)
+      if (isLast || title !== undefined) {
+        if (isLast) lines.push(line)
+        const mmdText = lines.join('\n')
+        const mmd = parseMarmaid(mmdText)
 
-          return {
-            blocks: [...blocks, { title: prevTitle, mmd }],
-            lines: ['flowchart LR;'] as string[],
-            prevTitle: title ?? '',
-          }
+        return {
+          blocks: [...blocks, { title: prevTitle, mmd }],
+          lines: ['flowchart LR;'] as string[],
+          prevTitle: title ?? '',
         }
-        return { blocks, lines: [...lines, line], prevTitle }
-      },
-      {
-        blocks: [] as GraphBlock[],
-        lines: [] as string[],
-        prevTitle: '',
       }
-    )
+      return { blocks, lines: [...lines, line], prevTitle }
+    },
+    {
+      blocks: [] as GraphBlock[],
+      lines: [] as string[],
+      prevTitle: '',
+    }
+  )
 
-    blocks.forEach(({ mmd: { vertices, edges } }) => {
-      vertices.forEach((v) => {
-        vertexes.push(v)
-      })
-      edges.forEach((e) => {
-        edges.push(e)
-      })
+  blocks.forEach(({ mmd: { vertices } }) => {
+    vertices.forEach((v) => {
+      vertexes.push(v)
+    })
+  })
+
+  const vertexBy = keyBy(
+    vertexes.filter((v) => !v.outside),
+    (v) => v.id
+  )
+
+  type InsertQuery = { v: MmdVertex; e: MmdEdge; vid: string }
+  const insertQueries: InsertQuery[] = []
+
+  blocks.forEach(({ mmd: { vertices: vs, edges: es } }, bi) => {
+    const vBy = keyBy(vs, (v) => v.id)
+
+    es.forEach((e) => {
+      if (vBy[e.start].outside)
+        insertQueries.push({ vid: e.start, e, v: vBy[e.end] })
+      if (vBy[e.end].outside)
+        insertQueries.push({ vid: e.end, e, v: vBy[e.start] })
     })
 
-    const vertexBy = keyBy(
-      vertexes.filter((v) => !v.outside),
-      (v) => v.id
-    )
+    vs.forEach((v, j) => {
+      if (v.outside && vertexBy[v.id] !== undefined)
+        blocks[bi].mmd.vertices[j].text = vertexBy[v.id].text
+    })
+  })
+  const queryByVid = groupByFunc(insertQueries, (q) => q.vid)
 
-    // edges.forEach((e) => {
-    //   if (!(e.start in edgeBy)) edgeByVertex[e.start] = []
-    //   if (!(e.end in edgeBy)) edgeByVertex[e.end] = []
-    // })
+  blocks.forEach(({ mmd: { vertices: vs } }, bi) => {
+    const blockVBy = keyBy(vs, (v) => v.id)
 
-    type InsertQuery = { v: MmdVertex; e: MmdEdge; vid: string }
-    const insertQueries: InsertQuery[] = []
-
-    blocks.forEach(({ mmd: { vertices: vs, edges: es } }, bi) => {
-      const vBy = keyBy(vs, (v) => v.id)
-
-      es.forEach((e) => {
-        if (vBy[e.start].outside)
-          insertQueries.push({ vid: e.start, e, v: vBy[e.end] })
-        if (vBy[e.end].outside)
-          insertQueries.push({ vid: e.end, e, v: vBy[e.start] })
-      })
-
-      vs.forEach((v, j) => {
-        if (v.outside && vertexBy[v.id] !== undefined)
-          blocks[bi].mmd.vertices[j].text = vertexBy[v.id].text
+    vs.filter((v) => !v.outside).forEach((v) => {
+      if (!queryByVid[v.id]) return
+      queryByVid[v.id].forEach((q) => {
+        if (!(q.v.id in blockVBy)) {
+          blocks[bi].mmd.vertices.push({ ...q.v, outside: true })
+          blockVBy[q.v.id] = q.v
+        }
+        blocks[bi].mmd.edges.push(q.e)
       })
     })
-    const queryByVid = groupByFunc(insertQueries, (q) => q.vid)
+  })
 
-    blocks.forEach(({ mmd: { vertices: vs } }, bi) => {
-      const blockVBy = keyBy(vs, (v) => v.id)
+  return blocks
+}
 
-      vs.filter((v) => !v.outside).forEach((v) => {
-        if (!queryByVid[v.id]) return
-        queryByVid[v.id].forEach((q) => {
-          if (!(q.v.id in blockVBy)) {
-            blocks[bi].mmd.vertices.push({ ...q.v, outside: true })
-            blockVBy[q.v.id] = q.v
-          }
-          blocks[bi].mmd.edges.push(q.e)
-        })
-      })
-    })
-
-    return blocks
-  }, [text])
+function useBlocks(text?: string): GraphBlock[] {
+  return useMemo(() => buildShingekiBlocks(text), [text])
 }
 
 const plotUrl = isDev
