@@ -64,6 +64,33 @@ describe('decodePlanText', () => {
   })
 })
 
+describe('実アジェンダ (長い名前・記号・数字混じり)', () => {
+  test('1行1ステップで末尾配分が正しく取れる', () => {
+    const text = [
+      '@14:00',
+      '導入・中間テスト解説 30',
+      'Python基礎 bugfix (basic) 35',
+      'Socket確認 + 9-C (Java↔Python) 25',
+      '休憩 15',
+      'HTTP復習 (requests) 15',
+      'FastAPI入門 → /omikuji → Render公開 → /docs 35',
+      'Postman ハンズオン 15',
+      '課題作業 (+ 9-D 標準で全員と通信) 25',
+    ].join('\n')
+    const p = decodePlanText(text)
+    expect(p.startClockMin).toBe(840)
+    expect(p.steps.map((s) => s.durationMin)).toEqual([
+      30, 35, 25, 15, 15, 35, 15, 25,
+    ])
+    expect(p.steps[2].name).toBe('Socket確認 + 9-C (Java↔Python)')
+    expect(p.steps[5].name).toBe('FastAPI入門 → /omikuji → Render公開 → /docs')
+    expect(p.steps[7].name).toBe('課題作業 (+ 9-D 標準で全員と通信)')
+    // 合計 195 分 (3:15)
+    const total = p.steps.reduce((a, s) => a + s.durationMin, 0)
+    expect(total).toBe(195)
+  })
+})
+
 describe('REQ-TP10: round-trip', () => {
   test('start/duration/name 保存 (数字・空白を含む名前でも)', () => {
     const tricky: PlanState = {

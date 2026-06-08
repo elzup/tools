@@ -18,8 +18,8 @@ const COLORS = [
   '#f39c12',
   '#2c3e50',
 ]
-const colorOf = (i: number): string => COLORS[i % COLORS.length]
-const stepLabel = (name: string, i: number): string =>
+export const colorOf = (i: number): string => COLORS[i % COLORS.length]
+export const stepLabel = (name: string, i: number): string =>
   name || String.fromCharCode(65 + (i % 26))
 const pct = (v: number, total: number): number =>
   total <= 0 ? 0 : (v / total) * 100

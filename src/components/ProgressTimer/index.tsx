@@ -12,6 +12,7 @@ import {
 } from '../../lib/progress-timer'
 import { EditableText } from './EditableText'
 import { Timeline } from './Timeline'
+import { VerticalList } from './VerticalList'
 import { ProgressTimerApi, useProgressTimer } from './useProgressTimer'
 
 type Mode = 'list' | 'text'
@@ -101,6 +102,9 @@ const ProgressTimer = () => {
 
       {/* 横タイムライン (予定 + 実績) */}
       <Timeline t={t} />
+
+      {/* 縦リスト (長いラベルをフル表示) */}
+      <VerticalList t={t} />
 
       {/* 編集モード切替 (segmented control) */}
       <ModeBar>
