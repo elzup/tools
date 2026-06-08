@@ -15,9 +15,11 @@
 | script-buttons.tsx     | Tool/Game    | スクリプトボタン実行ツール                                           | @mui, styled-components                        | 現在           |     | ローカルストレージ使用       | 5    |
 | scope-timer.tsx        | Tool/Game    | スコープタイマー - ミリ秒精度の実験用タイマー                        |                                                | 現在           |     | ミリ秒表示                   | 7    |
 | progress-timer.tsx     | Tool/Game    | 進行タイマー - 配分/絶対/累積の 3 表記同期・実績進行・境界ずらし     | @mui, styled-components                        | 現在           | \*  | localStorage+URL 共有, VCSDD | 8    |
+| spanbox.tsx            | Tool/Game    | 方眼上の矩形ブロックを移動・伸縮・色ラベル編集する SpanBox ツール    | styled-components, react-icons                 | 現在           |     | グリッドブロック UI          | 6    |
 | stamina-calc.tsx       | Tool/Game    | スタミナ/聖遺物/ストック運用シミュレーター                           | @mui, styled-components                        | 現在           |     | ゲームリソース管理           | 5    |
-| domino-3d.tsx          | Tool/Game    | 3D ドミノ倒し物理演算シミュレーター                                  | @react-three, @react-three/rapier, three, @mui | 現在           | \*  | 配置パターン切替             | 7    |
+| domino-3d.tsx          | Tool/Game    | ドミノ倒し物理演算シミュレーター                                     | @react-three, @react-three/rapier, three, @mui | 現在           | \*  | 配置パターン切替             | 7    |
 | 1px.tsx                | DevTool      | 1px の画像データ URL 生成ツール                                      | react-color, @mui                              | 現在           |     | カラーピッカー使用           | 4    |
+| 4kpx.tsx               | DevTool      | 4K 解像度向けパターン SVG 生成ツール                                 | react-color, @mui, styled-components           | 現在           |     | SVG パターン生成             | 4    |
 | global-ip.tsx          | DevTool      | グローバルパブリック IP 取得ツール                                   | fetch API                                      | 現在           |     | 外部 API 使用                | 3    |
 | code-explorer.tsx      | DevTool      | コード探索・解析ツール                                               |                                                | 現在           | \*  | PWA 対応                     | 9    |
 | clipsh.tsx             | DevTool      | クリップボード共有ツール                                             | styled-components                              | 現在           |     | PWA 対応                     | 8    |
@@ -28,6 +30,8 @@
 | collatz-graph.tsx      | Math         | コラッツ予想グラフ可視化                                             |                                                | 現在           |     | 数学的グラフ                 | 4    |
 | frag-problab.tsx       | Math         | フラグメント確率実験                                                 | @mui                                           | 現在           |     | 確率シミュレーション         | 4    |
 | custom-ratio-graph.tsx | Math         | カスタム比率グラフ作成                                               | @mui                                           | 現在           |     | グラフ作成                   | 4    |
+| norm-viewer.tsx        | Math         | 正規分布の値・範囲・保存セットを可視化する分布推定ツール             | @mui, styled-components                        | 現在           |     | 統計可視化                   | 5    |
+| gray-code.tsx          | Math         | グレイコードの生成式とビット変化を段階表示する可視化ツール           | styled-components                              | 現在           |     | ビット列可視化               | 4    |
 | googol.tsx             | Math         | Googol 可視化 - 10^100 歯車装置シミュレーション                      | @react-three, three, @mui                      | 現在           | \*  | 2D/3D 表示対応               | 6    |
 | upset-viewer.tsx       | Math         | Venn 図・UpSet プロットによる集合可視化ツール                        | @upsetjs/react, @mui                           | 現在           | \*  | 集合演算・可視化             | 5    |
 | weekday-calc.tsx       | Math         | 曜日計算アルゴリズムのステップ可視化・説明ツール                     | @mui, styled-components                        | 現在           |     | 教育・学習用                 | 6    |
@@ -42,19 +46,22 @@
 | float-precision.tsx    | Experiments  | 浮動小数点の有効桁数を体験的に学べるデモ                             | @mui, styled-components                        | 現在           |     | 教育・体験型                 | 6    |
 | strobe.tsx             | Experiments  | ストロボ効果(回転が止まって見える)体験                               | @mui, styled-components                        | 現在           | \*  | 教育・体験型/canvas          | 6    |
 | seatbelt.tsx           | Experiments  | シートベルト慣性ロック(ELR ウェビング感応)のドラッグ体験             | @mui, styled-components                        | 現在           | \*  | 教育・体験型/canvas          | 6    |
+| dice-3d.tsx            | Science      | 3D サイコロの物理挙動と出目を試せるシミュレーター                    | @react-three, @react-three/rapier, three, @mui | 現在           |     | 3D 物理シミュレーション      | 5    |
+| lissajous.tsx          | Science      | リサージュ曲線を波形・周波数ごとにグリッド表示する可視化ツール       | @mui, styled-components                        | 現在           |     | 波形可視化                   | 5    |
 | svg-play.tsx           | Art          | SVG プレイグラウンド                                                 |                                                | 現在           |     | SVG 実験                     | 4    |
 | divergence-meter.tsx   | Art          | ダイバージェンスメーター表示                                         | @mui                                           | 現在           |     | アニメ風表示                 | 5    |
 | shingeki.tsx           | Art          | 進撃プロット可視化                                                   | styled-components                              | 現在           | \*  | データ可視化                 | 5    |
 | creative-coding.tsx    | Graphical    | クリエイティブコーディングプレイグラウンド                           | react-p5, p5                                   | **要更新**     | \*  | P5.js 使用                   | 4    |
 | d3-play.tsx            | Graphical    | D3.js 実験プレイグラウンド                                           | @elzup/kit, lodash, styled-components          | 現在           |     | データ可視化実験             | 5    |
 | rgb-combo.tsx          | Graphical    | RGB 全組み合わせ網羅・原色点滅(時間混色)可視化                       | @elzup/kit, @mui, react-use, styled-components | 現在           |     | R/G/B 個別分割数調整         | 5    |
-| word-search.tsx        | ProtoType    | 単語検索ゲーム                                                       | @mui                                           | 現在           |     | ゲームプロトタイプ           | 5    |
-| ellip-billiards.tsx    | ProtoType    | 楕円ビリヤードシミュレーション                                       | matter-js                                      | **要更新**     |     | 物理シミュレーション         | 4    |
-| diginima.tsx           | ProtoType    | デジニマ - デジタル実験                                              |                                                | 現在           |     | プロトタイプ                 | 3    |
-| decimal.tsx            | ProtoType    | 十進数表示実験                                                       | @elzup/kit                                     | 現在           |     | 数値表示                     | 3    |
-| magironic.tsx          | ProtoType    | マジロニック - 魔法的インターフェース                                |                                                | 現在           |     | UI 実験                      | 4    |
-| bit-mixer.tsx          | ProtoType    | Bit Mixer - 8bit 合成ツール                                          | @mui                                           | 現在           |     | ビット演算実験               | 5    |
-| speecher.tsx           | ProtoType    | スピーチャー - 音声関連ツール                                        |                                                | 現在           | \*  | 音声処理                     | 7    |
+| word-search.tsx        | Draft        | 単語検索ゲーム                                                       | @mui                                           | 現在           |     | ゲームプロトタイプ           | 5    |
+| ellip-billiards.tsx    | Draft        | 楕円ビリヤードシミュレーション                                       | matter-js                                      | **要更新**     |     | 物理シミュレーション         | 4    |
+| diginima.tsx           | Draft        | デジニマ - デジタル実験                                              |                                                | 現在           |     | プロトタイプ                 | 3    |
+| decimal.tsx            | Draft        | 十進数表示実験                                                       | @elzup/kit                                     | 現在           |     | 数値表示                     | 3    |
+| magironic.tsx          | Draft        | マジロニック - 魔法的インターフェース                                |                                                | 現在           |     | UI 実験                      | 4    |
+| bit-mixer.tsx          | Draft        | Bit Mixer - 8bit 合成ツール                                          | @mui                                           | 現在           |     | ビット演算実験               | 5    |
+| speecher.tsx           | Draft        | スピーチャー - 音声関連ツール                                        |                                                | 現在           | \*  | 音声処理                     | 7    |
+| gokan-score.tsx        | Draft        | 名前や語句の音韻特徴をスコア化して比較する語感評価ツール             | @mui                                           | 現在           |     | 言語・命名実験               | 4    |
 | mirror.tsx             | Closed       | ミラーカメラ - カメラミラーリング                                    | react-webcam, @mui                             | **要更新**     |     | カメラ使用                   | 3    |
 | gha-badge-maker.tsx    | Closed       | GitHub Actions バッジメーカー                                        | @mui                                           | 現在           |     | バッジ生成                   | 4    |
 | debug.tsx              | Secret Tools | デバッグ用ツール                                                     | @elzup/kit                                     | 現在           |     | 開発用                       | 2    |

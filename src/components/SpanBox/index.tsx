@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fa'
 import styled from 'styled-components'
 
-type SlilBlock = {
+type SpanBoxBlock = {
   id: string
   x: number
   y: number
@@ -21,8 +21,8 @@ type SlilBlock = {
 }
 
 type DragAction =
-  | { kind: 'move'; id: string; origin: GridPoint; block: SlilBlock }
-  | { kind: 'resize'; id: string; edge: ResizeEdge; origin: GridPoint; block: SlilBlock }
+  | { kind: 'move'; id: string; origin: GridPoint; block: SpanBoxBlock }
+  | { kind: 'resize'; id: string; edge: ResizeEdge; origin: GridPoint; block: SpanBoxBlock }
 
 type GridPoint = {
   x: number
@@ -45,23 +45,23 @@ const colorOptions = [
   { name: 'ink', value: '#303846' },
 ]
 
-const initialBlocks: SlilBlock[] = [
+const initialBlocks: SpanBoxBlock[] = [
   { id: 'block-1', x: 2, y: 2, width: 5, height: 3, color: '#4ecdc4', label: 'agenda' },
   { id: 'block-2', x: 10, y: 4, width: 7, height: 2, color: '#ffbe3d', label: 'issue' },
   { id: 'block-3', x: 5, y: 10, width: 4, height: 5, color: '#5b8def', label: 'owner' },
 ]
 
-const SlilPrototype = () => {
+const SpanBox = () => {
   const boardRef = useRef<HTMLDivElement>(null)
   const nextIdRef = useRef(4)
-  const [blocks, setBlocks] = useState<SlilBlock[]>(initialBlocks)
+  const [blocks, setBlocks] = useState<SpanBoxBlock[]>(initialBlocks)
   const [selectedId, setSelectedId] = useState(initialBlocks[0].id)
   const [dragAction, setDragAction] = useState<DragAction | null>(null)
 
   const selectedBlock = blocks.find((block) => block.id === selectedId) ?? blocks[0]
   const occupiedCells = useMemo(() => getOccupiedCells(blocks), [blocks])
 
-  const updateSelectedBlock = (updates: Partial<SlilBlock>) => {
+  const updateSelectedBlock = (updates: Partial<SpanBoxBlock>) => {
     if (!selectedBlock) return
     setBlocks((currentBlocks) =>
       currentBlocks.map((block) =>
@@ -71,7 +71,7 @@ const SlilPrototype = () => {
   }
 
   const addBlock = () => {
-    const block: SlilBlock = {
+    const block: SpanBoxBlock = {
       id: `block-${nextIdRef.current}`,
       x: 1 + ((nextIdRef.current * 3) % 18),
       y: 1 + ((nextIdRef.current * 2) % 12),
@@ -87,7 +87,7 @@ const SlilPrototype = () => {
 
   const duplicateBlock = () => {
     if (!selectedBlock) return
-    const block: SlilBlock = {
+    const block: SpanBoxBlock = {
       ...selectedBlock,
       id: `block-${nextIdRef.current}`,
       x: clamp(selectedBlock.x + 1, 0, gridColumns - selectedBlock.width),
@@ -106,7 +106,7 @@ const SlilPrototype = () => {
     setSelectedId(remainingBlocks[0].id)
   }
 
-  const startMove = (event: React.PointerEvent, block: SlilBlock) => {
+  const startMove = (event: React.PointerEvent, block: SpanBoxBlock) => {
     if (isControlTarget(event.target)) return
     event.currentTarget.setPointerCapture(event.pointerId)
     setSelectedId(block.id)
@@ -120,7 +120,7 @@ const SlilPrototype = () => {
 
   const startResize = (
     event: React.PointerEvent,
-    block: SlilBlock,
+    block: SpanBoxBlock,
     edge: ResizeEdge,
   ) => {
     event.stopPropagation()
@@ -156,8 +156,8 @@ const SlilPrototype = () => {
     <Shell>
       <TopBar>
         <Brand>
-          <TitleText>slil</TitleText>
-          <SubtitleText>slide + rail block board</SubtitleText>
+          <TitleText>SpanBox</TitleText>
+          <SubtitleText>cell-spanning blocks for flexible whiteboard layouts</SubtitleText>
         </Brand>
 
         <ToolbarGroup>
@@ -325,7 +325,7 @@ const SlilPrototype = () => {
   )
 }
 
-const getOccupiedCells = (blocks: SlilBlock[]) =>
+const getOccupiedCells = (blocks: SpanBoxBlock[]) =>
   blocks.flatMap((block) =>
     Array.from({ length: block.width * block.height }, (_, index) => {
       const x = block.x + (index % block.width)
@@ -339,17 +339,17 @@ const getGridPoint = (event: React.PointerEvent): GridPoint => ({
   y: Math.round(event.clientY / cellSize),
 })
 
-const moveBlock = (block: SlilBlock, delta: GridPoint): SlilBlock => ({
+const moveBlock = (block: SpanBoxBlock, delta: GridPoint): SpanBoxBlock => ({
   ...block,
   x: clamp(block.x + delta.x, 0, gridColumns - block.width),
   y: clamp(block.y + delta.y, 0, gridRows - block.height),
 })
 
 const resizeBlock = (
-  block: SlilBlock,
+  block: SpanBoxBlock,
   delta: GridPoint,
   edge: ResizeEdge,
-): SlilBlock => {
+): SpanBoxBlock => {
   if (edge === 'right') {
     return {
       ...block,
@@ -565,7 +565,7 @@ const GhostCell = styled.div`
   display: none;
 `
 
-const BlockItem = styled.div<{ $block: SlilBlock; $selected: boolean }>`
+const BlockItem = styled.div<{ $block: SpanBoxBlock; $selected: boolean }>`
   position: absolute;
   left: ${({ $block }) => $block.x * cellSize}px;
   top: ${({ $block }) => $block.y * cellSize}px;
@@ -739,4 +739,4 @@ const StatBox = styled.div`
   }
 `
 
-export default SlilPrototype
+export default SpanBox

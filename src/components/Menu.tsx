@@ -111,6 +111,11 @@ const routings: RoutingGroup[] = [
         label: '進行タイマー',
         path: '/progress-timer',
       },
+      {
+        icon: faShapes,
+        label: 'SpanBox',
+        path: '/spanbox',
+      },
     ],
   },
   {
@@ -218,8 +223,13 @@ const routings: RoutingGroup[] = [
       },
       {
         icon: faBoxes,
-        label: '3D ドミノ倒し',
+        label: 'ドミノ倒し',
         path: '/domino-3d',
+      },
+      {
+        icon: faPuzzlePiece,
+        label: '3D サイコロ',
+        path: '/dice-3d',
       },
       {
         icon: faChartLine,
@@ -325,7 +335,7 @@ const routings: RoutingGroup[] = [
     ],
   },
   {
-    label: 'ProtoType',
+    label: 'Draft',
     routings: [
       {
         icon: faPuzzlePiece,
