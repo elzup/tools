@@ -1,6 +1,7 @@
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import {
   FaArrowsAlt,
+  FaClipboard,
   FaCopy,
   FaExpandArrowsAlt,
   FaFont,
@@ -29,20 +30,26 @@ type GridPoint = {
   y: number
 }
 
-type ResizeEdge = 'top' | 'right' | 'bottom' | 'left'
+type ResizeEdge = 'top' | 'right' | 'bottom' | 'left' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 
 const cellSize = 32
 const gridColumns = 28
 const gridRows = 18
 const minBlockSize = 1
 
-const colorOptions = [
-  { name: 'mint', value: '#4ecdc4' },
-  { name: 'sun', value: '#ffbe3d' },
-  { name: 'coral', value: '#ff6b6b' },
-  { name: 'sky', value: '#5b8def' },
-  { name: 'violet', value: '#8f63d8' },
-  { name: 'ink', value: '#303846' },
+const colorPalette = [
+  // Reds / Pinks
+  ['#dc2626', '#ef4444', '#f87171', '#f43f5e', '#e11d48', '#fb7185'],
+  // Oranges / Yellows
+  ['#ea580c', '#f97316', '#f59e0b', '#d97706', '#eab308', '#facc15'],
+  // Greens / Teals
+  ['#16a34a', '#22c55e', '#2dd4bf', '#14b8a6', '#0d9488', '#0f766e'],
+  // Blues / Indigos
+  ['#2563eb', '#3b82f6', '#6366f1', '#4f46e5', '#818cf8', '#a5b4fc'],
+  // Purples / Violets
+  ['#9333ea', '#a855f7', '#c084fc', '#d8b4fe', '#e9d5ff', '#f3e8ff'],
+  // Neutrals
+  ['#374151', '#6b7280', '#9ca3af', '#d1d5db', '#e5e7eb', '#f3f4f6'],
 ]
 
 const initialBlocks: SpanBoxBlock[] = [
@@ -59,6 +66,15 @@ const SpanBox = () => {
   const [dragAction, setDragAction] = useState<DragAction | null>(null)
 
   const selectedBlock = blocks.find((block) => block.id === selectedId) ?? blocks[0]
+
+  const generateShareText = (blocks: SpanBoxBlock[]) =>
+    blocks
+      .map((b) => `${b.label.padEnd(8)} ${b.x + 1},${b.y + 1}  ${b.width}x${b.height}  ${b.color}`)
+      .join('\n')
+
+  const copyShareText = useCallback(async () => {
+    await navigator.clipboard.writeText(generateShareText(blocks))
+  }, [blocks])
   const occupiedCells = useMemo(() => getOccupiedCells(blocks), [blocks])
 
   const updateSelectedBlock = (updates: Partial<SpanBoxBlock>) => {
@@ -77,7 +93,7 @@ const SpanBox = () => {
       y: 1 + ((nextIdRef.current * 2) % 12),
       width: 4,
       height: 3,
-      color: colorOptions[nextIdRef.current % colorOptions.length].value,
+      color: colorPalette.flat()[nextIdRef.current % colorPalette.flat().length],
       label: `note ${nextIdRef.current}`,
     }
     nextIdRef.current += 1
@@ -229,7 +245,7 @@ const SpanBox = () => {
                       {block.width} x {block.height}
                     </BlockMeta>
                     {isSelected &&
-                      (['top', 'right', 'bottom', 'left'] as ResizeEdge[]).map((edge) => (
+                      (['top', 'right', 'bottom', 'left', 'top-left', 'top-right', 'bottom-left', 'bottom-right'] as ResizeEdge[]).map((edge) => (
                         <ResizeHandle
                           key={edge}
                           $edge={edge}
@@ -262,16 +278,34 @@ const SpanBox = () => {
                 Color
               </FieldLabel>
               <Swatches>
-                {colorOptions.map((colorOption) => (
-                  <SwatchButton
-                    key={colorOption.value}
-                    $color={colorOption.value}
-                    $selected={selectedBlock.color === colorOption.value}
-                    onClick={() => updateSelectedBlock({ color: colorOption.value })}
-                    aria-label={colorOption.name}
-                  />
-                ))}
+                {colorPalette.map((row) =>
+                  row.map((color) => (
+                    <SwatchButton
+                      key={color}
+                      $color={color}
+                      $selected={selectedBlock.color === color}
+                      onClick={() => updateSelectedBlock({ color })}
+                    />
+                  )),
+                )}
               </Swatches>
+              <CustomColorRow>
+                <ColorInput
+                  type="color"
+                  value={selectedBlock.color}
+                  onChange={(e) => updateSelectedBlock({ color: e.target.value })}
+                />
+                <HexInput
+                  value={selectedBlock.color}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+                      updateSelectedBlock({ color: val })
+                    }
+                  }}
+                  placeholder="#hex"
+                />
+              </CustomColorRow>
 
               <FieldLabel>Size preset</FieldLabel>
               <SelectInput
@@ -317,6 +351,17 @@ const SpanBox = () => {
                   <strong>{selectedBlock.height}</strong>
                 </StatBox>
               </StatsGrid>
+
+              <Separator />
+              <FieldLabel>
+                <FaClipboard />
+                Share
+              </FieldLabel>
+              <ShareText readOnly value={generateShareText(blocks)} />
+              <CopyButton onClick={copyShareText}>
+                <FaCopy />
+                Copy
+              </CopyButton>
             </>
           )}
         </Inspector>
@@ -370,12 +415,49 @@ const resizeBlock = (
       width: block.width + block.x - nextX,
     }
   }
+  if (edge === 'top') {
+    const nextY = clamp(block.y + delta.y, 0, block.y + block.height - minBlockSize)
+    return {
+      ...block,
+      y: nextY,
+      height: block.height + block.y - nextY,
+    }
+  }
 
-  const nextY = clamp(block.y + delta.y, 0, block.y + block.height - minBlockSize)
+  if (edge === 'top-left') {
+    const nextX = clamp(block.x + delta.x, 0, block.x + block.width - minBlockSize)
+    const nextY = clamp(block.y + delta.y, 0, block.y + block.height - minBlockSize)
+    return {
+      ...block,
+      x: nextX,
+      y: nextY,
+      width: block.width + block.x - nextX,
+      height: block.height + block.y - nextY,
+    }
+  }
+  if (edge === 'top-right') {
+    const nextY = clamp(block.y + delta.y, 0, block.y + block.height - minBlockSize)
+    return {
+      ...block,
+      y: nextY,
+      width: clamp(block.width + delta.x, minBlockSize, gridColumns - block.x),
+      height: block.height + block.y - nextY,
+    }
+  }
+  if (edge === 'bottom-left') {
+    const nextX = clamp(block.x + delta.x, 0, block.x + block.width - minBlockSize)
+    return {
+      ...block,
+      x: nextX,
+      width: block.width + block.x - nextX,
+      height: clamp(block.height + delta.y, minBlockSize, gridRows - block.y),
+    }
+  }
+
   return {
     ...block,
-    y: nextY,
-    height: block.height + block.y - nextY,
+    width: clamp(block.width + delta.x, minBlockSize, gridColumns - block.x),
+    height: clamp(block.height + delta.y, minBlockSize, gridRows - block.y),
   }
 }
 
@@ -604,6 +686,8 @@ const BlockMeta = styled.div`
   font-weight: 700;
 `
 
+const cornerSize = 12
+
 const ResizeHandle = styled.button<{ $edge: ResizeEdge }>`
   position: absolute;
   border: 0;
@@ -639,12 +723,52 @@ const ResizeHandle = styled.button<{ $edge: ResizeEdge }>`
         cursor: ns-resize;
       `
     }
+    if ($edge === 'left') {
+      return `
+        top: calc(50% - 18px);
+        left: -7px;
+        width: 8px;
+        height: 36px;
+        cursor: ew-resize;
+      `
+    }
+    if ($edge === 'top-left') {
+      return `
+        top: -8px;
+        left: -8px;
+        width: ${cornerSize}px;
+        height: ${cornerSize}px;
+        cursor: nwse-resize;
+        border-radius: 2px;
+      `
+    }
+    if ($edge === 'top-right') {
+      return `
+        top: -8px;
+        right: -8px;
+        width: ${cornerSize}px;
+        height: ${cornerSize}px;
+        cursor: nesw-resize;
+        border-radius: 2px;
+      `
+    }
+    if ($edge === 'bottom-left') {
+      return `
+        bottom: -8px;
+        left: -8px;
+        width: ${cornerSize}px;
+        height: ${cornerSize}px;
+        cursor: nesw-resize;
+        border-radius: 2px;
+      `
+    }
     return `
-      top: calc(50% - 18px);
-      left: -7px;
-      width: 8px;
-      height: 36px;
-      cursor: ew-resize;
+      bottom: -8px;
+      right: -8px;
+      width: ${cornerSize}px;
+      height: ${cornerSize}px;
+      cursor: nwse-resize;
+      border-radius: 2px;
     `
   }}
 `
@@ -701,6 +825,34 @@ const SwatchButton = styled.button<{ $color: string; $selected: boolean }>`
   cursor: pointer;
 `
 
+const CustomColorRow = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+`
+
+const ColorInput = styled.input`
+  width: 36px;
+  height: 36px;
+  border: 1px solid #c7d0dd;
+  border-radius: 6px;
+  padding: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+`
+
+const HexInput = styled.input`
+  flex: 1;
+  height: 36px;
+  box-sizing: border-box;
+  border: 1px solid #c7d0dd;
+  border-radius: 6px;
+  padding: 0 10px;
+  color: #202631;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  font-size: 0.86rem;
+`
+
 const SelectInput = styled.select`
   width: 100%;
   height: 38px;
@@ -710,6 +862,47 @@ const SelectInput = styled.select`
   color: #202631;
   padding: 0 10px;
   font-size: 0.9rem;
+`
+
+const Separator = styled.hr`
+  margin: 4px 0;
+  border: 0;
+  border-top: 1px solid #d7dde8;
+`
+
+const ShareText = styled.textarea`
+  width: 100%;
+  height: 110px;
+  box-sizing: border-box;
+  border: 1px solid #c7d0dd;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #202631;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  resize: none;
+  background: #f6f8fb;
+`
+
+const CopyButton = styled.button`
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid #c7d0dd;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #202631;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover {
+    background: #f0f4fa;
+  }
 `
 
 const StatsGrid = styled.div`
