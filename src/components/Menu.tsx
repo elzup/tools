@@ -241,6 +241,11 @@ const routings: RoutingGroup[] = [
         label: 'Lissajous Curves Grid',
         path: '/lissajous',
       },
+      {
+        icon: faCog,
+        label: 'Googol 歯車',
+        path: '/googol',
+      },
     ],
   },
 
@@ -317,11 +322,6 @@ const routings: RoutingGroup[] = [
   {
     label: 'Graphical',
     routings: [
-      {
-        icon: faCog,
-        label: 'Googol 歯車',
-        path: '/googol',
-      },
       {
         icon: faPaintBrush,
         label: 'Creative Coding playground',
