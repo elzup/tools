@@ -16,6 +16,7 @@
 | scope-timer.tsx        | Tool/Game    | スコープタイマー - ミリ秒精度の実験用タイマー                        |                                                | 現在           |     | ミリ秒表示                   | 7    |
 | progress-timer.tsx     | Tool/Game    | 進行タイマー - 配分/絶対/累積の 3 表記同期・実績進行・境界ずらし     | @mui, styled-components                        | 現在           | \*  | localStorage+URL 共有, VCSDD | 8    |
 | spanbox.tsx            | Tool/Game    | 方眼上の矩形ブロックを移動・伸縮・色ラベル編集する SpanBox ツール    | styled-components, react-icons                 | 現在           |     | グリッドブロック UI          | 6    |
+| mushikui-search.tsx    | Tool/Game    | 虫食いパターンで常用日本語辞書を検索するツール                       | @mui                                           | 現在           |     | 辞書検索                     | 5    |
 | stamina-calc.tsx       | Tool/Game    | スタミナ/聖遺物/ストック運用シミュレーター                           | @mui, styled-components                        | 現在           |     | ゲームリソース管理           | 5    |
 | domino-3d.tsx          | Tool/Game    | ドミノ倒し物理演算シミュレーター                                     | @react-three, @react-three/rapier, three, @mui | 現在           | \*  | 配置パターン切替             | 7    |
 | 1px.tsx                | DevTool      | 1px の画像データ URL 生成ツール                                      | react-color, @mui                              | 現在           |     | カラーピッカー使用           | 4    |
@@ -54,7 +55,6 @@
 | creative-coding.tsx    | Graphical    | クリエイティブコーディングプレイグラウンド                           | react-p5, p5                                   | **要更新**     | \*  | P5.js 使用                   | 4    |
 | d3-play.tsx            | Graphical    | D3.js 実験プレイグラウンド                                           | @elzup/kit, lodash, styled-components          | 現在           |     | データ可視化実験             | 5    |
 | rgb-combo.tsx          | Graphical    | RGB 全組み合わせ網羅・原色点滅(時間混色)可視化                       | @elzup/kit, @mui, react-use, styled-components | 現在           |     | R/G/B 個別分割数調整         | 5    |
-| word-search.tsx        | Draft        | 単語検索ゲーム                                                       | @mui                                           | 現在           |     | ゲームプロトタイプ           | 5    |
 | ellip-billiards.tsx    | Draft        | 楕円ビリヤードシミュレーション                                       | matter-js                                      | **要更新**     |     | 物理シミュレーション         | 4    |
 | diginima.tsx           | Draft        | デジニマ - デジタル実験                                              |                                                | 現在           |     | プロトタイプ                 | 3    |
 | decimal.tsx            | Draft        | 十進数表示実験                                                       | @elzup/kit                                     | 現在           |     | 数値表示                     | 3    |

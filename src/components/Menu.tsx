@@ -82,6 +82,11 @@ const routings: RoutingGroup[] = [
         path: '/char-counter',
       },
       {
+        icon: faPuzzlePiece,
+        label: '虫食い検索',
+        path: '/mushikui-search',
+      },
+      {
         icon: faKeyboard,
         label: '苦手タイピング',
         path: '/nigate-typing',
@@ -337,11 +342,6 @@ const routings: RoutingGroup[] = [
   {
     label: 'Draft',
     routings: [
-      {
-        icon: faPuzzlePiece,
-        label: 'word search',
-        path: '/word-search',
-      },
       {
         icon: faSpider,
         label: 'Diginima',
