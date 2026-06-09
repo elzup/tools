@@ -347,7 +347,6 @@ function GearGroup({
         if (pos < quarter * 3) return quarter // 上で横移動
         return zigzagPeriod - pos // 下降
       }
-      case 'zigzag':
       default:
         // 三角波
         return pos <= half ? pos : zigzagPeriod - pos

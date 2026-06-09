@@ -1,4 +1,3 @@
-import * as React from 'react'
 import Layout from '../components/Layout'
 import SvgPlay from '../components/SvgPlay'
 import { Title } from '../components/Title'

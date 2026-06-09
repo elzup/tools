@@ -2,11 +2,11 @@ import { faCheck, faLeaf } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Container, FormControlLabel, Switch, Typography } from '@mui/material'
 import { omit } from 'lodash'
-import React, { useEffect, useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import styled from 'styled-components'
 import { useLocalStorage } from '../../utils/useLocalStorage'
 import { Box } from '../common/mui'
-import { Group, groups, MemoState, picmins } from './picminConstants'
+import { type Group, groups, type MemoState, picmins } from './picminConstants'
 import ReachItem from './ReachItem'
 
 const memoList: MemoState[] = ['emp', 'pre', 'get']
@@ -22,8 +22,8 @@ function usePikminDb() {
 
   useEffect(() => {
     if (ver === 0) {
-      if (memo['k']) {
-        const f = Object.assign({}, memo['f'] || {}, memo['k'])
+      if (memo.k) {
+        const f = Object.assign({}, memo.f || {}, memo.k)
 
         setMemo((v) => ({ ...omit(v, ['k']), f }))
       }

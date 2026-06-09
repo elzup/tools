@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic'
 import Head from 'next/head'
-import p5Types from 'p5'
+import type p5Types from 'p5'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 
@@ -31,7 +31,7 @@ const draw = (p5: p5Types) => {
 
   if (whichBar === lastBar) return
 
-  let barX = whichBar * barWidth
+  const barX = whichBar * barWidth
 
   p5.circle(mx, my, 50)
   p5.fill(barX, my, 66)

@@ -50,14 +50,11 @@ describe('generateSeparatorLine', () => {
       false,
       '|----+----+----+----|----+----+----+----|----+----+----+----|',
     ],
-  ])(
-    'オフセット%dから%dまでの区切り線を生成できること',
-    (start, end, isWrapped, expected) => {
-      const result = generateLine1(end - start)
+  ])('オフセット%dから%dまでの区切り線を生成できること', (start, end, _isWrapped, expected) => {
+    const result = generateLine1(end - start)
 
-      expect(result).toBe(expected)
-    }
-  )
+    expect(result).toBe(expected)
+  })
 
   // 折り返し行のテスト
   it('折り返し用の区切り線を生成できること', () => {

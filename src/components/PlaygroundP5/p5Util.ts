@@ -1,4 +1,4 @@
-import P5 from 'p5'
+import type P5 from 'p5'
 import { colorScheme } from './colorScheme'
 
 export const shuffleSchema = (p: P5) =>

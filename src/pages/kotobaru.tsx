@@ -1,5 +1,4 @@
 import Head from 'next/head'
-import * as React from 'react'
 import { createGlobalStyle } from 'styled-components'
 import Kotobaru from '../components/Kotobaru'
 import Layout from '../components/Layout'

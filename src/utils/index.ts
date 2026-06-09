@@ -1,5 +1,6 @@
 import through from 'through'
-import React, { PropsWithChildren } from 'react'
+import type React from 'react'
+import type { PropsWithChildren } from 'react'
 import { createRoot } from 'react-dom/client'
 
 export const zoom1D = (
@@ -38,7 +39,7 @@ export const delay = (time: number) => {
 
   function next(data: unknown) {
     queue.push(data)
-    setTimeout(function () {
+    setTimeout(() => {
       ts.queue(queue.shift())
     }, time)
   }

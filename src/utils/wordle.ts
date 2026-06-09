@@ -1,6 +1,6 @@
 import { groupBy } from 'lodash'
 import seedrandom from 'seedrandom'
-import { Dict } from '../types'
+import type { Dict } from '../types'
 
 export const TRY_LIMIT = 6
 

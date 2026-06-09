@@ -1,9 +1,8 @@
 import { Stage } from '@inlet/react-pixi'
-import _ from 'lodash'
 import * as React from 'react'
 import { Line, Rectangle } from './PixiComponents'
 import { useWidth } from './useWdith'
-import { useGraph, DataSet } from './useGraph'
+import { useGraph, type DataSet } from './useGraph'
 
 type Props = {
   datasets: DataSet

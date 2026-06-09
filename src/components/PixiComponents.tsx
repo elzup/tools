@@ -11,7 +11,7 @@ type RectProps = {
 }
 export const Rectangle = PixiComponent<RectProps, Graphics>('Rectangle', {
   create: () => new Graphics(),
-  applyProps: (instance, op, props) => {
+  applyProps: (instance, _op, props) => {
     const { x, y, width, height, color } = props
 
     instance.clear()

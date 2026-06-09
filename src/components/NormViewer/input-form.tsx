@@ -7,10 +7,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useEffect, useState } from 'react'
-import {
-  Condition,
-  DistributionParams,
-} from '../../lib/norm-estimator'
+import type { Condition, DistributionParams } from '../../lib/norm-estimator'
 
 type Props = {
   params: DistributionParams
@@ -150,7 +147,9 @@ export function BasicParamsInput({ params, setParams }: Props) {
 
 // 得点データ入力（右下）
 export function RawScoresInput({ params, setParams }: Props) {
-  const [rawScoresText, setRawScoresText] = useState(params.rawScores?.join(', ') ?? '')
+  const [rawScoresText, setRawScoresText] = useState(
+    params.rawScores?.join(', ') ?? ''
+  )
 
   useEffect(() => {
     const newText = params.rawScores?.join(', ') ?? ''
@@ -174,7 +173,12 @@ export function RawScoresInput({ params, setParams }: Props) {
       <Typography variant="subtitle2" sx={{ mb: 1 }}>
         得点データ
         {params.rawScores && params.rawScores.length > 0 && (
-          <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+          <Typography
+            component="span"
+            variant="caption"
+            color="text.secondary"
+            sx={{ ml: 1 }}
+          >
             (n={params.rawScores.length})
           </Typography>
         )}

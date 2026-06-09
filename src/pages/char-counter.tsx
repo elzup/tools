@@ -1,6 +1,6 @@
 import punycode from 'punycode'
 import { TextField, Typography } from '@mui/material'
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
@@ -25,14 +25,16 @@ function analyzeCount(text: string): Count[] {
 }
 
 function visibleEscapes(text: string) {
-  return text
-    .replace(/\t/g, '\\t')
-    .replace(/\v/g, '\\v')
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '\\r')
-    .replace(/\f/g, '\\f')
-    // eslint-disable-next-line no-control-regex
-    .replace(/\x00/g, '\\0')
+  return (
+    text
+      .replace(/\t/g, '\\t')
+      .replace(/\v/g, '\\v')
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '\\r')
+      .replace(/\f/g, '\\f')
+      // eslint-disable-next-line no-control-regex
+      .replace(/\x00/g, '\\0')
+  )
 }
 // ¥b	バックスペース
 // ¥t	水平タブ

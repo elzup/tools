@@ -1,13 +1,13 @@
 /* eslint-disable no-param-reassign */
 // fork by: https://openprocessing.org/sketch/1992772
-import P5 from 'p5'
+import type P5 from 'p5'
 import { range } from '@elzup/kit/lib/range'
 import { binds, shuffleSchema } from './p5Util'
 
 export const sketchRens = (p: P5) => {
   let globalN = 0
-  let aOfs = ((p.TWO_PI / 360) * 1) / 2
-  let rOfs = 1
+  const aOfs = ((p.TWO_PI / 360) * 1) / 2
+  const rOfs = 1
   const palette = shuffleSchema(p)
   //
   const b = binds(p)
@@ -39,7 +39,7 @@ export const sketchRens = (p: P5) => {
     const num = 5
 
     const arr2 = range(num).map((i) => {
-      let n = sin((i / num) * TWO_PI + frameCount / 120) / 2 + 1 / 2
+      const n = sin((i / num) * TWO_PI + frameCount / 120) / 2 + 1 / 2
 
       return easeInOutCirc(n)
     })
@@ -47,14 +47,14 @@ export const sketchRens = (p: P5) => {
     const aSum = arr2.reduce((a, b) => a + b, 0)
     const arr = arr2.map((n) => n / aSum)
 
-    let x = 0
-    let y = 0
-    let a1 = 0
-    let a2 = TWO_PI
-    let r2 = (max(width, height) / 2) * sqrt(2)
-    let r1 = r2 / 20
-    let rStep = r2 - r1
-    let depth = 4
+    const x = 0
+    const y = 0
+    const a1 = 0
+    const a2 = TWO_PI
+    const r2 = (max(width, height) / 2) * sqrt(2)
+    const r1 = r2 / 20
+    const rStep = r2 - r1
+    const depth = 4
 
     let sum = 0
 
@@ -88,13 +88,13 @@ export const sketchRens = (p: P5) => {
   ) {
     if (depth < 0) return
     if (a1 > a2) {
-      let tmp = a1
+      const tmp = a1
 
       a1 = a2
       a2 = tmp
     }
     if (r1 > r2) {
-      let tmp = r1
+      const tmp = r1
 
       r1 = r2
       r2 = tmp
@@ -102,12 +102,12 @@ export const sketchRens = (p: P5) => {
     push()
     translate(x, y)
     rotate(noise(x, y, p.frameCount / 150000) * TWO_PI)
-    let rsx = random(100)
-    let rsy = random(100)
+    const rsx = random(100)
+    const rsy = random(100)
     let t = noise(rsx, rsy, p.frameCount / 5000) //frameCount/500%1;
 
     t = easeInOutElastic(t) * TWO_PI
-    let na =
+    const na =
       a1 +
       (sin(
         rsx +
@@ -118,7 +118,7 @@ export const sketchRens = (p: P5) => {
         2 +
         0.5) *
         (a2 - a1)
-    let nr =
+    const nr =
       r1 +
       (cos(
         rsy +
@@ -164,18 +164,18 @@ export const sketchRens = (p: P5) => {
 
     push()
     translate(x, y)
-    let d = maxD - minD
-    let e = minD + d / 2
-    let c1 = palette[globalN % palette.length]
-    let c2 = palette[(globalN + 1) % palette.length]
+    const d = maxD - minD
+    const e = minD + d / 2
+    const c1 = palette[globalN % palette.length]
+    const c2 = palette[(globalN + 1) % palette.length]
 
     noFill()
     strokeCap(SQUARE)
-    let angleStep = TWO_PI / 360
+    const angleStep = TWO_PI / 360
 
     if (globalN % 2 === 0) {
       for (let a = startAngle; a <= endAngle; a += angleStep * (depth + 3)) {
-        let c = lerpColor(c1, c2, map(a, startAngle, endAngle, 0, 1))
+        const c = lerpColor(c1, c2, map(a, startAngle, endAngle, 0, 1))
 
         stroke(c)
         strokeWeight(d)
@@ -185,7 +185,7 @@ export const sketchRens = (p: P5) => {
         endShape()
       }
     } else {
-      let d2 = d / 10
+      const d2 = d / 10
 
       strokeWeight(d2)
       for (
@@ -193,7 +193,7 @@ export const sketchRens = (p: P5) => {
         f > min(maxD, minD) + d2 / 2;
         f -= d2 * 2
       ) {
-        let c = lerpColor(
+        const c = lerpColor(
           c1,
           c2,
           map(f, min(maxD, minD), max(maxD, minD), 0, 1)
@@ -208,8 +208,8 @@ export const sketchRens = (p: P5) => {
 
   function easeInOutCirc(x: number) {
     return x < 0.5
-      ? (1 - Math.sqrt(1 - Math.pow(2 * x, 2))) / 2
-      : (Math.sqrt(1 - Math.pow(-2 * x + 2, 2)) + 1) / 2
+      ? (1 - Math.sqrt(1 - (2 * x) ** 2)) / 2
+      : (Math.sqrt(1 - (-2 * x + 2) ** 2) + 1) / 2
   }
 
   function easeInOutElastic(x: number) {
@@ -218,10 +218,10 @@ export const sketchRens = (p: P5) => {
     return x === 0
       ? 0
       : x === 1
-      ? 1
-      : x < 0.5
-      ? -(Math.pow(2, 20 * x - 10) * Math.sin((20 * x - 11.125) * c5)) / 2
-      : (Math.pow(2, -20 * x + 10) * Math.sin((20 * x - 11.125) * c5)) / 2 + 1
+        ? 1
+        : x < 0.5
+          ? -(2 ** (20 * x - 10) * Math.sin((20 * x - 11.125) * c5)) / 2
+          : (2 ** (-20 * x + 10) * Math.sin((20 * x - 11.125) * c5)) / 2 + 1
   }
 
   p.windowResized = () => {

@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useRef } from 'react'
 import { useKey } from 'react-use'
-import { Handler } from 'react-use/lib/useKey'
+import type { Handler } from 'react-use/lib/useKey'
 import { noop } from '../utils'
 
 const mapReducer = (

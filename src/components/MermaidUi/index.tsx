@@ -1,8 +1,8 @@
 import { TextField, Typography } from '@mui/material'
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import MmdGraph from '../MmdGraph'
 import { useFetchText } from '../useFetch'
-import { MmdGroup } from './types'
+import type { MmdGroup } from './types'
 import { parseMarmaid } from './useMermaid'
 
 type GraphBlock = {
@@ -22,7 +22,7 @@ function useBlocks(text?: string): GraphBlock[] {
         const isLast = i === l - 1
         const title = line.match(/%%%subgraph (.*?);?$/)?.[1]
 
-        if (isLast || !!title) {
+        if (isLast || title) {
           if (isLast) lines.push(line)
           const mmdText = lines.join('\n')
 

@@ -1,12 +1,11 @@
 import { Typography } from '@mui/material'
-import React from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 
 const title = 'Submit'
 const HardConfirm = () => {
   const handleClick = (actionName: string) => {
-    const confirmed = confirm(actionName + 'しますか？')
+    const confirmed = confirm(`${actionName}しますか？`)
 
     handleClick(`「${actionName}」を${confirmed ? '実行' : 'キャンセル'}`)
   }

@@ -54,7 +54,7 @@ function exponentValue(expBits: string): number {
 }
 
 function BinaryExplain({ value }: { value: number }) {
-  if (isNaN(value) || !isFinite(value)) return null
+  if (Number.isNaN(value) || !Number.isFinite(value)) return null
   const parts = toBinaryParts(value)
   const exp = exponentValue(parts.exponent)
   return (
@@ -251,7 +251,8 @@ const FloatPrecision = () => {
       <section>
         <Typography variant="h6">4. n + 1 === n になる境界</Typography>
         <Typography variant="body2" color="textSecondary" gutterBottom>
-          仮数部52bitを使い切ると、+1 が仮数の最下位ビットより小さくなり無視される
+          仮数部52bitを使い切ると、+1
+          が仮数の最下位ビットより小さくなり無視される
         </Typography>
         <Paper variant="outlined" sx={{ p: 2 }}>
           <Typography variant="body2">

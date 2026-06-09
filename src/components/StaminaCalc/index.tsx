@@ -73,9 +73,22 @@ function calcTimeline(params: Params): TimelineEvent[] {
   let relic = relicCarryOver
   let totalConsumed = 0
 
-  const push = (time: string, label: string, consumed: number, memo: string) => {
+  const push = (
+    time: string,
+    label: string,
+    consumed: number,
+    memo: string
+  ) => {
     totalConsumed += consumed
-    events.push({ time, label, stamina, consumed: totalConsumed, relic, stock, memo })
+    events.push({
+      time,
+      label,
+      stamina,
+      consumed: totalConsumed,
+      relic,
+      stock,
+      memo,
+    })
   }
 
   // 00:00 開始 (消費リセット、キャンディ0)
@@ -93,7 +106,12 @@ function calcTimeline(params: Params): TimelineEvent[] {
   // 09:00 育成消化 (溢れ防止)
   if (params.morningConsume > 0) {
     stamina -= params.morningConsume
-    push('09:00', '育成消化', params.morningConsume, `-${params.morningConsume} 溢れ防止`)
+    push(
+      '09:00',
+      '育成消化',
+      params.morningConsume,
+      `-${params.morningConsume} 溢れ防止`
+    )
   }
 
   // 18:00 自然回復 (9h)
@@ -152,7 +170,8 @@ function calcTimeline(params: Params): TimelineEvent[] {
     stamina = 0
     if (eventAmt > 0) push('18:00', 'イベント消化', eventAmt, `-${eventAmt}`)
     if (dailyAmt > 0) push('18:00', 'デイリーノルマ', dailyAmt, `-${dailyAmt}`)
-    if (trainingAmt > 0) push('18:00', '育成消化', trainingAmt, `-${trainingAmt}`)
+    if (trainingAmt > 0)
+      push('18:00', '育成消化', trainingAmt, `-${trainingAmt}`)
   }
 
   // 23:00 自然回復 (5h, キャンディ=0から)
@@ -169,14 +188,20 @@ function calcTimeline(params: Params): TimelineEvent[] {
     const consumed23 = stamina
     const eventRemain = Math.max(0, params.eventCost - totalConsumed)
     const eventAmt23 = Math.min(consumed23, eventRemain)
-    const dailyRemain = Math.max(0, params.dailyQuestCost - Math.max(0, totalConsumed - params.eventCost))
+    const dailyRemain = Math.max(
+      0,
+      params.dailyQuestCost - Math.max(0, totalConsumed - params.eventCost)
+    )
     const dailyAmt23 = Math.min(consumed23 - eventAmt23, dailyRemain)
     const trainingAmt23 = consumed23 - eventAmt23 - dailyAmt23
 
     stamina = 0
-    if (eventAmt23 > 0) push('23:00', 'イベント消化', eventAmt23, `-${eventAmt23}`)
-    if (dailyAmt23 > 0) push('23:00', 'デイリーノルマ', dailyAmt23, `-${dailyAmt23}`)
-    if (trainingAmt23 > 0) push('23:00', '育成消化', trainingAmt23, `-${trainingAmt23}`)
+    if (eventAmt23 > 0)
+      push('23:00', 'イベント消化', eventAmt23, `-${eventAmt23}`)
+    if (dailyAmt23 > 0)
+      push('23:00', 'デイリーノルマ', dailyAmt23, `-${dailyAmt23}`)
+    if (trainingAmt23 > 0)
+      push('23:00', '育成消化', trainingAmt23, `-${trainingAmt23}`)
   }
 
   return events
@@ -211,7 +236,8 @@ function calcRecoveryTime(params: Params): {
   naturalRecoveryTime: number
   relicToCapTime: number
 } {
-  const naturalRecoveryTime = params.naturalRecoveryCap / params.naturalRecoveryPerHour
+  const naturalRecoveryTime =
+    params.naturalRecoveryCap / params.naturalRecoveryPerHour
   const relicPerHour = params.relicGenerationPer10h / 10
   const relicToCapTime = params.relicCollectionAmount / relicPerHour
   return { naturalRecoveryTime, relicToCapTime }
@@ -230,10 +256,7 @@ const StaminaCalc = () => {
 
   const timeline = calcTimeline(params)
   const overflowCheck = calcOverflowCheck(params)
-  const dailyStockGain = Math.max(
-    0,
-    timeline[timeline.length - 2]?.stock ?? 0
-  )
+  const dailyStockGain = Math.max(0, timeline[timeline.length - 2]?.stock ?? 0)
 
   const updateParam = (key: keyof Params, value: number) => {
     setParams({ ...params, [key]: value })
@@ -247,7 +270,11 @@ const StaminaCalc = () => {
           <Typography variant="h6" gutterBottom>
             パラメータ設定
           </Typography>
-          <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap={2}>
+          <Box
+            display="grid"
+            gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))"
+            gap={2}
+          >
             <ParamField
               label="自然回復 (/h)"
               value={params.naturalRecoveryPerHour}
@@ -329,11 +356,7 @@ const StaminaCalc = () => {
               label="18時キャンディ"
               value={String(overflowCheck.staminaAt18)}
               color={overflowCheck.isOverflow ? '#f44336' : '#4caf50'}
-              sub={
-                overflowCheck.isOverflow
-                  ? '溢れリスクあり'
-                  : '溢れなし'
-              }
+              sub={overflowCheck.isOverflow ? '溢れリスクあり' : '溢れなし'}
             />
             <SummaryCard
               label="世界樹聖物回収量 (18h)"
@@ -351,13 +374,17 @@ const StaminaCalc = () => {
           <Box display="flex" gap={3} flexWrap="wrap" mb={2}>
             <SummaryCard
               label="自然回復 0→上限"
-              value={formatHoursMinutes(calcRecoveryTime(params).naturalRecoveryTime)}
+              value={formatHoursMinutes(
+                calcRecoveryTime(params).naturalRecoveryTime
+              )}
               color="#66bb6a"
               sub={`${params.naturalRecoveryCap} / ${params.naturalRecoveryPerHour}/h`}
             />
             <SummaryCard
               label="世界樹聖物 0→上限"
-              value={formatHoursMinutes(calcRecoveryTime(params).relicToCapTime)}
+              value={formatHoursMinutes(
+                calcRecoveryTime(params).relicToCapTime
+              )}
               color="#388e3c"
               sub={`${params.relicCollectionAmount} / ${params.relicGenerationPer10h / 10}/h`}
             />
@@ -370,7 +397,7 @@ const StaminaCalc = () => {
               value={currentHour}
               onChange={(e) => {
                 const v = Number(e.target.value)
-                if (!isNaN(v) && v >= 0 && v <= 23) setCurrentHour(v)
+                if (!Number.isNaN(v) && v >= 0 && v <= 23) setCurrentHour(v)
               }}
               inputProps={{ min: 0, max: 23 }}
               sx={{ width: 120 }}
@@ -513,7 +540,7 @@ function ParamField({
       value={value}
       onChange={(e) => {
         const v = Number(e.target.value)
-        if (!isNaN(v)) onChange(v)
+        if (!Number.isNaN(v)) onChange(v)
       }}
     />
   )
@@ -521,9 +548,12 @@ function ParamField({
 
 function StaminaValue({ value, cap }: { value: number; cap: number }) {
   const ratio = value / cap
-  const color =
-    ratio >= 1 ? '#f44336' : ratio >= 0.8 ? '#ff9800' : 'inherit'
-  return <span style={{ color, fontWeight: ratio >= 0.8 ? 'bold' : 'normal' }}>{value}</span>
+  const color = ratio >= 1 ? '#f44336' : ratio >= 0.8 ? '#ff9800' : 'inherit'
+  return (
+    <span style={{ color, fontWeight: ratio >= 0.8 ? 'bold' : 'normal' }}>
+      {value}
+    </span>
+  )
 }
 
 function SummaryCard({

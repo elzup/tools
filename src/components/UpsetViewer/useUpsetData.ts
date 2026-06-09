@@ -1,6 +1,6 @@
 import { useMemo, useState, useCallback, useRef } from 'react'
-import { extractCombinations, ISetLike, exportSVG } from '@upsetjs/react'
-import { Elem, ParserType, parsers } from './parsers'
+import { extractCombinations, type ISetLike, exportSVG } from '@upsetjs/react'
+import { type Elem, type ParserType, parsers } from './parsers'
 
 export const useUpsetData = () => {
   const [parserType, setParserType] = useState<ParserType>('setList')

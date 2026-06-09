@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Cmd, getFormat } from './utils'
+import { type Cmd, getFormat } from './utils'
 
 export const useFormat = (buf: Buffer) => {
   const [format, setFormat] = useState<string>('')

@@ -1,4 +1,4 @@
-import P5 from 'p5'
+import type P5 from 'p5'
 
 type State = {
   f: number
@@ -13,9 +13,9 @@ function draw(p: P5, _state: State) {
 }
 
 function drawPlanckDistribution(p: P5, T: number) {
-  let h = 6.62607004e-34 // プランク定数
-  let c = 3.0e8 // 光速
-  let k = 1.38064852e-23 // ボルツマン定数
+  const h = 6.62607004e-34 // プランク定数
+  const c = 3.0e8 // 光速
+  const k = 1.38064852e-23 // ボルツマン定数
 
   // #8FBDD4
   //
@@ -23,11 +23,11 @@ function drawPlanckDistribution(p: P5, T: number) {
   p.noFill()
   p.beginShape()
   for (let lambda = 1e-7; lambda < 3e-6; lambda += 1e-9) {
-    let B =
+    const B =
       (2 * h * c * c) /
       (p.pow(lambda, 5) * (p.exp((h * c) / (lambda * k * T)) - 1))
-    let x = p.map(lambda, 1e-7, 3e-6, 0, p.width)
-    let y = p.map(B, 0, 1e13, p.height, 0)
+    const x = p.map(lambda, 1e-7, 3e-6, 0, p.width)
+    const y = p.map(B, 0, 1e13, p.height, 0)
 
     p.vertex(x, y)
   }
@@ -57,7 +57,7 @@ export const sketchPu = (p: P5) => {
     p.noStroke()
   }
 
-  let state: State = {
+  const state: State = {
     f: 0,
   }
 

@@ -1,5 +1,4 @@
 import { Container, TextField, Typography } from '@mui/material'
-import React from 'react'
 import styled from 'styled-components'
 import { Box } from '../common/mui'
 import { asciify } from '../../utils'

@@ -13,7 +13,7 @@ import {
 import { EditableText } from './EditableText'
 import { Timeline } from './Timeline'
 import { VerticalList } from './VerticalList'
-import { ProgressTimerApi, useProgressTimer } from './useProgressTimer'
+import { type ProgressTimerApi, useProgressTimer } from './useProgressTimer'
 
 type Mode = 'list' | 'text'
 

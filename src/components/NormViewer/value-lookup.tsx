@@ -26,13 +26,24 @@ type Props = {
   stdDev: number
   isValid: boolean
   lookupMarkers?: { value: number | null; percentile: number | null }
-  onLookupChange?: (lookupValue: number | null, lookupPercentile: number | null) => void
+  onLookupChange?: (
+    lookupValue: number | null,
+    lookupPercentile: number | null
+  ) => void
 }
 
-export function ValueLookup({ mean, stdDev, isValid, lookupMarkers, onLookupChange }: Props) {
+export function ValueLookup({
+  mean,
+  stdDev,
+  isValid,
+  lookupMarkers,
+  onLookupChange,
+}: Props) {
   const [valueInput, setValueInput] = useState<string>('')
   const [percentInput, setPercentInput] = useState<string>('50')
-  const [lastEdited, setLastEdited] = useState<'value' | 'percent' | null>('percent')
+  const [lastEdited, setLastEdited] = useState<'value' | 'percent' | null>(
+    'percent'
+  )
   const [initialized, setInitialized] = useState(false)
   const [_lastExternalUpdate, setLastExternalUpdate] = useState<number>(0)
 
@@ -50,7 +61,8 @@ export function ValueLookup({ mean, stdDev, isValid, lookupMarkers, onLookupChan
   // 外部からの変更（スライダーなど）を同期
   useEffect(() => {
     if (!isValid || !initialized) return
-    if (lookupMarkers?.value == null || lookupMarkers?.percentile == null) return
+    if (lookupMarkers?.value == null || lookupMarkers?.percentile == null)
+      return
 
     // 外部からの変更を検出（現在の入力値と異なる場合）
     const currentVal = Number(valueInput)
@@ -129,7 +141,9 @@ export function ValueLookup({ mean, stdDev, isValid, lookupMarkers, onLookupChan
   return (
     <Paper sx={{ p: 1.5 }}>
       <Stack direction="row" spacing={1} alignItems="center">
-        <Typography variant="subtitle2" sx={{ flexShrink: 0 }}>逆引き:</Typography>
+        <Typography variant="subtitle2" sx={{ flexShrink: 0 }}>
+          逆引き:
+        </Typography>
         <TextField
           size="small"
           type="number"
@@ -139,7 +153,11 @@ export function ValueLookup({ mean, stdDev, isValid, lookupMarkers, onLookupChan
           sx={{ width: 90 }}
           inputProps={{ style: { textAlign: 'right' } }}
         />
-        <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ flexShrink: 0 }}
+        >
           点 = 上位
         </Typography>
         <TextField
@@ -151,7 +169,11 @@ export function ValueLookup({ mean, stdDev, isValid, lookupMarkers, onLookupChan
           sx={{ width: 80 }}
           inputProps={{ style: { textAlign: 'right' } }}
         />
-        <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ flexShrink: 0 }}
+        >
           %
         </Typography>
       </Stack>

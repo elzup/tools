@@ -1,6 +1,11 @@
-import { RefObject } from 'react'
-import { UpSetJS, VennDiagram, KarnaughMap, ISetLike } from '@upsetjs/react'
-import { Elem } from './parsers'
+import type { RefObject } from 'react'
+import {
+  UpSetJS,
+  VennDiagram,
+  KarnaughMap,
+  type ISetLike,
+} from '@upsetjs/react'
+import type { Elem } from './parsers'
 
 export type ViewMode = 'upset' | 'venn' | 'karnaugh' | 'all'
 

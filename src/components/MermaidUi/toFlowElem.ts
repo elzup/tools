@@ -1,11 +1,11 @@
 import { keyBy } from 'lodash'
 import {
-  Edge,
+  type Edge,
   MarkerType,
-  Node,
+  type Node,
   Position as RfPosition,
 } from 'react-flow-renderer'
-import { MmdEdge, MmdVertex, Position } from './types'
+import type { MmdEdge, MmdVertex, Position } from './types'
 
 export function toFlowElem(
   vertices: MmdVertex[],

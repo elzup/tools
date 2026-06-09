@@ -22,7 +22,20 @@ type DisplayMode = 'wheel' | 'flip'
 const FLIP_SEQS = {
   clock: {
     label: '時計',
-    frames: ['🕛', '🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚'], // prettier-ignore
+    frames: [
+      '🕛',
+      '🕐',
+      '🕑',
+      '🕒',
+      '🕓',
+      '🕔',
+      '🕕',
+      '🕖',
+      '🕗',
+      '🕘',
+      '🕙',
+      '🕚',
+    ], // prettier-ignore
   },
   moon: {
     label: '月',
@@ -222,7 +235,13 @@ const StrobeWheel = () => {
       if (c.displayMode === 'wheel') {
         drawWheel(ctx, angle, c.spokes, brightness)
       } else {
-        drawEmojiRing(ctx, angle, c.spokes, FLIP_SEQS[c.flipSeq].frames, brightness) // prettier-ignore
+        drawEmojiRing(
+          ctx,
+          angle,
+          c.spokes,
+          FLIP_SEQS[c.flipSeq].frames,
+          brightness
+        ) // prettier-ignore
       }
 
       raf = requestAnimationFrame(loop)

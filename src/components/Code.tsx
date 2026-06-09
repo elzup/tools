@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { WithChild } from '../types'
+import type { WithChild } from '../types'
 
 type Props = {
   format?: 'text' | 'json'

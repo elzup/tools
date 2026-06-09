@@ -1,4 +1,4 @@
-import { Transformer, TransformResult } from './transformer'
+import type { Transformer, TransformResult } from './transformer'
 
 // バイナリパケットダイアグラム変換器の仕様（テストケースより）
 //
@@ -34,10 +34,10 @@ export const parseInput = (
     }
 
     const [name, offsetStr, type, lengthStr] = parts
-    const offset = parseInt(offsetStr)
-    const length = parseInt(lengthStr)
+    const offset = parseInt(offsetStr, 10)
+    const length = parseInt(lengthStr, 10)
 
-    if (isNaN(offset) || isNaN(length)) {
+    if (Number.isNaN(offset) || Number.isNaN(length)) {
       throw new Error(`無効な数値形式です: ${entry}`)
     }
 
@@ -243,7 +243,7 @@ const renderLabelLine = (line: DiagramLine): string => {
   })
 
   if (needsContinuation && labelLine.endsWith('|')) {
-    labelLine = labelLine.slice(0, -1) + ':'
+    labelLine = `${labelLine.slice(0, -1)}:`
   }
 
   return labelLine

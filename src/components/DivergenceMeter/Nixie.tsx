@@ -1,5 +1,4 @@
 import { range } from 'lodash'
-import React from 'react'
 import styled from 'styled-components'
 
 const NUMS = '6574839210.'.split('')

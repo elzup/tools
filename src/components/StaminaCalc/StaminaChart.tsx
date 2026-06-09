@@ -14,21 +14,25 @@ type Params = {
 }
 
 const COLORS = {
-  existing: '#c62828',          // 既存キャンディ (暗い赤)
-  naturalRecovery: '#66bb6a',   // 自然回復 (緑)
-  shopCandy: '#9c27b0',         // ショップ (芋紫)
-  stoneRefill: '#00bfa5',       // 石割りx3 (エメラルド)
+  existing: '#c62828', // 既存キャンディ (暗い赤)
+  naturalRecovery: '#66bb6a', // 自然回復 (緑)
+  shopCandy: '#9c27b0', // ショップ (芋紫)
+  stoneRefill: '#00bfa5', // 石割りx3 (エメラルド)
   morningNightCandy: '#e91e63', // 朝夜キャン (ピンク)
-  relicCollection: '#2e7d32',   // 回収 (世界樹聖物寄りの緑)
-  relic: '#388e3c',             // 世界樹聖物蓄積 (濃い緑)
-  relicNatural: '#81c784',      // 世界樹聖物 自然回復分 (明るい緑)
-  stock: '#e53935',             // 貯蓄飴 オーバーフロー分 (赤)
-  consumeEvent: '#5c6bc0',      // イベント消化 (インディゴ)
-  consumeDaily: '#7986cb',      // デイリーノルマ (薄インディゴ)
-  consumeTraining: '#9fa8da',   // 育成消化 (さらに薄インディゴ)
+  relicCollection: '#2e7d32', // 回収 (世界樹聖物寄りの緑)
+  relic: '#388e3c', // 世界樹聖物蓄積 (濃い緑)
+  relicNatural: '#81c784', // 世界樹聖物 自然回復分 (明るい緑)
+  stock: '#e53935', // 貯蓄飴 オーバーフロー分 (赤)
+  consumeEvent: '#5c6bc0', // イベント消化 (インディゴ)
+  consumeDaily: '#7986cb', // デイリーノルマ (薄インディゴ)
+  consumeTraining: '#9fa8da', // 育成消化 (さらに薄インディゴ)
 } as const
 
-const LEGEND_ITEMS: { color: string; label: string; pattern?: 'stock' | 'relicCollection' }[] = [
+const LEGEND_ITEMS: {
+  color: string
+  label: string
+  pattern?: 'stock' | 'relicCollection'
+}[] = [
   { color: COLORS.existing, label: 'キャンディ' },
   { color: COLORS.naturalRecovery, label: '自然回復' },
   { color: COLORS.shopCandy, label: 'ショップ' },
@@ -51,9 +55,9 @@ type HourData = {
   staminaStack: Segment[] // 上方向: キャンディ→世界樹聖物
   consumedTotal: number // 累計消費
   stockAmount: number
-  relicToCandy: number    // 世界樹聖物→キャンディ変換量 (=貯蓄飴の対称分)
-  relicExisting: number   // 世界樹聖物 既存分
-  relicDelta: number      // 世界樹聖物 この時間の増分
+  relicToCandy: number // 世界樹聖物→キャンディ変換量 (=貯蓄飴の対称分)
+  relicExisting: number // 世界樹聖物 既存分
+  relicDelta: number // 世界樹聖物 この時間の増分
 }
 
 function buildHourlyData(params: Params): HourData[] {
@@ -69,7 +73,8 @@ function buildHourlyData(params: Params): HourData[] {
   let stock = 0
   let consumedTotal = 0
 
-  const getTotal = () => existing + natural + shop + stone + mnCandy + relicStamina
+  const getTotal = () =>
+    existing + natural + shop + stone + mnCandy + relicStamina
 
   const consume = (amount: number) => {
     const total = getTotal()
@@ -96,11 +101,14 @@ function buildHourlyData(params: Params): HourData[] {
   const makeStack = (): Segment[] => {
     const segs: Segment[] = []
     if (existing > 0) segs.push({ value: existing, color: COLORS.existing })
-    if (natural > 0) segs.push({ value: natural, color: COLORS.naturalRecovery })
+    if (natural > 0)
+      segs.push({ value: natural, color: COLORS.naturalRecovery })
     if (shop > 0) segs.push({ value: shop, color: COLORS.shopCandy })
     if (stone > 0) segs.push({ value: stone, color: COLORS.stoneRefill })
-    if (mnCandy > 0) segs.push({ value: mnCandy, color: COLORS.morningNightCandy })
-    if (relicStamina > 0) segs.push({ value: relicStamina, color: 'url(#relicCollectionPattern)' })
+    if (mnCandy > 0)
+      segs.push({ value: mnCandy, color: COLORS.morningNightCandy })
+    if (relicStamina > 0)
+      segs.push({ value: relicStamina, color: 'url(#relicCollectionPattern)' })
     return segs
   }
 
@@ -137,7 +145,6 @@ function buildHourlyData(params: Params): HourData[] {
       // 1000超過分を貯蓄飴として記録
       const overflow = Math.max(0, getTotal() - params.staminaCap)
       stock = overflow
-
     }
 
     // 世界樹聖物蓄積量: 既存(前時間まで)と自然回復分(この1時間の増分)
@@ -145,14 +152,18 @@ function buildHourlyData(params: Params): HourData[] {
     let relicDelta = 0
     if (h < 18) {
       const totalRelic = relicCarryOver + Math.floor(relicPerHour * h)
-      const prevRelic = h > 0 ? relicCarryOver + Math.floor(relicPerHour * (h - 1)) : relicCarryOver
+      const prevRelic =
+        h > 0
+          ? relicCarryOver + Math.floor(relicPerHour * (h - 1))
+          : relicCarryOver
       relicExisting = prevRelic
       relicDelta = totalRelic - prevRelic
     } else {
       // 18時に回収済み → 再蓄積
       const hoursSince18 = h - 18
       const totalRelic = Math.floor(relicPerHour * hoursSince18)
-      const prevRelic = hoursSince18 > 0 ? Math.floor(relicPerHour * (hoursSince18 - 1)) : 0
+      const prevRelic =
+        hoursSince18 > 0 ? Math.floor(relicPerHour * (hoursSince18 - 1)) : 0
       relicExisting = prevRelic
       relicDelta = totalRelic - prevRelic
     }
@@ -209,8 +220,11 @@ const StaminaChart = ({ params }: Props) => {
 
   // 上方向最大値 (キャンディ+世界樹聖物の合計)
   const maxUp = Math.max(
-    ...hourlyData.map((d) =>
-      d.staminaStack.reduce((s, seg) => s + seg.value, 0) + d.relicExisting + d.relicDelta
+    ...hourlyData.map(
+      (d) =>
+        d.staminaStack.reduce((s, seg) => s + seg.value, 0) +
+        d.relicExisting +
+        d.relicDelta
     ),
     params.staminaCap,
     1
@@ -243,14 +257,42 @@ const StaminaChart = ({ params }: Props) => {
       >
         <defs>
           {/* 貯蓄飴用の斜線パターン */}
-          <pattern id="stockPattern" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <pattern
+            id="stockPattern"
+            width="6"
+            height="6"
+            patternUnits="userSpaceOnUse"
+            patternTransform="rotate(45)"
+          >
             <rect width="6" height="6" fill={COLORS.stock} />
-            <line x1="0" y1="0" x2="0" y2="6" stroke="#fff" strokeWidth="2" opacity="0.3" />
+            <line
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="6"
+              stroke="#fff"
+              strokeWidth="2"
+              opacity="0.3"
+            />
           </pattern>
           {/* 回収用の斜線パターン */}
-          <pattern id="relicCollectionPattern" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <pattern
+            id="relicCollectionPattern"
+            width="6"
+            height="6"
+            patternUnits="userSpaceOnUse"
+            patternTransform="rotate(45)"
+          >
             <rect width="6" height="6" fill={COLORS.relicCollection} />
-            <line x1="0" y1="0" x2="0" y2="6" stroke="#fff" strokeWidth="2" opacity="0.3" />
+            <line
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="6"
+              stroke="#fff"
+              strokeWidth="2"
+              opacity="0.3"
+            />
           </pattern>
         </defs>
         {/* グリッド上 */}
@@ -259,11 +301,21 @@ const StaminaChart = ({ params }: Props) => {
           return (
             <g key={`u${v}`}>
               <line
-                x1={MARGIN.left} x2={SVG_WIDTH - MARGIN.right}
-                y1={y} y2={y}
-                stroke="#555" strokeWidth={0.5} strokeDasharray="4,4"
+                x1={MARGIN.left}
+                x2={SVG_WIDTH - MARGIN.right}
+                y1={y}
+                y2={y}
+                stroke="#555"
+                strokeWidth={0.5}
+                strokeDasharray="4,4"
               />
-              <text x={MARGIN.left - 6} y={y + 4} textAnchor="end" fontSize={9} fill="#888">
+              <text
+                x={MARGIN.left - 6}
+                y={y + 4}
+                textAnchor="end"
+                fontSize={9}
+                fill="#888"
+              >
                 {v}
               </text>
             </g>
@@ -276,11 +328,21 @@ const StaminaChart = ({ params }: Props) => {
           return (
             <g key={`d${v}`}>
               <line
-                x1={MARGIN.left} x2={SVG_WIDTH - MARGIN.right}
-                y1={y} y2={y}
-                stroke="#555" strokeWidth={0.5} strokeDasharray="4,4"
+                x1={MARGIN.left}
+                x2={SVG_WIDTH - MARGIN.right}
+                y1={y}
+                y2={y}
+                stroke="#555"
+                strokeWidth={0.5}
+                strokeDasharray="4,4"
               />
-              <text x={MARGIN.left - 6} y={y + 4} textAnchor="end" fontSize={9} fill="#888">
+              <text
+                x={MARGIN.left - 6}
+                y={y + 4}
+                textAnchor="end"
+                fontSize={9}
+                fill="#888"
+              >
                 -{v}
               </text>
             </g>
@@ -289,24 +351,32 @@ const StaminaChart = ({ params }: Props) => {
 
         {/* 自然回復上限ライン */}
         <line
-          x1={MARGIN.left} x2={SVG_WIDTH - MARGIN.right}
+          x1={MARGIN.left}
+          x2={SVG_WIDTH - MARGIN.right}
           y1={zeroY - params.naturalRecoveryCap * pxPerUnit}
           y2={zeroY - params.naturalRecoveryCap * pxPerUnit}
-          stroke="#66bb6a" strokeWidth={1} strokeDasharray="4,4" opacity={0.5}
+          stroke="#66bb6a"
+          strokeWidth={1}
+          strokeDasharray="4,4"
+          opacity={0.5}
         />
         <text
           x={SVG_WIDTH - MARGIN.right + 2}
           y={zeroY - params.naturalRecoveryCap * pxPerUnit + 4}
-          fontSize={8} fill="#66bb6a"
+          fontSize={8}
+          fill="#66bb6a"
         >
           {params.naturalRecoveryCap}
         </text>
 
         {/* ゼロライン */}
         <line
-          x1={MARGIN.left} x2={SVG_WIDTH - MARGIN.right}
-          y1={zeroY} y2={zeroY}
-          stroke="#aaa" strokeWidth={1}
+          x1={MARGIN.left}
+          x2={SVG_WIDTH - MARGIN.right}
+          y1={zeroY}
+          y2={zeroY}
+          stroke="#aaa"
+          strokeWidth={1}
         />
 
         {/* 24時間バー (1本: キャンディ下→世界樹聖物上) */}
@@ -323,8 +393,12 @@ const StaminaChart = ({ params }: Props) => {
             return (
               <rect
                 key={`s${j}`}
-                x={barX} y={y} width={barW} height={h}
-                fill={seg.color} rx={1}
+                x={barX}
+                y={y}
+                width={barW}
+                height={h}
+                fill={seg.color}
+                rx={1}
               />
             )
           })
@@ -336,8 +410,13 @@ const StaminaChart = ({ params }: Props) => {
             relicRects.push(
               <rect
                 key="relic-existing"
-                x={barX} y={zeroY - offset - h} width={barW} height={h}
-                fill={COLORS.relic} rx={1} opacity={0.85}
+                x={barX}
+                y={zeroY - offset - h}
+                width={barW}
+                height={h}
+                fill={COLORS.relic}
+                rx={1}
+                opacity={0.85}
               />
             )
             offset += h
@@ -347,8 +426,13 @@ const StaminaChart = ({ params }: Props) => {
             relicRects.push(
               <rect
                 key="relic-delta"
-                x={barX} y={zeroY - offset - h} width={barW} height={h}
-                fill={COLORS.relicNatural} rx={1} opacity={0.85}
+                x={barX}
+                y={zeroY - offset - h}
+                width={barW}
+                height={h}
+                fill={COLORS.relicNatural}
+                rx={1}
+                opacity={0.85}
               />
             )
             offset += h
@@ -357,8 +441,14 @@ const StaminaChart = ({ params }: Props) => {
           // 下方向: 消費内訳 (イベント→デイリー→貯蓄飴→育成) + オーバーフロー
           let downOffset = 0
           const eventAmt = Math.min(d.consumedTotal, params.eventCost)
-          const dailyAmt = Math.min(Math.max(0, d.consumedTotal - eventAmt), params.dailyQuestCost)
-          const trainingTotal = Math.max(0, d.consumedTotal - eventAmt - dailyAmt)
+          const dailyAmt = Math.min(
+            Math.max(0, d.consumedTotal - eventAmt),
+            params.dailyQuestCost
+          )
+          const trainingTotal = Math.max(
+            0,
+            d.consumedTotal - eventAmt - dailyAmt
+          )
           // 育成の中から貯蓄飴分を分離 (世界樹聖物→キャンディ変換と対称)
           const stockInTraining = Math.min(trainingTotal, d.relicToCandy)
           const pureTraining = trainingTotal - stockInTraining
@@ -378,23 +468,34 @@ const StaminaChart = ({ params }: Props) => {
             return (
               <rect
                 key={`c${j}`}
-                x={barX} y={y} width={barW} height={h}
-                fill={seg.color} rx={1}
+                x={barX}
+                y={y}
+                width={barW}
+                height={h}
+                fill={seg.color}
+                rx={1}
               />
             )
           })
 
           const stockH = d.stockAmount * pxPerUnit
-          const stockRect = d.stockAmount > 0 ? (() => {
-            const y = zeroY + downOffset
-            return (
-              <rect
-                key="stock"
-                x={barX} y={y} width={barW} height={stockH}
-                fill="url(#stockPattern)" rx={1}
-              />
-            )
-          })() : null
+          const stockRect =
+            d.stockAmount > 0
+              ? (() => {
+                  const y = zeroY + downOffset
+                  return (
+                    <rect
+                      key="stock"
+                      x={barX}
+                      y={y}
+                      width={barW}
+                      height={stockH}
+                      fill="url(#stockPattern)"
+                      rx={1}
+                    />
+                  )
+                })()
+              : null
 
           return (
             <g key={i}>
@@ -404,8 +505,11 @@ const StaminaChart = ({ params }: Props) => {
               {stockRect}
               {/* 時刻 */}
               <text
-                x={cx} y={zeroY + maxDown * pxPerUnit + 14}
-                textAnchor="middle" fontSize={9} fill="#aaa"
+                x={cx}
+                y={zeroY + maxDown * pxPerUnit + 14}
+                textAnchor="middle"
+                fontSize={9}
+                fill="#aaa"
               >
                 {d.hour}
               </text>
@@ -423,7 +527,10 @@ const StaminaChart = ({ params }: Props) => {
             key={hour}
             x={MARGIN.left + groupW * (hour + 0.5)}
             y={zeroY + maxDown * pxPerUnit + 28}
-            textAnchor="middle" fontSize={7} fill={color} fontWeight="bold"
+            textAnchor="middle"
+            fontSize={7}
+            fill={color}
+            fontWeight="bold"
           >
             {label}
           </text>
@@ -433,7 +540,9 @@ const StaminaChart = ({ params }: Props) => {
         <text
           x={MARGIN.left + CHART_W / 2}
           y={SVG_HEIGHT - 2}
-          textAnchor="middle" fontSize={10} fill="#888"
+          textAnchor="middle"
+          fontSize={10}
+          fill="#888"
         >
           時刻 (h)
         </text>
@@ -445,7 +554,8 @@ const StaminaChart = ({ params }: Props) => {
           <Box key={item.label} display="flex" alignItems="center" gap={0.5}>
             <Box
               sx={{
-                width: 12, height: 12,
+                width: 12,
+                height: 12,
                 backgroundColor: item.color,
                 borderRadius: '2px',
                 ...(item.pattern === 'stock' && {

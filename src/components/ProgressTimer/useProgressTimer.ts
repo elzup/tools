@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ActualState,
-  PlanState,
+  type ActualState,
+  type PlanState,
   computeActualRows,
   computePlanRows,
   createStep,

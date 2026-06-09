@@ -1,6 +1,5 @@
 import { Button } from '@mui/material'
 import { stringify } from 'flatted'
-import React from 'react'
 import Code from './Code'
 
 const SubWindowParts = () => (

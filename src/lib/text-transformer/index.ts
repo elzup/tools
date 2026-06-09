@@ -1,4 +1,4 @@
-import { Transformer } from './transformer'
+import type { Transformer } from './transformer'
 
 export type TextTransformer = {
   name: string

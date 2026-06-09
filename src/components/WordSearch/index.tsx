@@ -16,7 +16,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Layout from '../Layout'
 import { Title } from '../Title'
 
@@ -149,8 +149,8 @@ function WordSearch() {
                 rel="noopener noreferrer"
               >
                 elzup/jlpt-word-list
-              </Link>
-              {' '}を元にしたローカル辞書 /words.nohead.csv
+              </Link>{' '}
+              を元にしたローカル辞書 /words.nohead.csv
             </Typography>
             <TextField
               label="虫食いパターン"
@@ -175,7 +175,12 @@ function WordSearch() {
           <LinearProgress />
         ) : (
           <Box>
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              sx={{ mb: 1 }}
+            >
               <Typography variant="h6">検索結果</Typography>
               <Chip label={`${results.length}件`} size="small" />
               {results.length > maxResults && (

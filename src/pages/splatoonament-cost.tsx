@@ -1,5 +1,5 @@
 import { TextField } from '@mui/material'
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import Code from '../components/Code'
 import Layout from '../components/Layout'
@@ -60,8 +60,8 @@ const playersParse = (text: string) => {
       return {
         name,
         rank,
-        xp: xp ? parseInt(xp) : undefined,
-        cost: calcCost(rank, parseInt(xp || '0')),
+        xp: xp ? parseInt(xp, 10) : undefined,
+        cost: calcCost(rank, parseInt(xp || '0', 10)),
       }
     })
     .filter(notNull)

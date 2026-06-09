@@ -1,5 +1,4 @@
 import { Stage } from '@inlet/react-pixi'
-import _ from 'lodash'
 import * as React from 'react'
 import { Line } from './PixiComponents'
 import { useWidth } from './useWdith'
@@ -10,7 +9,7 @@ export type Candle = [
   number,
   number,
   number,
-  number
+  number,
 ]
 export type DataSet = {
   m5: Candle[]

@@ -156,7 +156,7 @@ const PiLab = () => {
 
     ctx.fillStyle = colors.grey.dark
     ctx.font = '12px sans-serif'
-    ctx.fillText('π=' + Math.PI.toFixed(4), width - 70, piY - 5)
+    ctx.fillText(`π=${Math.PI.toFixed(4)}`, width - 70, piY - 5)
   }, [random.piHistory, stratified.piHistory, haltonSeq.piHistory])
 
   const resetCanvas = useCallback(

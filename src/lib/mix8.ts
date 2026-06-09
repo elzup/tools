@@ -8,7 +8,9 @@ export type BitMixDistribution = Record<BitPairKey, { p1: number; p0: number }>
 /**
  * 各ペアの p1 (1 になる確率) から分布を組み立てる。p0 は 1 - p1。
  */
-export function makeDistribution(p1: Record<BitPairKey, number>): BitMixDistribution {
+export function makeDistribution(
+  p1: Record<BitPairKey, number>
+): BitMixDistribution {
   const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
 
   return {

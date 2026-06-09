@@ -4,12 +4,12 @@ function serialize(node: Node, indent = 0): string {
   if (node.nodeType === Node.TEXT_NODE) {
     const trimmed = node.textContent?.trim() ?? ''
 
-    return trimmed ? pad + trimmed + '\n' : ''
+    return trimmed ? `${pad + trimmed}\n` : ''
   }
   if (node.nodeType === Node.COMMENT_NODE) {
     const content = node.textContent ?? ''
 
-    return pad + '<!-- ' + content + ' -->\n'
+    return `${pad}<!-- ${content} -->\n`
   }
   if (node.nodeType !== Node.ELEMENT_NODE) return ''
 
@@ -21,14 +21,14 @@ function serialize(node: Node, indent = 0): string {
   const open = attrs ? `<${tag} ${attrs}>` : `<${tag}>`
 
   if (!el.childNodes || el.childNodes.length === 0) {
-    return pad + open + `</${tag}>` + '\n'
+    return `${pad + open}</${tag}>\n`
   }
 
   const inner = Array.from(el.childNodes)
     .map((n) => serialize(n, indent + 1))
     .join('')
 
-  return pad + open + '\n' + inner + pad + `</${tag}>` + '\n'
+  return `${pad + open}\n${inner}${pad}</${tag}>\n`
 }
 
 export function formatHtml(html: string): string {

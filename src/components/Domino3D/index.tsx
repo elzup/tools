@@ -6,7 +6,7 @@ import {
   MenuItem,
   Paper,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
   Slider,
   Stack,
   TextField,
@@ -17,16 +17,10 @@ import { Canvas } from '@react-three/fiber'
 import {
   CuboidCollider,
   Physics,
-  RapierRigidBody,
+  type RapierRigidBody,
   RigidBody,
 } from '@react-three/rapier'
-import React, {
-  Suspense,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { Suspense, useCallback, useMemo, useRef, useState } from 'react'
 
 type LayoutType = 'straight' | 'curve' | 'spiral' | 'zigzag' | 'circle'
 
@@ -175,7 +169,12 @@ type SceneProps = {
   registerBody: (index: number, body: RapierRigidBody | null) => void
 }
 
-const Scene = ({ specs, sceneKey, isStarterTilted, registerBody }: SceneProps) => {
+const Scene = ({
+  specs,
+  sceneKey,
+  isStarterTilted,
+  registerBody,
+}: SceneProps) => {
   return (
     <Physics gravity={[0, -9.81, 0]} key={sceneKey}>
       <Floor />
@@ -204,7 +203,7 @@ const Domino3D = () => {
   const dimsArr = useMemo<Dims[]>(
     () =>
       Array.from({ length: count }, (_, i) => {
-        const factor = count <= 1 ? 1 : Math.pow(growth, i / (count - 1))
+        const factor = count <= 1 ? 1 : growth ** (i / (count - 1))
         return {
           width: DOMINO_WIDTH_BASE * scale * factor,
           height: DOMINO_HEIGHT_BASE * scale * factor,
@@ -217,8 +216,8 @@ const Domino3D = () => {
   const massArr = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => {
-        const factor = count <= 1 ? 1 : Math.pow(growth, i / (count - 1))
-        return 0.5 * Math.pow(scale * factor, 3)
+        const factor = count <= 1 ? 1 : growth ** (i / (count - 1))
+        return 0.5 * (scale * factor) ** 3
       }),
     [count, scale, growth]
   )
@@ -230,7 +229,8 @@ const Domino3D = () => {
 
   // Rebuild physics world on any layout change so stale bodies don't collide with new positions
   const sceneKey = useMemo(
-    () => `${layout}-${count}-${scale}-${growth}-${gapRatio}-${resetSignal}-${pushSignal}`,
+    () =>
+      `${layout}-${count}-${scale}-${growth}-${gapRatio}-${resetSignal}-${pushSignal}`,
     [layout, count, scale, growth, gapRatio, resetSignal, pushSignal]
   )
 
@@ -244,7 +244,6 @@ const Domino3D = () => {
   const handlePush = useCallback(() => {
     setPushSignal((value) => value + 1)
   }, [])
-
 
   const handleReset = useCallback(() => {
     bodiesRef.current = []
@@ -378,7 +377,8 @@ const Domino3D = () => {
           sx={{ mt: 1, display: 'block' }}
         >
           ドラッグで視点回転 / ホイールでズーム / 右クリックでパン ・ 成長 &gt;
-          1 で巨大連鎖、&lt; 1 で縮小チェーン ・ 折り返し再現は直線/成長1.00/間隔0.8245
+          1 で巨大連鎖、&lt; 1 で縮小チェーン ・
+          折り返し再現は直線/成長1.00/間隔0.8245
         </Typography>
       </Paper>
 

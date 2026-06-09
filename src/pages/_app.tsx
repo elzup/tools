@@ -1,8 +1,8 @@
 import '@fortawesome/fontawesome-svg-core/styles.css'
-import { AppProps } from 'next/app'
+import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import { CssBaseline, ThemeProvider } from '@mui/material'
-import { CacheProvider, EmotionCache } from '@emotion/react'
+import { CacheProvider, type EmotionCache } from '@emotion/react'
 import { GlobalStyle, theme } from '../components/theme'
 import createEmotionCache from '../utils/createEmotionCache'
 

@@ -2,7 +2,7 @@ import { Typography } from '@mui/material'
 import styled from 'styled-components'
 import { Box } from '../common/mui'
 import { ByteBlock } from './ByteBlock'
-import { Cmd, transCmd, uints } from './utils'
+import { type Cmd, transCmd, uints } from './utils'
 
 type Props = { cmd: Cmd; buf: Buffer }
 export const TypeBlock = ({ cmd, buf }: Props) => {

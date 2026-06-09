@@ -10,8 +10,8 @@ import {
   Typography,
 } from '@mui/material'
 import dynamic from 'next/dynamic'
-import React, { useState } from 'react'
-import { RGBColor, SketchPicker } from 'react-color'
+import { useState } from 'react'
+import { type RGBColor, SketchPicker } from 'react-color'
 import styled from 'styled-components'
 import { defaultPresetColors } from '../components/constants/color'
 import Layout from '../components/Layout'

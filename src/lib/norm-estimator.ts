@@ -33,7 +33,7 @@ export function normalInvCDF(p: number): number {
 
   const a = [
     -3.969683028665376e1, 2.209460984245205e2, -2.759285104469687e2,
-    1.383577518672690e2, -3.066479806614716e1, 2.506628277459239e0,
+    1.38357751867269e2, -3.066479806614716e1, 2.506628277459239,
   ]
   const b = [
     -5.447609879822406e1, 1.615858368580409e2, -1.556989798598866e2,
@@ -69,11 +69,9 @@ export function normalInvCDF(p: number): number {
     )
   } else {
     q = Math.sqrt(-2 * Math.log(1 - p))
-    return (
-      -(
-        (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
-        ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1)
-      )
+    return -(
+      (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+      ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1)
     )
   }
 }
@@ -100,7 +98,9 @@ export type DistributionParams = {
 }
 
 // 生データから平均と標準偏差を計算
-function estimateFromRawScores(scores: number[]): { mean: number; stdDev: number } | null {
+function estimateFromRawScores(
+  scores: number[]
+): { mean: number; stdDev: number } | null {
   if (scores.length < 2) return null
 
   const n = scores.length
@@ -278,7 +278,10 @@ export function estimateDistribution(
           estimatedFields.push('標準偏差')
         }
       }
-    } else if (pairs.length === 1 && (mean !== undefined || stdDev !== undefined)) {
+    } else if (
+      pairs.length === 1 &&
+      (mean !== undefined || stdDev !== undefined)
+    ) {
       // 1つの条件と1つの既知パラメータから推定
       const p = pairs[0].percentile / 100
       const x = pairs[0].value

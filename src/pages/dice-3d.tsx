@@ -5,7 +5,7 @@ import {
   MenuItem,
   Paper,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
   Slider,
   Stack,
   Typography,
@@ -17,7 +17,7 @@ import {
   RigidBody,
   CuboidCollider,
   BallCollider,
-  RapierRigidBody,
+  type RapierRigidBody,
 } from '@react-three/rapier'
 import React, { useRef, useState, useCallback, Suspense, useMemo } from 'react'
 import * as THREE from 'three'
@@ -809,7 +809,7 @@ const Dice3D = () => {
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {total > 0
-                        ? (((stats[num] || 0) / total) * 100).toFixed(1) + '%'
+                        ? `${(((stats[num] || 0) / total) * 100).toFixed(1)}%`
                         : '-'}
                     </Typography>
                   </Box>

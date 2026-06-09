@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { WithChild } from '../types'
+import type { WithChild } from '../types'
 
 type Config = {
   version: number

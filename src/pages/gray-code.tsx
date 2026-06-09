@@ -67,10 +67,10 @@ const GrayCodeVisualizer = () => {
             Formula: <code>gray(i) = i ^ (i &gt;&gt; 1)</code>
           </p>
           <p>
-            The <strong style={{ color: '#ff5722' }}>red highlighted bits</strong>{' '}
-            show which bit changed from the previous step.
-            The <strong>▼</strong> marker indicates the position of the changed
-            bit.
+            The{' '}
+            <strong style={{ color: '#ff5722' }}>red highlighted bits</strong>{' '}
+            show which bit changed from the previous step. The{' '}
+            <strong>▼</strong> marker indicates the position of the changed bit.
           </p>
         </Description>
 
@@ -122,13 +122,18 @@ const GrayCodeVisualizer = () => {
               const isCurrentStep = idx === currentStep
 
               return (
-                <tr key={entry.index} className={isCurrentStep ? 'current' : ''}>
+                <tr
+                  key={entry.index}
+                  className={isCurrentStep ? 'current' : ''}
+                >
                   <td>{entry.index}</td>
                   <td>
                     <code>{entry.binary}</code>
                   </td>
                   <td>
-                    <code>{(entry.index >> 1).toString(2).padStart(bits, '0')}</code>
+                    <code>
+                      {(entry.index >> 1).toString(2).padStart(bits, '0')}
+                    </code>
                   </td>
                   <td>
                     <code className="highlight">
@@ -153,7 +158,10 @@ const GrayCodeVisualizer = () => {
                         {entry.grayCode.split('').map((bit, bitIdx) => {
                           const changed = bit !== prevEntry.grayCode[bitIdx]
                           return (
-                            <span key={bitIdx} className={changed ? 'marker' : ''}>
+                            <span
+                              key={bitIdx}
+                              className={changed ? 'marker' : ''}
+                            >
                               {changed ? '▼' : '·'}
                             </span>
                           )
@@ -179,7 +187,9 @@ const GrayCodeVisualizer = () => {
             </p>
             <p>
               <strong>Right shift (i &gt;&gt; 1):</strong>{' '}
-              {(entries[currentStep].index >> 1).toString(2).padStart(bits, '0')}{' '}
+              {(entries[currentStep].index >> 1)
+                .toString(2)
+                .padStart(bits, '0')}{' '}
               ({entries[currentStep].index >> 1} in decimal)
             </p>
             <p>
@@ -193,11 +203,16 @@ const GrayCodeVisualizer = () => {
           <h3>Properties of Gray Code</h3>
           <ul>
             <li>
-              Only one bit changes between consecutive values (Hamming distance =
-              1)
+              Only one bit changes between consecutive values (Hamming distance
+              = 1)
             </li>
-            <li>The sequence is cyclic (last value differs by 1 bit from first)</li>
-            <li>Used in error correction, digital communications, and rotary encoders</li>
+            <li>
+              The sequence is cyclic (last value differs by 1 bit from first)
+            </li>
+            <li>
+              Used in error correction, digital communications, and rotary
+              encoders
+            </li>
           </ul>
         </InfoBox>
       </Container>

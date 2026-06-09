@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/extensions
 import ELK from 'elkjs/lib/elk.bundled.js'
-import { MmdEdge, MmdVertex, Position } from './types'
+import type { MmdEdge, MmdVertex, Position } from './types'
 
 const elkOption = {}
 const elk = new ELK(elkOption)

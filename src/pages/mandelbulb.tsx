@@ -1,5 +1,5 @@
 import { TextField } from '@mui/material'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 import { useMandelbulb } from '../components/useMandelbulb'

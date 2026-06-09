@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import _ from 'lodash'
-import { DataSet, Candle } from './GraphSnake'
+import type { DataSet, Candle } from './GraphSnake'
 
 const CLOSE_MARGIN = 0.3
 const ENTRY_MARGIN = 0.3
@@ -106,7 +106,7 @@ export const useGraphSnake = (
     const rects: PlotRect[] = []
 
     let position: 'no' | 'lo' | 'sh' = 'no'
-    let prev = { x: 0, y: 0 }
+    const prev = { x: 0, y: 0 }
     const snakeW = plotsm5[plotsm5.length - 1].w
     const snakeWfrom = plotsm5.length - snakeW
 

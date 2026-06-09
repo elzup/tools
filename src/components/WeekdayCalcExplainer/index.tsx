@@ -20,16 +20,14 @@ import styled from 'styled-components'
 import {
   calculateWeekday,
   MONTH_CODES,
-  CENTURY_CODES,
-  WEEKDAY_NAMES,
-  WEEKDAY_NAMES_JA,
   type WeekdayResult,
   type WeekdayStep,
 } from './weekdayCalc'
 
 // floor(y/4) mod 7 の早見表 (y%7 は暗算で足す)
-const YEAR_DIV4_MOD7: number[] = Array.from({ length: 100 }, (_, y) =>
-  Math.floor(y / 4) % 7
+const _YEAR_DIV4_MOD7: number[] = Array.from(
+  { length: 100 },
+  (_, y) => Math.floor(y / 4) % 7
 )
 
 // ノードとテーブルの対応色
@@ -68,7 +66,14 @@ type RevealNodeProps = {
   onReveal?: () => void
 }
 
-const RevealNode = ({ testMode, className, sx, masked, children, onReveal }: RevealNodeProps) => {
+const RevealNode = ({
+  testMode,
+  className,
+  sx,
+  masked,
+  children,
+  onReveal,
+}: RevealNodeProps) => {
   const [revealed, setRevealed] = useState(false)
   const isHidden = testMode && !revealed
 
@@ -95,13 +100,13 @@ const CODE_LABEL = (code: number) => (code === 6 ? '6/-1' : `${code}`)
 
 // 覚え方グループ: 同じグループは同色で表示
 const MONTH_MEMO_GROUP: Record<number, string> = {
-  1: 'zero',   // 1,10月=0
+  1: 'zero', // 1,10月=0
   10: 'zero',
-  4: 'swap',   // 4月=6 ↔ 6月=4
+  4: 'swap', // 4月=6 ↔ 6月=4
   6: 'swap',
-  2: 'three',  // 2,3月=3 → 4月=3+3=6
+  2: 'three', // 2,3月=3 → 4月=3+3=6
   3: 'three',
-  9: 'chain',  // 9,12月=5 → 5月=1 → 1月=0
+  9: 'chain', // 9,12月=5 → 5月=1 → 1月=0
   12: 'chain',
   5: 'chain',
   11: 'solo3', // 11月=3
@@ -111,14 +116,19 @@ const MONTH_MEMO_GROUP: Record<number, string> = {
 
 const MonthCodeGrid = ({ borderColor }: { borderColor: string }) => (
   <Paper elevation={0} sx={{ border: `2px solid ${borderColor}`, p: 0.5 }}>
-    <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>
+    <Typography
+      variant="caption"
+      sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}
+    >
       月コード (m)
     </Typography>
     <Box className="mcode-grid">
       {/* ヘッダ行: 0-6 */}
       <Box className="mcode-cell mcode-header" />
       {Array.from({ length: 7 }, (_, i) => (
-        <Box key={i} className="mcode-cell mcode-header">{CODE_LABEL(i)}</Box>
+        <Box key={i} className="mcode-cell mcode-header">
+          {CODE_LABEL(i)}
+        </Box>
       ))}
       {/* 各月の行 */}
       {Array.from({ length: 12 }, (_, i) => {
@@ -127,7 +137,9 @@ const MonthCodeGrid = ({ borderColor }: { borderColor: string }) => (
         const group = MONTH_MEMO_GROUP[month]
         return (
           <>
-            <Box key={`m${month}`} className="mcode-cell mcode-month">{month}月</Box>
+            <Box key={`m${month}`} className="mcode-cell mcode-month">
+              {month}月
+            </Box>
             {Array.from({ length: 7 }, (_, c) => (
               <Box
                 key={`${month}-${c}`}
@@ -166,7 +178,9 @@ const WeekdayCalcExplainer = () => {
   const [swElapsed, setSwElapsed] = useState<number | null>(null)
   const [swRunning, setSwRunning] = useState(false)
   const swIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const [swHistory, setSwHistory] = useState<{ date: string; elapsed: number }[]>([])
+  const [swHistory, setSwHistory] = useState<
+    { date: string; elapsed: number }[]
+  >([])
   const swDateRef = useRef<string>('')
 
   const stopStopwatch = useCallback(() => {
@@ -179,7 +193,10 @@ const WeekdayCalcExplainer = () => {
         const finalElapsed = swStartTime !== null ? Date.now() - swStartTime : 0
         setSwElapsed(finalElapsed)
         if (finalElapsed < 60_000) {
-          setSwHistory((prev) => [...prev, { date: swDateRef.current, elapsed: finalElapsed }])
+          setSwHistory((prev) => [
+            ...prev,
+            { date: swDateRef.current, elapsed: finalElapsed },
+          ])
         }
       }
       return false
@@ -310,7 +327,13 @@ const WeekdayCalcExplainer = () => {
           control={
             <Switch
               checked={testMode}
-              onChange={() => { setTestMode((v) => !v); setTestKey((k) => k + 1); stopStopwatch(); setSwElapsed(null); setSwHistory([]) }}
+              onChange={() => {
+                setTestMode((v) => !v)
+                setTestKey((k) => k + 1)
+                stopStopwatch()
+                setSwElapsed(null)
+                setSwHistory([])
+              }}
               color="secondary"
               size="small"
             />
@@ -318,8 +341,16 @@ const WeekdayCalcExplainer = () => {
           label="Test"
         />
         {testMode && swElapsed !== null && (
-          <Box className={`stopwatch ${swRunning ? 'stopwatch--running' : 'stopwatch--stopped'}`}>
-            <Typography variant="h6" sx={{ fontVariantNumeric: 'tabular-nums', fontFamily: 'monospace' }}>
+          <Box
+            className={`stopwatch ${swRunning ? 'stopwatch--running' : 'stopwatch--stopped'}`}
+          >
+            <Typography
+              variant="h6"
+              sx={{
+                fontVariantNumeric: 'tabular-nums',
+                fontFamily: 'monospace',
+              }}
+            >
               {(swElapsed / 1000).toFixed(2)}s
             </Typography>
           </Box>
@@ -333,15 +364,24 @@ const WeekdayCalcExplainer = () => {
               <Box key={swHistory.length - 1 - i} className="sw-history-item">
                 <span className="sw-history-no">#{swHistory.length - i}</span>
                 <span className="sw-history-date">{h.date}</span>
-                <span className="sw-history-time">{(h.elapsed / 1000).toFixed(2)}s</span>
+                <span className="sw-history-time">
+                  {(h.elapsed / 1000).toFixed(2)}s
+                </span>
               </Box>
             ))}
           </Box>
           {swHistory.length >= 2 && (
             <Typography variant="caption" sx={{ color: '#757575' }}>
-              avg: {(swHistory.reduce((s, h) => s + h.elapsed, 0) / swHistory.length / 1000).toFixed(2)}s
-              {' / '}best: {(Math.min(...swHistory.map((h) => h.elapsed)) / 1000).toFixed(2)}s
-              {' / '}{swHistory.length}回
+              avg:{' '}
+              {(
+                swHistory.reduce((s, h) => s + h.elapsed, 0) /
+                swHistory.length /
+                1000
+              ).toFixed(2)}
+              s{' / '}best:{' '}
+              {(Math.min(...swHistory.map((h) => h.elapsed)) / 1000).toFixed(2)}
+              s{' / '}
+              {swHistory.length}回
             </Typography>
           )}
         </Box>
@@ -374,7 +414,11 @@ const WeekdayCalcExplainer = () => {
               {result.weekday}
             </Typography>
             <Box sx={{ display: 'flex', gap: 0.5 }}>
-              <Chip label={`${result.month}月`} size="small" variant="outlined" />
+              <Chip
+                label={`${result.month}月`}
+                size="small"
+                variant="outlined"
+              />
               <Chip
                 label={result.isLeapYear ? '閏年' : '平年'}
                 color={result.isLeapYear ? 'info' : 'default'}
@@ -425,7 +469,9 @@ const WeekdayCalcExplainer = () => {
                   <RevealNode
                     testMode={testMode}
                     className="flow-node flow-node--year-combined"
-                    sx={{ borderColor: `${NODE_COLORS.year_extract} !important` }}
+                    sx={{
+                      borderColor: `${NODE_COLORS.year_extract} !important`,
+                    }}
                     masked={
                       <Typography variant="caption" className="flow-label">
                         年コード
@@ -436,10 +482,15 @@ const WeekdayCalcExplainer = () => {
                       年コード (y+⌊y/4⌋)%7
                     </Typography>
                     <Typography variant="h5" className="flow-value">
-                      {((result.steps[1].value + result.steps[2].value) % 7 + 7) % 7}
+                      {(((result.steps[1].value + result.steps[2].value) % 7) +
+                        7) %
+                        7}
                     </Typography>
                     <Typography variant="caption" className="flow-explain">
-                      ({result.steps[1].value} + {result.steps[2].value}) % 7 = {((result.steps[1].value + result.steps[2].value) % 7 + 7) % 7}
+                      ({result.steps[1].value} + {result.steps[2].value}) % 7 ={' '}
+                      {(((result.steps[1].value + result.steps[2].value) % 7) +
+                        7) %
+                        7}
                     </Typography>
                   </RevealNode>
                 </Box>
@@ -515,7 +566,9 @@ const WeekdayCalcExplainer = () => {
                 testMode={testMode}
                 className="flow-node flow-node--result"
                 sx={{
-                  borderColor: testMode ? '#90a4ae !important' : `${WEEKDAY_COLORS[result.weekdayIndex]} !important`,
+                  borderColor: testMode
+                    ? '#90a4ae !important'
+                    : `${WEEKDAY_COLORS[result.weekdayIndex]} !important`,
                 }}
                 masked={
                   <Typography variant="body2" className="flow-label">
@@ -541,7 +594,11 @@ const WeekdayCalcExplainer = () => {
               </Box>
               <WeekdayBar />
               <YearCodeGroupBox
-                highlightYear={result ? parseInt(result.input.slice(0, 4)) % 100 : undefined}
+                highlightYear={
+                  result
+                    ? parseInt(result.input.slice(0, 4), 10) % 100
+                    : undefined
+                }
                 borderColor={NODE_COLORS.year_extract}
               />
             </Box>
@@ -549,18 +606,30 @@ const WeekdayCalcExplainer = () => {
 
           <Box className="year-tables-row">
             <YearCombinedTable
-              highlightYear={result ? parseInt(result.input.slice(0, 4)) % 100 : undefined}
+              highlightYear={
+                result
+                  ? parseInt(result.input.slice(0, 4), 10) % 100
+                  : undefined
+              }
               borderColor={NODE_COLORS.year_extract}
             />
             <YearCombinedGrid10
-              highlightYear={result ? parseInt(result.input.slice(0, 4)) % 100 : undefined}
+              highlightYear={
+                result
+                  ? parseInt(result.input.slice(0, 4), 10) % 100
+                  : undefined
+              }
               borderColor={NODE_COLORS.year_extract}
             />
           </Box>
 
           <Box sx={{ mt: 2 }}>
             <Typography variant="body2">
-              <a href="https://speed-calendar.com/print/" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://speed-calendar.com/print/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 練習用カレンダー印刷 (speed-calendar.com)
               </a>
             </Typography>
@@ -578,13 +647,21 @@ type CompactTableProps = {
   borderColor?: string
 }
 
-const CompactTable = ({ title, headers, rows, borderColor }: CompactTableProps) => (
+const _CompactTable = ({
+  title,
+  headers,
+  rows,
+  borderColor,
+}: CompactTableProps) => (
   <TableContainer
     component={Paper}
     elevation={0}
     sx={{ border: `2px solid ${borderColor ?? '#e0e0e0'}` }}
   >
-    <Typography variant="caption" sx={{ px: 0.5, pt: 0.5, fontWeight: 700, display: 'block' }}>
+    <Typography
+      variant="caption"
+      sx={{ px: 0.5, pt: 0.5, fontWeight: 700, display: 'block' }}
+    >
       {title}
     </Typography>
     <Table size="small" className="compact-table">
@@ -620,7 +697,11 @@ const WeekdayBar = () => (
   <Paper elevation={0} sx={{ border: '1px solid #e0e0e0', p: 0.5 }}>
     <Box className="weekday-bar">
       {WEEKDAY_LABELS.map((label, i) => (
-        <Box key={i} className="weekday-bar-cell" sx={{ color: WEEKDAY_COLORS[i] }}>
+        <Box
+          key={i}
+          className="weekday-bar-cell"
+          sx={{ color: WEEKDAY_COLORS[i] }}
+        >
           <Typography variant="caption" sx={{ fontWeight: 700 }}>
             {i}
           </Typography>
@@ -632,13 +713,30 @@ const WeekdayBar = () => (
 )
 
 // (y + floor(y/4)) % 7 の早見表 (1列: y → コード)
-const YEAR_COMBINED_MOD7: number[] = Array.from({ length: 100 }, (_, y) =>
-  (y + Math.floor(y / 4)) % 7
+const YEAR_COMBINED_MOD7: number[] = Array.from(
+  { length: 100 },
+  (_, y) => (y + Math.floor(y / 4)) % 7
 )
 
-const YearCombinedTable = ({ highlightYear, borderColor }: { highlightYear?: number; borderColor: string }) => (
-  <Paper elevation={0} sx={{ border: `2px solid ${borderColor}`, p: '2px 0', width: 'fit-content' }}>
-    <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: '2px', px: '4px' }}>
+const YearCombinedTable = ({
+  highlightYear,
+  borderColor,
+}: {
+  highlightYear?: number
+  borderColor: string
+}) => (
+  <Paper
+    elevation={0}
+    sx={{
+      border: `2px solid ${borderColor}`,
+      p: '2px 0',
+      width: 'fit-content',
+    }}
+  >
+    <Typography
+      variant="caption"
+      sx={{ fontWeight: 700, display: 'block', mb: '2px', px: '4px' }}
+    >
       年コード (y+⌊y/4⌋)%7 — 28区切り
     </Typography>
     <Box className="year-combined-columns">
@@ -653,13 +751,21 @@ const YearCombinedTable = ({ highlightYear, borderColor }: { highlightYear?: num
             const classes = [
               'year-combined-cell',
               y === highlightYear ? 'year-combined-highlight' : '',
-              y > 0 && y % 10 === 0 ? 'year-combined-gap10' : y > 0 && y % 4 === 0 ? 'year-combined-gap' : '',
+              y > 0 && y % 10 === 0
+                ? 'year-combined-gap10'
+                : y > 0 && y % 4 === 0
+                  ? 'year-combined-gap'
+                  : '',
               isZero ? 'year-combined-zero' : '',
               isSameAsLastDigit ? 'year-combined-same' : '',
-            ].filter(Boolean).join(' ')
+            ]
+              .filter(Boolean)
+              .join(' ')
             return (
               <Box key={y} className={classes}>
-                <span className="year-combined-y">{String(y).padStart(2, '0')}</span>
+                <span className="year-combined-y">
+                  {String(y).padStart(2, '0')}
+                </span>
                 <span className="year-combined-code">{code}</span>
               </Box>
             )
@@ -672,18 +778,39 @@ const YearCombinedTable = ({ highlightYear, borderColor }: { highlightYear?: num
 
 // 年コードを 0-6 でグループ化した一覧
 const YEAR_CODE_GROUPS: number[][] = Array.from({ length: 7 }, (_, code) =>
-  YEAR_COMBINED_MOD7.reduce<number[]>((acc, v, y) => (v === code ? [...acc, y] : acc), [])
+  YEAR_COMBINED_MOD7.reduce<number[]>(
+    (acc, v, y) => (v === code ? [...acc, y] : acc),
+    []
+  )
 )
 
-const YearCodeGroupBox = ({ highlightYear, borderColor }: { highlightYear?: number; borderColor: string }) => (
-  <Paper elevation={0} sx={{ border: `2px solid ${borderColor}`, p: '4px 6px', width: 'fit-content' }}>
-    <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: '4px' }}>
+const YearCodeGroupBox = ({
+  highlightYear,
+  borderColor,
+}: {
+  highlightYear?: number
+  borderColor: string
+}) => (
+  <Paper
+    elevation={0}
+    sx={{
+      border: `2px solid ${borderColor}`,
+      p: '4px 6px',
+      width: 'fit-content',
+    }}
+  >
+    <Typography
+      variant="caption"
+      sx={{ fontWeight: 700, display: 'block', mb: '4px' }}
+    >
       年コード — グループ別
     </Typography>
     <Box className="year-code-groups">
       {YEAR_CODE_GROUPS.map((years, code) => (
         <Box key={code} className="year-code-group-row">
-          <span className={`year-code-group-label ycg-code-${code}`}>{CODE_LABEL(code)}</span>
+          <span className={`year-code-group-label ycg-code-${code}`}>
+            {CODE_LABEL(code)}
+          </span>
           <span className="year-code-group-sep">:</span>
           <span className="year-code-group-years">
             {years.map((y) => (
@@ -701,9 +828,25 @@ const YearCodeGroupBox = ({ highlightYear, borderColor }: { highlightYear?: numb
   </Paper>
 )
 
-const YearCombinedGrid10 = ({ highlightYear, borderColor }: { highlightYear?: number; borderColor: string }) => (
-  <Paper elevation={0} sx={{ border: `2px solid ${borderColor}`, p: '2px 0', width: 'fit-content' }}>
-    <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: '2px', px: '4px' }}>
+const YearCombinedGrid10 = ({
+  highlightYear,
+  borderColor,
+}: {
+  highlightYear?: number
+  borderColor: string
+}) => (
+  <Paper
+    elevation={0}
+    sx={{
+      border: `2px solid ${borderColor}`,
+      p: '2px 0',
+      width: 'fit-content',
+    }}
+  >
+    <Typography
+      variant="caption"
+      sx={{ fontWeight: 700, display: 'block', mb: '2px', px: '4px' }}
+    >
       年コード (y+⌊y/4⌋)%7 — 10区切り
     </Typography>
     <Box className="year-combined-grid10">
@@ -721,10 +864,14 @@ const YearCombinedGrid10 = ({ highlightYear, borderColor }: { highlightYear?: nu
           isZero ? 'year-combined-zero' : '',
           isSameAsLastDigit ? 'year-combined-same' : '',
           y % 4 === 0 && y % 10 !== 0 ? 'year-grid10-sep' : '',
-        ].filter(Boolean).join(' ')
+        ]
+          .filter(Boolean)
+          .join(' ')
         return (
           <Box key={y} className={classes}>
-            <span className="year-combined-y">{String(y).padStart(2, '0')}</span>
+            <span className="year-combined-y">
+              {String(y).padStart(2, '0')}
+            </span>
             <span className="year-combined-code">{code}</span>
           </Box>
         )
@@ -745,7 +892,10 @@ const CENTURY_ROWS: (number | null)[][] = [
 
 const CenturyGrid = ({ borderColor }: { borderColor: string }) => (
   <Paper elevation={0} sx={{ border: `2px solid ${borderColor}`, p: 0.5 }}>
-    <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>
+    <Typography
+      variant="caption"
+      sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}
+    >
       世紀コード (C)
     </Typography>
     <Box className="century-grid">
@@ -763,9 +913,19 @@ const CenturyGrid = ({ borderColor }: { borderColor: string }) => (
   </Paper>
 )
 
-const YearCodeGrid = ({ yearCodes, highlightYear, borderColor }: YearCodeGridProps) => (
-  <Paper elevation={0} sx={{ border: `2px solid ${borderColor ?? '#e0e0e0'}`, p: 0.5 }}>
-    <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>
+const _YearCodeGrid = ({
+  yearCodes,
+  highlightYear,
+  borderColor,
+}: YearCodeGridProps) => (
+  <Paper
+    elevation={0}
+    sx={{ border: `2px solid ${borderColor ?? '#e0e0e0'}`, p: 0.5 }}
+  >
+    <Typography
+      variant="caption"
+      sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}
+    >
       floor(y/4) mod 7 — y%7 は暗算で足す
     </Typography>
     <Box className="year-grid">

@@ -1,6 +1,6 @@
 import {
-  LibChecker,
-  WordleAnswerResult,
+  type LibChecker,
+  type WordleAnswerResult,
   wordleCheck,
   wordleTryable,
   answer,

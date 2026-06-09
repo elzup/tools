@@ -1,6 +1,6 @@
 import mermaid from 'mermaid'
 // eslint-disable-next-line import/no-unresolved
-import { MmdEdge, MmdGroup, MmdVertexRaw } from './types'
+import type { MmdEdge, MmdGroup, MmdVertexRaw } from './types'
 
 // type MermaidConfig = typeof mermaid.mermaidAPI.defaultConfig
 // export const useMermaid = (

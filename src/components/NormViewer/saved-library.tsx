@@ -1,16 +1,10 @@
-import {
-  Button,
-  IconButton,
-  Paper,
-  Stack,
-  Typography,
-} from '@mui/material'
+import { Button, IconButton, Paper, Stack, Typography } from '@mui/material'
 import { useEffect, useRef, useState } from 'react'
-import { DistributionParams } from '../../lib/norm-estimator'
+import type { DistributionParams } from '../../lib/norm-estimator'
 import {
   AUTO_SAVE_INTERVAL,
   AUTO_SAVE_MAX,
-  SavedEntry,
+  type SavedEntry,
   STORAGE_KEY,
 } from './types'
 
@@ -204,7 +198,9 @@ export function SavedLibrary({
                   py: 0.25,
                   borderRadius: 0.5,
                   bgcolor: entry.isAuto ? 'grey.200' : 'primary.light',
-                  color: entry.isAuto ? 'text.secondary' : 'primary.contrastText',
+                  color: entry.isAuto
+                    ? 'text.secondary'
+                    : 'primary.contrastText',
                   fontSize: '0.65rem',
                   flexShrink: 0,
                 }}
@@ -214,14 +210,25 @@ export function SavedLibrary({
               {/* 日時 */}
               <Typography
                 variant="caption"
-                sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary', flexShrink: 0 }}
+                sx={{
+                  fontFamily: 'monospace',
+                  fontSize: '0.7rem',
+                  color: 'text.secondary',
+                  flexShrink: 0,
+                }}
               >
                 {formatTime(entry.savedAt)}
               </Typography>
               {/* 内容 */}
               <Typography
                 variant="caption"
-                sx={{ fontSize: '0.75rem', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                sx={{
+                  fontSize: '0.75rem',
+                  flex: 1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
               >
                 {entry.label}
               </Typography>
@@ -230,7 +237,13 @@ export function SavedLibrary({
                 size="small"
                 variant="text"
                 onClick={() => handleRestore(entry)}
-                sx={{ py: 0, px: 0.5, minWidth: 0, fontSize: '0.7rem', flexShrink: 0 }}
+                sx={{
+                  py: 0,
+                  px: 0.5,
+                  minWidth: 0,
+                  fontSize: '0.7rem',
+                  flexShrink: 0,
+                }}
               >
                 復元
               </Button>
@@ -238,7 +251,12 @@ export function SavedLibrary({
               <IconButton
                 size="small"
                 onClick={() => handleDelete(entry.id)}
-                sx={{ p: 0.25, color: 'error.main', fontSize: '0.8rem', flexShrink: 0 }}
+                sx={{
+                  p: 0.25,
+                  color: 'error.main',
+                  fontSize: '0.8rem',
+                  flexShrink: 0,
+                }}
               >
                 ×
               </IconButton>

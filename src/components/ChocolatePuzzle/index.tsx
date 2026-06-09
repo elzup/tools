@@ -273,8 +273,8 @@ const ChocolatePuzzle = () => {
     inRect === 4
       ? '13×5 = 65 マス — 同じ4枚なのに 1 マス増えた'
       : inRect === 0
-      ? '8×8 = 64 マス'
-      : `長方形に ${inRect} / 4 枚`
+        ? '8×8 = 64 マス'
+        : `長方形に ${inRect} / 4 枚`
 
   return (
     <Wrap>

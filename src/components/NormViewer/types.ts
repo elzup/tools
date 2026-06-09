@@ -1,4 +1,4 @@
-import { DistributionParams } from '../../lib/norm-estimator'
+import type { DistributionParams } from '../../lib/norm-estimator'
 
 // 保存データの型
 export type SavedEntry = {

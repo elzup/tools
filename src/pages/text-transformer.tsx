@@ -1,10 +1,10 @@
 import { Box, Button, InputLabel, Switch, TextField } from '@mui/material'
-import { ChangeEvent, useEffect, useMemo, useState } from 'react'
+import { type ChangeEvent, useEffect, useMemo, useState } from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 import { createTextDiagramTransformer } from '../lib/text-transformer/binaryPacketDiagramTransformer'
-import { TextTransformer } from '../lib/text-transformer/index'
-import { TransformResult } from '../lib/text-transformer/transformer'
+import type { TextTransformer } from '../lib/text-transformer/index'
+import type { TransformResult } from '../lib/text-transformer/transformer'
 
 const BINARY_PACKET_MODE_NAME = 'binaryPacketDiagram'
 const DEFAULT_MAX_BYTES_PER_LINE = 12

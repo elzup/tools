@@ -68,17 +68,27 @@ export function isLeapYear(year: number): boolean {
   return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
 }
 
-function parseDate(input: string): { year: number; month: number; day: number } | null {
+function parseDate(
+  input: string
+): { year: number; month: number; day: number } | null {
   const s = input.trim()
   // YYYY-MM-DD, YYYY/MM/DD, YYYY.MM.DD (月日は1-2桁OK)
   const sep = s.match(/^(\d{4})[/\-.](\d{1,2})[/\-.](\d{1,2})$/)
   if (sep) {
-    return { year: parseInt(sep[1], 10), month: parseInt(sep[2], 10), day: parseInt(sep[3], 10) }
+    return {
+      year: parseInt(sep[1], 10),
+      month: parseInt(sep[2], 10),
+      day: parseInt(sep[3], 10),
+    }
   }
   // YYYYMMDD (8桁)
   const compact = s.match(/^(\d{4})(\d{2})(\d{2})$/)
   if (compact) {
-    return { year: parseInt(compact[1], 10), month: parseInt(compact[2], 10), day: parseInt(compact[3], 10) }
+    return {
+      year: parseInt(compact[1], 10),
+      month: parseInt(compact[2], 10),
+      day: parseInt(compact[3], 10),
+    }
   }
   return null
 }
@@ -99,7 +109,7 @@ export function calculateWeekday(dateStr: string): WeekdayResult | null {
   const yDiv4 = Math.floor(y / 4)
   const isLeap = isLeapYear(year)
 
-  let monthCode = MONTH_CODES[month]
+  const monthCode = MONTH_CODES[month]
   const leapAdjust = isLeap && (month === 1 || month === 2) ? -1 : 0
   const adjustedMonthCode = monthCode + leapAdjust
 

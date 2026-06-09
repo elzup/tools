@@ -24,7 +24,7 @@ import {
   useChartInteraction,
   useChartExport,
 } from './useUpsetData'
-import { UpsetChart, ViewMode } from './UpsetChart'
+import { UpsetChart, type ViewMode } from './UpsetChart'
 
 const UpsetViewer = () => {
   const {
@@ -193,7 +193,11 @@ const UpsetViewer = () => {
                         <TableRow key={i}>
                           <TableCell>
                             <Box
-                              sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}
+                              sx={{
+                                display: 'flex',
+                                gap: 0.5,
+                                flexWrap: 'wrap',
+                              }}
                             >
                               {combo.name.split('&').map((s) => (
                                 <Chip

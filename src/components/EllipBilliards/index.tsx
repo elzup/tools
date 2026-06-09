@@ -10,11 +10,11 @@ import { useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 import {
   advance,
-  Ball,
+  type Ball,
   focusDistance,
   isInside,
   normalize,
-  Vec,
+  type Vec,
 } from './billiard'
 
 const W = 760
@@ -24,7 +24,14 @@ const CY = H / 2
 const A = 340 // 半長軸 (横) は固定。短軸 B は扁平率で変える
 const TAU = Math.PI * 2
 
-const PALETTE = ['#ff5252', '#ffb300', '#42d77d', '#29b6f6', '#b388ff', '#ff80ab'] // prettier-ignore
+const PALETTE = [
+  '#ff5252',
+  '#ffb300',
+  '#42d77d',
+  '#29b6f6',
+  '#b388ff',
+  '#ff80ab',
+] // prettier-ignore
 
 type Mode = 'aim' | 'focus' | 'fan'
 
@@ -135,7 +142,10 @@ const EllipBilliards = () => {
     const launchDir = Math.hypot(dir.x, dir.y) < 4 ? { x: 1, y: 0.35 } : dir
     const color = PALETTE[ballsRef.current.length % PALETTE.length]
 
-    ballsRef.current = [...ballsRef.current, newBall(aim.start, launchDir, color)]
+    ballsRef.current = [
+      ...ballsRef.current,
+      newBall(aim.start, launchDir, color),
+    ]
   }
 
   useEffect(() => {
@@ -281,9 +291,11 @@ const EllipBilliards = () => {
       </Controls>
 
       <Note>
-        楕円の壁で完全反射するビリヤード。<b>焦点を通る軌道は、反射のたびに反対の焦点を通り</b>、
-        やがて長軸付近に集まる (焦点扇形)。焦点を通らない軌道は共焦点の楕円/双曲線に接し、
-        重なりが<b>火線 (caustic)</b> として浮かび上がる (放射状)。
+        楕円の壁で完全反射するビリヤード。
+        <b>焦点を通る軌道は、反射のたびに反対の焦点を通り</b>、
+        やがて長軸付近に集まる
+        (焦点扇形)。焦点を通らない軌道は共焦点の楕円/双曲線に接し、 重なりが
+        <b>火線 (caustic)</b> として浮かび上がる (放射状)。
       </Note>
     </Wrap>
   )

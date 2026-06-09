@@ -1,4 +1,4 @@
-import { Edge, Node } from 'react-flow-renderer'
+import type { Edge, Node } from 'react-flow-renderer'
 
 export type MmdVertexRaw = {
   id: string

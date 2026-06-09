@@ -1,7 +1,7 @@
 import { Box, Button, Stack } from '@mui/material'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  DistributionParams,
+  type DistributionParams,
   estimateDistribution,
 } from '../../lib/norm-estimator'
 import { PercentileTable, ResultSummary } from './calculation-results'

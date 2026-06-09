@@ -7,7 +7,7 @@ import {
   faStopCircle,
 } from '@fortawesome/free-regular-svg-icons'
 import {
-  IconDefinition,
+  type IconDefinition,
   faBowlingBall,
   faBoxes,
   faCalendarDay,
@@ -446,11 +446,9 @@ function MenuItem({ routing, opened }: { routing: Routing; opened: boolean }) {
       {opened ? (
         <Typography>{routing.label}</Typography>
       ) : (
-        <>
-          <Link href={routing.path}>
-            <Typography>{routing.label}</Typography>
-          </Link>
-        </>
+        <Link href={routing.path}>
+          <Typography>{routing.label}</Typography>
+        </Link>
       )}
     </div>
   )

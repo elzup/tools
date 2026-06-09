@@ -60,7 +60,9 @@ const parseTagSetDSL = (input: string): Elem[] => {
   const setLabels = ast.sets.map((s) => s.label)
 
   return ast.items.flatMap((item) => {
-    const memberSets = setLabels.filter((_, i) => (item.bitmask & (1 << i)) !== 0)
+    const memberSets = setLabels.filter(
+      (_, i) => (item.bitmask & (1 << i)) !== 0
+    )
     return item.values.map((v) => ({ name: v, sets: memberSets }))
   })
 }

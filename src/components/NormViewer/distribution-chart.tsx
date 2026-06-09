@@ -9,7 +9,7 @@ import {
 } from '@mui/material'
 import { useMemo, useState } from 'react'
 import {
-  Condition,
+  type Condition,
   normalCDF,
   normalPDF,
   valueToPercentile,
@@ -258,30 +258,29 @@ export function DistributionChart({
         )}
 
         {/* Histogram bars - 全サンプルの合計が100%の高さになるように正規化 */}
-        {histogramData &&
-          histogramData.bins.map((bin, i) => {
-            // 全サンプル数を基準に高さを計算（全バーの合計が100%）
-            const normalizedHeight =
-              histogramData.totalCount > 0
-                ? bin.count / histogramData.totalCount
-                : 0
-            const barHeight = normalizedHeight * plotHeight
-            const barX = toSvgX(bin.start)
-            const barWidth = toSvgX(bin.end) - toSvgX(bin.start)
-            return (
-              <rect
-                key={`hist-${i}`}
-                x={barX}
-                y={height - paddingY - barHeight}
-                width={barWidth}
-                height={barHeight}
-                fill="#4caf50"
-                opacity="0.4"
-                stroke="#4caf50"
-                strokeWidth="1"
-              />
-            )
-          })}
+        {histogramData?.bins.map((bin, i) => {
+          // 全サンプル数を基準に高さを計算（全バーの合計が100%）
+          const normalizedHeight =
+            histogramData.totalCount > 0
+              ? bin.count / histogramData.totalCount
+              : 0
+          const barHeight = normalizedHeight * plotHeight
+          const barX = toSvgX(bin.start)
+          const barWidth = toSvgX(bin.end) - toSvgX(bin.start)
+          return (
+            <rect
+              key={`hist-${i}`}
+              x={barX}
+              y={height - paddingY - barHeight}
+              width={barWidth}
+              height={barHeight}
+              fill="#4caf50"
+              opacity="0.4"
+              stroke="#4caf50"
+              strokeWidth="1"
+            />
+          )
+        })}
 
         {/* Distribution curve */}
         <polyline

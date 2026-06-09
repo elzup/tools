@@ -1,4 +1,3 @@
-import React from 'react'
 import ReactFlow, {
   Background,
   Controls,
@@ -6,7 +5,7 @@ import ReactFlow, {
   ReactFlowProvider,
 } from 'react-flow-renderer'
 import styled from 'styled-components'
-import { MmdGroup } from './MermaidUi/types'
+import type { MmdGroup } from './MermaidUi/types'
 import { useFlowGraph } from './MermaidUi/useFlowGraph'
 
 type Props = {

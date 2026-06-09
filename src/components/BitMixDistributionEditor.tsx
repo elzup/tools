@@ -8,7 +8,7 @@ import {
   Switch,
   Typography,
 } from '@mui/material'
-import { BitPairKey } from '../lib/mix8'
+import type { BitPairKey } from '../lib/mix8'
 
 export type P1Map = Record<BitPairKey, number>
 
@@ -64,12 +64,13 @@ const BitMixDistributionEditor = ({
   onChangeP1,
   onToggleSymmetric,
 }: Props) => {
-  const handleSlider = (key: BitPairKey) => (_: Event, value: number | number[]) => {
-    const v = value as number
-    const base = { ...p1, [key]: v }
+  const handleSlider =
+    (key: BitPairKey) => (_: Event, value: number | number[]) => {
+      const v = value as number
+      const base = { ...p1, [key]: v }
 
-    onChangeP1(symmetric ? applySymmetry(base, key, v) : base)
-  }
+      onChangeP1(symmetric ? applySymmetry(base, key, v) : base)
+    }
 
   // 対称ロック時は派生側 (11, 10) を編集不可にして 00, 01 を主操作にする
   const isDerived = (key: BitPairKey) =>
@@ -102,10 +103,7 @@ const BitMixDistributionEditor = ({
 
       <Stack spacing={1.5} sx={{ mt: 1.5 }}>
         {ORDER.map((key) => (
-          <Box
-            key={key}
-            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-          >
+          <Box key={key} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Typography
               sx={{
                 minWidth: 64,
@@ -131,13 +129,20 @@ const BitMixDistributionEditor = ({
               variant="caption"
               sx={{ minWidth: 80, color: 'text.secondary' }}
             >
-              1: {Math.round(p1[key] * 100)}% / 0: {Math.round((1 - p1[key]) * 100)}%
+              1: {Math.round(p1[key] * 100)}% / 0:{' '}
+              {Math.round((1 - p1[key]) * 100)}%
             </Typography>
           </Box>
         ))}
       </Stack>
 
-      <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap" useFlexGap>
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ mt: 2 }}
+        flexWrap="wrap"
+        useFlexGap
+      >
         {Object.entries(DIST_PRESETS).map(([id, preset]) => (
           <Button
             key={id}

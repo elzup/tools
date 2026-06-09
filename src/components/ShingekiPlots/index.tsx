@@ -2,9 +2,9 @@ import { isDev } from '@elzup/kit/lib/char/constants'
 import { groupByFunc } from '@elzup/kit/lib/obj/groupBy'
 import { keyBy } from '@elzup/kit/lib/obj/keyBy'
 import { Tab, Tabs, TextField, Typography } from '@mui/material'
-import { SyntheticEvent, useMemo, useState } from 'react'
+import { type SyntheticEvent, useMemo, useState } from 'react'
 import styled from 'styled-components'
-import { MmdEdge, MmdGroup, MmdVertex } from '../MermaidUi/types'
+import type { MmdEdge, MmdGroup, MmdVertex } from '../MermaidUi/types'
 import { parseMarmaid } from '../MermaidUi/useMermaid'
 import MmdGraph from '../MmdGraph'
 import StoryMmdGraph from '../StoryMmdGraphSample'
@@ -134,7 +134,7 @@ function Shingeki() {
             value={blocks.length > 0 ? tab : false}
             variant="scrollable"
             scrollButtons="auto"
-            onChange={(e: SyntheticEvent, v: string | false) => {
+            onChange={(_e: SyntheticEvent, v: string | false) => {
               setTab(v)
             }}
             aria-label="Graph Tabs"

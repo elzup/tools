@@ -1,5 +1,5 @@
 import { TextField } from '@mui/material'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useWordle } from './useWordle'
 
 function Kotobaru() {

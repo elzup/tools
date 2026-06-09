@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import useSWR from 'swr'
-import { initGame, WordleGame } from '../../utils/wordle'
+import { initGame, type WordleGame } from '../../utils/wordle'
 
 type Word = {
   full: string

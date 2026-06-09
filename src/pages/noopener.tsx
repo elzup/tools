@@ -1,6 +1,5 @@
 import { Card, TextField } from '@mui/material'
 import Link from 'next/link'
-import * as React from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 
@@ -13,7 +12,7 @@ const NoOpener = () => {
         <a
           href="/noopener-attacker"
           target="_blank"
-          rel="opener" /* default at Chrome <= 87 */
+          rel="noopener opener" /* default at Chrome <= 87 */
         >
           <s>noopenerをつけていない危険なリンク</s> → openerをつけたリンク
         </a>

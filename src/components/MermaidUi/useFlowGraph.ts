@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { calkLayoutElk } from './calcLayoutElk'
 import { toFlowElem } from './toFlowElem'
-import { Graph, MmdGroup } from './types'
+import type { Graph, MmdGroup } from './types'
 
 export const useFlowGraph = (
   mmd: MmdGroup,

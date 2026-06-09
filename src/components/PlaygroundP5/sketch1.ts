@@ -1,5 +1,5 @@
 import { range } from '@elzup/kit/lib/range'
-import P5 from 'p5'
+import type P5 from 'p5'
 
 export const sketch1 = (p: P5) => {
   const size = 4

@@ -3,8 +3,8 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { ConfigProvider } from '../store'
-import { WithChild } from '../types'
-import Footer, { FooterMode } from './Footer'
+import type { WithChild } from '../types'
+import Footer, { type FooterMode } from './Footer'
 import Header from './Header'
 
 type Props = {
@@ -36,7 +36,11 @@ const Layout = ({
 
       <Main style={top ? {} : { minHeight: '100vh' }}>
         <ConfigProvider>
-          {fullWidth ? contentsBody : <Container maxWidth="lg">{contentsBody}</Container>}
+          {fullWidth ? (
+            contentsBody
+          ) : (
+            <Container maxWidth="lg">{contentsBody}</Container>
+          )}
         </ConfigProvider>
       </Main>
 

@@ -7,7 +7,7 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
-import { CSSProperties, memo, useMemo, useState } from 'react'
+import { type CSSProperties, memo, useMemo, useState } from 'react'
 import { useInterval } from 'react-use'
 import styled from 'styled-components'
 import { Box } from '../common/mui'

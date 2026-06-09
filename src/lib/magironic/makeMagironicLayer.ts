@@ -1,5 +1,5 @@
-import crypto from 'crypto'
-import { SourceCodeFeatures } from './codeFeatures'
+import crypto from 'node:crypto'
+import type { SourceCodeFeatures } from './codeFeatures'
 
 // MagicSymbol 型
 export type MagicSymbol = {

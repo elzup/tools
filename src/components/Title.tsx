@@ -1,5 +1,5 @@
 import { Typography } from '@mui/material'
-import { WithChild } from '../types'
+import type { WithChild } from '../types'
 
 export const Title = ({ children }: WithChild) => {
   return (

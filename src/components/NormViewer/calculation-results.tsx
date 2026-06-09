@@ -1,6 +1,6 @@
 import { Alert, Box, Paper, Stack, Typography } from '@mui/material'
 import { useState } from 'react'
-import { EstimationResult } from '../../lib/norm-estimator'
+import type { EstimationResult } from '../../lib/norm-estimator'
 
 type Props = {
   result: EstimationResult

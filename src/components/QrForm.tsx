@@ -1,4 +1,4 @@
-import { Suspense, useState, ChangeEvent } from 'react'
+import { Suspense, useState, type ChangeEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { QRCodeSVG } from 'qrcode.react'
 import CryptoJS from 'crypto-js'

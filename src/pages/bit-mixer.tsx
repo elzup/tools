@@ -9,13 +9,14 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import React, { useMemo, useState } from 'react'
+import type React from 'react'
+import { useMemo, useState } from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
-import { BitMixDistribution, makeDistribution, mix8 } from '../lib/mix8'
+import { type BitMixDistribution, makeDistribution, mix8 } from '../lib/mix8'
 import BitMixDistributionEditor, {
   DIST_PRESETS,
-  P1Map,
+  type P1Map,
 } from '../components/BitMixDistributionEditor'
 import { FaDice } from 'react-icons/fa'
 import { useLocalStorage } from '../utils/useLocalStorage'
@@ -219,7 +220,7 @@ function MixResultList({
   const handleSeedChange =
     (index: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = parseInt(e.target.value, 10)
-      if (!isNaN(val) && val >= 0 && val <= 255) {
+      if (!Number.isNaN(val) && val >= 0 && val <= 255) {
         const newSeeds = [...seeds]
         newSeeds[index] = val
         setSeeds(newSeeds)
@@ -462,8 +463,8 @@ const BitMixer = () => {
           <ul>
             <li>各bitについて0〜7のインデックスで処理</li>
             <li>
-              入力 A,B の該当bitの組み合わせ (00 / 01 / 10 / 11)
-              ごとに「結果が 1 になる確率 p1」を分布として定義
+              入力 A,B の該当bitの組み合わせ (00 / 01 / 10 / 11) ごとに「結果が
+              1 になる確率 p1」を分布として定義
             </li>
             <li>
               擬似乱数 r ∈ [0,1] を生成し、その bit の分布と比較して 1/0 を決定:

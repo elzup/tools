@@ -1,5 +1,5 @@
 import { Box, Button, Container, TextField, Typography } from '@mui/material'
-import { ChangeEvent, useState } from 'react'
+import { type ChangeEvent, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useMagironic } from '../../lib/magironic/useMagironic'
 

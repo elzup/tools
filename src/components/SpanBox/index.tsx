@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react'
+import type React from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import {
   FaArrowsAlt,
   FaClipboard,
@@ -23,14 +24,28 @@ type SpanBoxBlock = {
 
 type DragAction =
   | { kind: 'move'; id: string; origin: GridPoint; block: SpanBoxBlock }
-  | { kind: 'resize'; id: string; edge: ResizeEdge; origin: GridPoint; block: SpanBoxBlock }
+  | {
+      kind: 'resize'
+      id: string
+      edge: ResizeEdge
+      origin: GridPoint
+      block: SpanBoxBlock
+    }
 
 type GridPoint = {
   x: number
   y: number
 }
 
-type ResizeEdge = 'top' | 'right' | 'bottom' | 'left' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+type ResizeEdge =
+  | 'top'
+  | 'right'
+  | 'bottom'
+  | 'left'
+  | 'top-left'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-right'
 
 const cellSize = 32
 const gridColumns = 28
@@ -53,9 +68,33 @@ const colorPalette = [
 ]
 
 const initialBlocks: SpanBoxBlock[] = [
-  { id: 'block-1', x: 2, y: 2, width: 5, height: 3, color: '#4ecdc4', label: 'agenda' },
-  { id: 'block-2', x: 10, y: 4, width: 7, height: 2, color: '#ffbe3d', label: 'issue' },
-  { id: 'block-3', x: 5, y: 10, width: 4, height: 5, color: '#5b8def', label: 'owner' },
+  {
+    id: 'block-1',
+    x: 2,
+    y: 2,
+    width: 5,
+    height: 3,
+    color: '#4ecdc4',
+    label: 'agenda',
+  },
+  {
+    id: 'block-2',
+    x: 10,
+    y: 4,
+    width: 7,
+    height: 2,
+    color: '#ffbe3d',
+    label: 'issue',
+  },
+  {
+    id: 'block-3',
+    x: 5,
+    y: 10,
+    width: 4,
+    height: 5,
+    color: '#5b8def',
+    label: 'owner',
+  },
 ]
 
 const SpanBox = () => {
@@ -65,11 +104,15 @@ const SpanBox = () => {
   const [selectedId, setSelectedId] = useState(initialBlocks[0].id)
   const [dragAction, setDragAction] = useState<DragAction | null>(null)
 
-  const selectedBlock = blocks.find((block) => block.id === selectedId) ?? blocks[0]
+  const selectedBlock =
+    blocks.find((block) => block.id === selectedId) ?? blocks[0]
 
   const generateShareText = (blocks: SpanBoxBlock[]) =>
     blocks
-      .map((b) => `${b.label.padEnd(8)} ${b.x + 1},${b.y + 1}  ${b.width}x${b.height}  ${b.color}`)
+      .map(
+        (b) =>
+          `${b.label.padEnd(8)} ${b.x + 1},${b.y + 1}  ${b.width}x${b.height}  ${b.color}`
+      )
       .join('\n')
 
   const copyShareText = useCallback(async () => {
@@ -81,8 +124,8 @@ const SpanBox = () => {
     if (!selectedBlock) return
     setBlocks((currentBlocks) =>
       currentBlocks.map((block) =>
-        block.id === selectedBlock.id ? { ...block, ...updates } : block,
-      ),
+        block.id === selectedBlock.id ? { ...block, ...updates } : block
+      )
     )
   }
 
@@ -93,7 +136,8 @@ const SpanBox = () => {
       y: 1 + ((nextIdRef.current * 2) % 12),
       width: 4,
       height: 3,
-      color: colorPalette.flat()[nextIdRef.current % colorPalette.flat().length],
+      color:
+        colorPalette.flat()[nextIdRef.current % colorPalette.flat().length],
       label: `note ${nextIdRef.current}`,
     }
     nextIdRef.current += 1
@@ -117,7 +161,9 @@ const SpanBox = () => {
 
   const deleteSelectedBlock = () => {
     if (!selectedBlock || blocks.length === 1) return
-    const remainingBlocks = blocks.filter((block) => block.id !== selectedBlock.id)
+    const remainingBlocks = blocks.filter(
+      (block) => block.id !== selectedBlock.id
+    )
     setBlocks(remainingBlocks)
     setSelectedId(remainingBlocks[0].id)
   }
@@ -137,7 +183,7 @@ const SpanBox = () => {
   const startResize = (
     event: React.PointerEvent,
     block: SpanBoxBlock,
-    edge: ResizeEdge,
+    edge: ResizeEdge
   ) => {
     event.stopPropagation()
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -164,7 +210,9 @@ const SpanBox = () => {
         : resizeBlock(dragAction.block, delta, dragAction.edge)
 
     setBlocks((currentBlocks) =>
-      currentBlocks.map((block) => (block.id === dragAction.id ? nextBlock : block)),
+      currentBlocks.map((block) =>
+        block.id === dragAction.id ? nextBlock : block
+      )
     )
   }
 
@@ -173,7 +221,9 @@ const SpanBox = () => {
       <TopBar>
         <Brand>
           <TitleText>SpanBox</TitleText>
-          <SubtitleText>cell-spanning blocks for flexible whiteboard layouts</SubtitleText>
+          <SubtitleText>
+            cell-spanning blocks for flexible whiteboard layouts
+          </SubtitleText>
         </Brand>
 
         <ToolbarGroup>
@@ -245,11 +295,24 @@ const SpanBox = () => {
                       {block.width} x {block.height}
                     </BlockMeta>
                     {isSelected &&
-                      (['top', 'right', 'bottom', 'left', 'top-left', 'top-right', 'bottom-left', 'bottom-right'] as ResizeEdge[]).map((edge) => (
+                      (
+                        [
+                          'top',
+                          'right',
+                          'bottom',
+                          'left',
+                          'top-left',
+                          'top-right',
+                          'bottom-left',
+                          'bottom-right',
+                        ] as ResizeEdge[]
+                      ).map((edge) => (
                         <ResizeHandle
                           key={edge}
                           $edge={edge}
-                          onPointerDown={(event) => startResize(event, block, edge)}
+                          onPointerDown={(event) =>
+                            startResize(event, block, edge)
+                          }
                           aria-label={`resize ${edge}`}
                         />
                       ))}
@@ -270,7 +333,9 @@ const SpanBox = () => {
               </FieldLabel>
               <LabelInput
                 value={selectedBlock.label}
-                onChange={(event) => updateSelectedBlock({ label: event.target.value })}
+                onChange={(event) =>
+                  updateSelectedBlock({ label: event.target.value })
+                }
               />
 
               <FieldLabel>
@@ -286,14 +351,16 @@ const SpanBox = () => {
                       $selected={selectedBlock.color === color}
                       onClick={() => updateSelectedBlock({ color })}
                     />
-                  )),
+                  ))
                 )}
               </Swatches>
               <CustomColorRow>
                 <ColorInput
                   type="color"
                   value={selectedBlock.color}
-                  onChange={(e) => updateSelectedBlock({ color: e.target.value })}
+                  onChange={(e) =>
+                    updateSelectedBlock({ color: e.target.value })
+                  }
                 />
                 <HexInput
                   value={selectedBlock.color}
@@ -322,7 +389,9 @@ const SpanBox = () => {
                   })
                 }}
               >
-                <option value={`${selectedBlock.width}x${selectedBlock.height}`}>
+                <option
+                  value={`${selectedBlock.width}x${selectedBlock.height}`}
+                >
                   Current: {selectedBlock.width} x {selectedBlock.height}
                 </option>
                 <option value="3x2">3 x 2</option>
@@ -376,7 +445,7 @@ const getOccupiedCells = (blocks: SpanBoxBlock[]) =>
       const x = block.x + (index % block.width)
       const y = block.y + Math.floor(index / block.width)
       return `${x}-${y}`
-    }),
+    })
   )
 
 const getGridPoint = (event: React.PointerEvent): GridPoint => ({
@@ -393,7 +462,7 @@ const moveBlock = (block: SpanBoxBlock, delta: GridPoint): SpanBoxBlock => ({
 const resizeBlock = (
   block: SpanBoxBlock,
   delta: GridPoint,
-  edge: ResizeEdge,
+  edge: ResizeEdge
 ): SpanBoxBlock => {
   if (edge === 'right') {
     return {
@@ -408,7 +477,11 @@ const resizeBlock = (
     }
   }
   if (edge === 'left') {
-    const nextX = clamp(block.x + delta.x, 0, block.x + block.width - minBlockSize)
+    const nextX = clamp(
+      block.x + delta.x,
+      0,
+      block.x + block.width - minBlockSize
+    )
     return {
       ...block,
       x: nextX,
@@ -416,7 +489,11 @@ const resizeBlock = (
     }
   }
   if (edge === 'top') {
-    const nextY = clamp(block.y + delta.y, 0, block.y + block.height - minBlockSize)
+    const nextY = clamp(
+      block.y + delta.y,
+      0,
+      block.y + block.height - minBlockSize
+    )
     return {
       ...block,
       y: nextY,
@@ -425,8 +502,16 @@ const resizeBlock = (
   }
 
   if (edge === 'top-left') {
-    const nextX = clamp(block.x + delta.x, 0, block.x + block.width - minBlockSize)
-    const nextY = clamp(block.y + delta.y, 0, block.y + block.height - minBlockSize)
+    const nextX = clamp(
+      block.x + delta.x,
+      0,
+      block.x + block.width - minBlockSize
+    )
+    const nextY = clamp(
+      block.y + delta.y,
+      0,
+      block.y + block.height - minBlockSize
+    )
     return {
       ...block,
       x: nextX,
@@ -436,7 +521,11 @@ const resizeBlock = (
     }
   }
   if (edge === 'top-right') {
-    const nextY = clamp(block.y + delta.y, 0, block.y + block.height - minBlockSize)
+    const nextY = clamp(
+      block.y + delta.y,
+      0,
+      block.y + block.height - minBlockSize
+    )
     return {
       ...block,
       y: nextY,
@@ -445,7 +534,11 @@ const resizeBlock = (
     }
   }
   if (edge === 'bottom-left') {
-    const nextX = clamp(block.x + delta.x, 0, block.x + block.width - minBlockSize)
+    const nextX = clamp(
+      block.x + delta.x,
+      0,
+      block.x + block.width - minBlockSize
+    )
     return {
       ...block,
       x: nextX,
@@ -660,7 +753,9 @@ const BlockItem = styled.div<{ $block: SpanBoxBlock; $selected: boolean }>`
   border: ${({ $selected }) => ($selected ? '3px solid #202631' : '1px solid rgba(32, 38, 49, 0.22)')};
   background: ${({ $block }) => $block.color};
   box-shadow: ${({ $selected }) =>
-    $selected ? '0 9px 20px rgba(32, 38, 49, 0.24)' : '0 5px 12px rgba(32, 38, 49, 0.13)'};
+    $selected
+      ? '0 9px 20px rgba(32, 38, 49, 0.24)'
+      : '0 5px 12px rgba(32, 38, 49, 0.13)'};
   color: #10141b;
   cursor: grab;
   user-select: none;
