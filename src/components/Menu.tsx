@@ -43,7 +43,6 @@ import {
   faSortNumericAsc,
   faSpider,
   faStroopwafel,
-  faUserSecret,
   faWandSparkles,
   faWindowMinimize,
   faWindowRestore,
@@ -201,10 +200,15 @@ const routings: RoutingGroup[] = [
         label: '曜日計算 Explainer',
         path: '/weekday-calc',
       },
+      {
+        icon: faCalculator,
+        label: 'Float有効桁数デモ',
+        path: '/float-precision',
+      },
     ],
   },
   {
-    label: 'Science',
+    label: 'Physics',
     routings: [
       {
         icon: faStopCircle,
@@ -250,27 +254,7 @@ const routings: RoutingGroup[] = [
   },
 
   {
-    label: 'Security',
-    routings: [
-      {
-        icon: faShieldAlt,
-        label: 'noopener Demo',
-        path: '/noopener',
-      },
-      {
-        icon: faShieldVirus,
-        label: 'XSS Demo',
-        path: '/xss',
-      },
-      {
-        icon: faWindowMinimize,
-        label: 'Submit loop',
-        path: '/hard-confirm',
-      },
-    ],
-  },
-  {
-    label: 'Experiments',
+    label: 'ComputerScience',
     routings: [
       {
         icon: faWindowRestore,
@@ -288,14 +272,24 @@ const routings: RoutingGroup[] = [
         path: '/mermaid-ui',
       },
       {
-        icon: faUserSecret,
-        label: 'Random Generator',
-        path: '/random',
+        icon: faDna,
+        label: 'Bit Mixer',
+        path: '/bit-mixer',
       },
       {
-        icon: faCalculator,
-        label: 'Float有効桁数デモ',
-        path: '/float-precision',
+        icon: faShieldAlt,
+        label: 'noopener Demo',
+        path: '/noopener',
+      },
+      {
+        icon: faShieldVirus,
+        label: 'XSS Demo',
+        path: '/xss',
+      },
+      {
+        icon: faWindowMinimize,
+        label: 'Submit loop',
+        path: '/hard-confirm',
       },
     ],
   },
@@ -356,11 +350,6 @@ const routings: RoutingGroup[] = [
         icon: faWandSparkles,
         label: 'Magironic',
         path: '/magironic',
-      },
-      {
-        icon: faDna,
-        label: 'Bit Mixer',
-        path: '/bit-mixer',
       },
       {
         icon: faImage,
