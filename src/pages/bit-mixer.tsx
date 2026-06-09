@@ -9,10 +9,14 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import Layout from '../components/Layout'
 import { Title } from '../components/Title'
-import { mix8 } from '../lib/mix8'
+import { BitMixDistribution, makeDistribution, mix8 } from '../lib/mix8'
+import BitMixDistributionEditor, {
+  DIST_PRESETS,
+  P1Map,
+} from '../components/BitMixDistributionEditor'
 import { FaDice } from 'react-icons/fa'
 import { useLocalStorage } from '../utils/useLocalStorage'
 import { range } from 'lodash'
@@ -197,6 +201,7 @@ type MixResultListProps = {
   inputA: number
   inputB: number
   colorTheme: ColorTheme
+  dist: BitMixDistribution
   initialCount?: number
 }
 
@@ -204,6 +209,7 @@ function MixResultList({
   inputA,
   inputB,
   colorTheme,
+  dist,
   initialCount = 10,
 }: MixResultListProps) {
   const [seeds, setSeeds] = useState<number[]>(() =>
@@ -238,7 +244,7 @@ function MixResultList({
     setSeeds(range(count).map(() => randomByte()))
   }
 
-  const results = seeds.map((seed) => mix8(inputA, inputB, seed))
+  const results = seeds.map((seed) => mix8(inputA, inputB, seed, dist))
 
   // カラーテーマに応じたスタイル（背景色）
   const getBitStyle = (bit: string): React.CSSProperties => {
@@ -358,6 +364,15 @@ const BitMixer = () => {
   const inputA = useBinaryInput('bit-mixer-a')
   const inputB = useBinaryInput('bit-mixer-b')
   const [colorTheme, setColorTheme] = useState<ColorTheme>('none')
+  const [p1, setP1] = useLocalStorage<P1Map>(
+    'bit-mixer-dist',
+    DIST_PRESETS.current.p1
+  )
+  const [symmetric, setSymmetric] = useLocalStorage<boolean>(
+    'bit-mixer-dist-symmetric',
+    true
+  )
+  const dist = useMemo(() => makeDistribution(p1), [p1])
 
   return (
     <Layout title={title}>
@@ -382,6 +397,13 @@ const BitMixer = () => {
             <BitEditor label="Input B" input={inputB} />
           </Stack>
         </Paper>
+
+        <BitMixDistributionEditor
+          p1={p1}
+          symmetric={symmetric}
+          onChangeP1={setP1}
+          onToggleSymmetric={setSymmetric}
+        />
 
         <Divider sx={{ my: 2 }} />
 
@@ -425,6 +447,7 @@ const BitMixer = () => {
           inputA={inputA.value}
           inputB={inputB.value}
           colorTheme={colorTheme}
+          dist={dist}
         />
       </Stack>
 
@@ -439,10 +462,11 @@ const BitMixer = () => {
           <ul>
             <li>各bitについて0〜7のインデックスで処理</li>
             <li>
-              入力Aの該当bitと入力Bの該当bitが同じならその値を採用（保持）
+              入力 A,B の該当bitの組み合わせ (00 / 01 / 10 / 11)
+              ごとに「結果が 1 になる確率 p1」を分布として定義
             </li>
             <li>
-              異なる場合、擬似乱数を生成してどちらを採用するか決定:
+              擬似乱数 r ∈ [0,1] を生成し、その bit の分布と比較して 1/0 を決定:
               <br />
               <code>
                 seed = (a * 37 + b * 73 + i * 97 + seedExtra * 11) & 0xFF
@@ -450,7 +474,13 @@ const BitMixer = () => {
               <br />
               <code>pseudo = (seed ^ ((seed &gt;&gt; 3) * 11)) & 0xFF</code>
               <br />
-              <code>chosen = (pseudo & 1) ? bit_a : bit_b</code>
+              <code>r = pseudo / 255</code>
+              <br />
+              <code>chosen = r &lt; p1[組み合わせ] ? 1 : 0</code>
+            </li>
+            <li>
+              分布は上の「融合分布のカスタマイズ」で自由に変更可能。対称ロックで
+              00↔11 (0/1 反転) と 01↔10 (A/B 入替) を連動させる
             </li>
             <li>最終的に各bitを統合して8bit整数として返す</li>
           </ul>
