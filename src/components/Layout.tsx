@@ -12,6 +12,8 @@ type Props = {
   fullWidth?: boolean
   top?: boolean
   footer?: FooterMode
+  // 横padding を最小化する (スクショ等で横幅を最大に使いたいページ用)
+  flush?: boolean
 }
 
 const Layout = ({
@@ -21,6 +23,7 @@ const Layout = ({
   fullWidth = false,
   top = false,
   footer = 'full',
+  flush = false,
 }: WithChild<Props & { currentPath: string }>) => {
   const contentsBody = <>{children}</>
 
@@ -34,7 +37,7 @@ const Layout = ({
 
       <Header currentPath={currentPath} />
 
-      <Main style={top ? {} : { minHeight: '100vh' }}>
+      <Main $flush={flush} style={top ? {} : { minHeight: '100vh' }}>
         <ConfigProvider>
           {fullWidth ? (
             contentsBody
@@ -55,16 +58,16 @@ const Wrap = styled.div`
   flex-direction: column;
 `
 
-const Main = styled.main`
+const Main = styled.main<{ $flush?: boolean }>`
   flex: 1;
-  padding: 2rem 1rem;
+  padding: ${({ $flush }) => ($flush ? '1rem 4px' : '2rem 1rem')};
 
   @media (min-width: 600px) {
-    padding: 2.5rem 1.5rem;
+    padding: ${({ $flush }) => ($flush ? '1.25rem 6px' : '2.5rem 1.5rem')};
   }
 
   @media (min-width: 900px) {
-    padding: 3rem 2rem;
+    padding: ${({ $flush }) => ($flush ? '1.5rem 8px' : '3rem 2rem')};
   }
 `
 

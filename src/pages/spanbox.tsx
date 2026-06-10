@@ -5,7 +5,7 @@ const title = 'SpanBox'
 
 const SpanBoxPage = () => {
   return (
-    <Layout title={title} fullWidth footer="minimal">
+    <Layout title={title} fullWidth flush footer="minimal">
       <SpanBox />
     </Layout>
   )
