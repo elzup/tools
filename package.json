@@ -112,6 +112,7 @@
     "file-loader": "6.2.0",
     "jest": "^28.1.3",
     "jest-environment-jsdom": "28.1.3",
+    "lefthook": "^2.1.9",
     "next-transpile-modules": "^10.0.0",
     "node-fetch": "^3.2.1",
     "playwright": "^1.49.0",

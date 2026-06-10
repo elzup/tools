@@ -1,0 +1,6 @@
+pre-commit:
+  commands:
+    lint:
+      run: nr lint
+    type-check:
+      run: nr type-check
