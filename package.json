@@ -1,16 +1,18 @@
 {
   "name": "tools",
   "version": "1.0.0",
+  "packageManager": "pnpm@10.26.2",
   "scripts": {
     "dev": "portless run --name tools next dev",
     "build": "next build",
     "test": "jest",
     "test:e2e": "playwright test",
-    "export": "yarn build && next export",
+    "export": "pnpm build && next export",
     "start": "next start",
     "lint": "biome lint src",
     "format": "biome format --write src && prettier --write \"**/*.md\"",
     "check": "biome check src",
+    "audit": "pnpm audit --audit-level=moderate",
     "init:wordlist": "ts-node scripts/init-wordlelist.ts",
     "type-check": "tsc"
   },

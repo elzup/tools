@@ -6,7 +6,9 @@ module.exports = {
   testPathIgnorePatterns: ['.qawolf/', 'e2e', '.next/', 'node_modules/'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   transformIgnorePatterns: [
-    '/node_modules/(?!(d3|d3-.+|internmap|delaunator|robust-predicates)/)',
+    // pnpm の node_modules/.pnpm/<pkg>/node_modules/<pkg> 構造に対応するため
+    // 先頭の .pnpm セグメントを除外対象から外し、内側のパッケージ名で判定する
+    '/node_modules/(?!(\\.pnpm|d3|d3-.+|internmap|delaunator|robust-predicates)/)',
     '^.+\\.module\\.(css|sass|scss)$',
   ],
   moduleNameMapper: {
