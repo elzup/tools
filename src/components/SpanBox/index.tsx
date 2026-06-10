@@ -48,9 +48,17 @@ type ResizeEdge =
   | 'bottom-right'
 
 const cellSize = 32
-const gridColumns = 28
-const gridRows = 18
 const minBlockSize = 1
+const defaultColumns = 56
+const defaultRows = 36
+const minColumns = 8
+const maxColumns = 96
+const minRows = 6
+const maxRows = 64
+
+// Share 行: 「ラベル  X,Y  WxH  #color」(ラベルに空白可、末尾から確定的に解釈)
+const SHARE_LINE_RE =
+  /^(.*?)\s+(\d+),(\d+)\s+(\d+)x(\d+)\s+(#[0-9a-fA-F]{3,8})\s*$/
 
 const colorPalette = [
   // Reds / Pinks
@@ -102,7 +110,25 @@ const SpanBox = () => {
   const nextIdRef = useRef(4)
   const [blocks, setBlocks] = useState<SpanBoxBlock[]>(initialBlocks)
   const [selectedId, setSelectedId] = useState(initialBlocks[0].id)
+  const [shareDraft, setShareDraft] = useState<string | null>(null)
   const [dragAction, setDragAction] = useState<DragAction | null>(null)
+  const [gridColumns, setGridColumns] = useState(defaultColumns)
+  const [gridRows, setGridRows] = useState(defaultRows)
+
+  // グリッド縮小時にはみ出すブロックを内側へ収める
+  const resizeGrid = (cols: number, rows: number) => {
+    setGridColumns(cols)
+    setGridRows(rows)
+    setBlocks((current) =>
+      current.map((block) => ({
+        ...block,
+        width: clamp(block.width, minBlockSize, cols),
+        height: clamp(block.height, minBlockSize, rows),
+        x: clamp(block.x, 0, cols - Math.min(block.width, cols)),
+        y: clamp(block.y, 0, rows - Math.min(block.height, rows)),
+      }))
+    )
+  }
 
   const selectedBlock =
     blocks.find((block) => block.id === selectedId) ?? blocks[0]
@@ -118,6 +144,34 @@ const SpanBox = () => {
   const copyShareText = useCallback(async () => {
     await navigator.clipboard.writeText(generateShareText(blocks))
   }, [blocks])
+
+  // Share テキストを直接編集 → 各行をパースしてブロックへ逆反映する。
+  // 行頭から「ラベル X,Y WxH #color」。不正な行は無視し、最低1行有効なときだけ反映。
+  const handleShareChange = (text: string) => {
+    setShareDraft(text)
+    const parsed: SpanBoxBlock[] = []
+    for (const line of text.split('\n')) {
+      const m = line.match(SHARE_LINE_RE)
+      if (!m) continue
+      const [, label, xs, ys, ws, hs, color] = m
+      const width = clamp(Number(ws), minBlockSize, gridColumns)
+      const height = clamp(Number(hs), minBlockSize, gridRows)
+      // ID は行位置で既存ブロックを引き継ぎ、新規行は採番する
+      const id = blocks[parsed.length]?.id ?? `block-${nextIdRef.current++}`
+      parsed.push({
+        id,
+        label: label.trim(),
+        color,
+        width,
+        height,
+        x: clamp(Number(xs) - 1, 0, gridColumns - width),
+        y: clamp(Number(ys) - 1, 0, gridRows - height),
+      })
+    }
+    if (parsed.length === 0) return
+    setBlocks(parsed)
+    if (!parsed.some((b) => b.id === selectedId)) setSelectedId(parsed[0].id)
+  }
   const occupiedCells = useMemo(() => getOccupiedCells(blocks), [blocks])
 
   const updateSelectedBlock = (updates: Partial<SpanBoxBlock>) => {
@@ -206,8 +260,14 @@ const SpanBox = () => {
     }
     const nextBlock =
       dragAction.kind === 'move'
-        ? moveBlock(dragAction.block, delta)
-        : resizeBlock(dragAction.block, delta, dragAction.edge)
+        ? moveBlock(dragAction.block, delta, gridColumns, gridRows)
+        : resizeBlock(
+            dragAction.block,
+            delta,
+            dragAction.edge,
+            gridColumns,
+            gridRows
+          )
 
     setBlocks((currentBlocks) =>
       currentBlocks.map((block) =>
@@ -245,6 +305,47 @@ const SpanBox = () => {
           >
             <FaTrash />
           </ToolButton>
+
+          <GridSizeControls>
+            <GridField>
+              <span>列</span>
+              <GridNumberInput
+                type="number"
+                min={minColumns}
+                max={maxColumns}
+                value={gridColumns}
+                onChange={(event) =>
+                  resizeGrid(
+                    clamp(
+                      Number(event.target.value) || minColumns,
+                      minColumns,
+                      maxColumns
+                    ),
+                    gridRows
+                  )
+                }
+              />
+            </GridField>
+            <GridField>
+              <span>行</span>
+              <GridNumberInput
+                type="number"
+                min={minRows}
+                max={maxRows}
+                value={gridRows}
+                onChange={(event) =>
+                  resizeGrid(
+                    gridColumns,
+                    clamp(
+                      Number(event.target.value) || minRows,
+                      minRows,
+                      maxRows
+                    )
+                  )
+                }
+              />
+            </GridField>
+          </GridSizeControls>
         </ToolbarGroup>
       </TopBar>
 
@@ -267,17 +368,17 @@ const SpanBox = () => {
             onPointerUp={() => setDragAction(null)}
             onPointerCancel={() => setDragAction(null)}
           >
-            <ColumnRail>
+            <ColumnRail $cols={gridColumns}>
               {Array.from({ length: gridColumns }, (_, index) => (
                 <RailTick key={index}>{index + 1}</RailTick>
               ))}
             </ColumnRail>
-            <RowRail>
+            <RowRail $rows={gridRows}>
               {Array.from({ length: gridRows }, (_, index) => (
                 <RailTick key={index}>{index + 1}</RailTick>
               ))}
             </RowRail>
-            <GridPaper>
+            <GridPaper $cols={gridColumns} $rows={gridRows}>
               {occupiedCells.map((cell) => (
                 <GhostCell key={cell} />
               ))}
@@ -424,9 +525,15 @@ const SpanBox = () => {
               <Separator />
               <FieldLabel>
                 <FaClipboard />
-                Share
+                Share (編集可)
               </FieldLabel>
-              <ShareText readOnly value={generateShareText(blocks)} />
+              <ShareText
+                value={shareDraft ?? generateShareText(blocks)}
+                onFocus={() => setShareDraft(generateShareText(blocks))}
+                onBlur={() => setShareDraft(null)}
+                onChange={(event) => handleShareChange(event.target.value)}
+                spellCheck={false}
+              />
               <CopyButton onClick={copyShareText}>
                 <FaCopy />
                 Copy
@@ -453,7 +560,12 @@ const getGridPoint = (event: React.PointerEvent): GridPoint => ({
   y: Math.round(event.clientY / cellSize),
 })
 
-const moveBlock = (block: SpanBoxBlock, delta: GridPoint): SpanBoxBlock => ({
+const moveBlock = (
+  block: SpanBoxBlock,
+  delta: GridPoint,
+  gridColumns: number,
+  gridRows: number
+): SpanBoxBlock => ({
   ...block,
   x: clamp(block.x + delta.x, 0, gridColumns - block.width),
   y: clamp(block.y + delta.y, 0, gridRows - block.height),
@@ -462,7 +574,9 @@ const moveBlock = (block: SpanBoxBlock, delta: GridPoint): SpanBoxBlock => ({
 const resizeBlock = (
   block: SpanBoxBlock,
   delta: GridPoint,
-  edge: ResizeEdge
+  edge: ResizeEdge,
+  gridColumns: number,
+  gridRows: number
 ): SpanBoxBlock => {
   if (edge === 'right') {
     return {
@@ -587,6 +701,35 @@ const Brand = styled.div`
   gap: 2px;
 `
 
+const GridSizeControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 4px;
+  padding-left: 10px;
+  border-left: 1px solid #d7dde8;
+`
+
+const GridField = styled.label`
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #566174;
+  font-size: 0.82rem;
+  font-weight: 700;
+`
+
+const GridNumberInput = styled.input`
+  width: 56px;
+  height: 38px;
+  box-sizing: border-box;
+  border: 1px solid #c7d0dd;
+  border-radius: 6px;
+  padding: 0 8px;
+  color: #202631;
+  font-size: 0.9rem;
+`
+
 const TitleText = styled.h1`
   margin: 0;
   color: #202631;
@@ -695,22 +838,22 @@ const Board = styled.div`
   touch-action: none;
 `
 
-const ColumnRail = styled.div`
+const ColumnRail = styled.div<{ $cols: number }>`
   position: absolute;
   top: 0;
   left: 34px;
   display: grid;
-  grid-template-columns: repeat(${gridColumns}, ${cellSize}px);
+  grid-template-columns: repeat(${({ $cols }) => $cols}, ${cellSize}px);
   height: 28px;
   background: #eef2f8;
 `
 
-const RowRail = styled.div`
+const RowRail = styled.div<{ $rows: number }>`
   position: absolute;
   top: 28px;
   left: 0;
   display: grid;
-  grid-template-rows: repeat(${gridRows}, ${cellSize}px);
+  grid-template-rows: repeat(${({ $rows }) => $rows}, ${cellSize}px);
   width: 34px;
   background: #eef2f8;
 `
@@ -725,10 +868,10 @@ const RailTick = styled.div`
   font-weight: 700;
 `
 
-const GridPaper = styled.div`
+const GridPaper = styled.div<{ $cols: number; $rows: number }>`
   position: relative;
-  width: ${gridColumns * cellSize}px;
-  height: ${gridRows * cellSize}px;
+  width: ${({ $cols }) => $cols * cellSize}px;
+  height: ${({ $rows }) => $rows * cellSize}px;
   background-color: #ffffff;
   background-image:
     linear-gradient(#dce2ec 1px, transparent 1px),
