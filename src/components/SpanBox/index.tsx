@@ -8,6 +8,7 @@ import {
   FaFont,
   FaPalette,
   FaPlus,
+  FaRetweet,
   FaTrash,
 } from 'react-icons/fa'
 import styled from 'styled-components'
@@ -133,6 +134,27 @@ const SpanBox = () => {
         x: clamp(block.x, 0, cols - Math.min(block.width, cols)),
         y: clamp(block.y, 0, rows - Math.min(block.height, rows)),
       }))
+    )
+  }
+
+  // 転置: グリッドと全ブロックの縦横 (x↔y, width↔height) を入れ替える
+  const transpose = () => {
+    const cols = gridRows
+    const rows = gridColumns
+    setGridColumns(cols)
+    setGridRows(rows)
+    setBlocks((current) =>
+      current.map((block) => {
+        const width = clamp(block.height, minBlockSize, cols)
+        const height = clamp(block.width, minBlockSize, rows)
+        return {
+          ...block,
+          width,
+          height,
+          x: clamp(block.y, 0, cols - width),
+          y: clamp(block.x, 0, rows - height),
+        }
+      })
     )
   }
 
@@ -365,6 +387,9 @@ const SpanBox = () => {
             title={showMeta ? 'サイズ表示を隠す' : 'サイズ表示する'}
           >
             {showMeta ? <FaEye /> : <FaEyeSlash />}
+          </ToolButton>
+          <ToolButton onClick={transpose} title="縦横を入れ替える (転置)">
+            <FaRetweet />
           </ToolButton>
 
           <GridSizeControls>
