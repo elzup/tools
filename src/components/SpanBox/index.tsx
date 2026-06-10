@@ -23,13 +23,12 @@ type SpanBoxBlock = {
 }
 
 type DragAction =
-  | { kind: 'move'; id: string; origin: GridPoint; block: SpanBoxBlock }
+  | { kind: 'move'; origin: GridPoint; snapshot: SpanBoxBlock[] }
   | {
       kind: 'resize'
-      id: string
       edge: ResizeEdge
       origin: GridPoint
-      block: SpanBoxBlock
+      snapshot: SpanBoxBlock[]
     }
 
 type GridPoint = {
@@ -111,7 +110,9 @@ const SpanBox = () => {
   const boardRef = useRef<HTMLDivElement>(null)
   const nextIdRef = useRef(4)
   const [blocks, setBlocks] = useState<SpanBoxBlock[]>(initialBlocks)
-  const [selectedId, setSelectedId] = useState(initialBlocks[0].id)
+  const [selectedIds, setSelectedIds] = useState<string[]>([
+    initialBlocks[0].id,
+  ])
   const [shareDraft, setShareDraft] = useState<string | null>(null)
   const [dragAction, setDragAction] = useState<DragAction | null>(null)
   const [gridColumns, setGridColumns] = useState(defaultColumns)
@@ -134,8 +135,10 @@ const SpanBox = () => {
     )
   }
 
+  // primary = 最後に選択したブロック (インスペクタ編集の対象)
+  const primaryId = selectedIds[selectedIds.length - 1]
   const selectedBlock =
-    blocks.find((block) => block.id === selectedId) ?? blocks[0]
+    blocks.find((block) => block.id === primaryId) ?? blocks[0]
 
   const generateShareText = (blocks: SpanBoxBlock[]) =>
     blocks
@@ -174,7 +177,10 @@ const SpanBox = () => {
     }
     if (parsed.length === 0) return
     setBlocks(parsed)
-    if (!parsed.some((b) => b.id === selectedId)) setSelectedId(parsed[0].id)
+    setSelectedIds((prev) => {
+      const valid = prev.filter((id) => parsed.some((p) => p.id === id))
+      return valid.length > 0 ? valid : [parsed[0].id]
+    })
   }
   const occupiedCells = useMemo(() => getOccupiedCells(blocks), [blocks])
 
@@ -200,41 +206,48 @@ const SpanBox = () => {
     }
     nextIdRef.current += 1
     setBlocks((currentBlocks) => [...currentBlocks, block])
-    setSelectedId(block.id)
+    setSelectedIds([block.id])
   }
 
-  const duplicateBlock = () => {
-    if (!selectedBlock) return
-    const block: SpanBoxBlock = {
-      ...selectedBlock,
-      id: `block-${nextIdRef.current}`,
-      x: clamp(selectedBlock.x + 1, 0, gridColumns - selectedBlock.width),
-      y: clamp(selectedBlock.y + 1, 0, gridRows - selectedBlock.height),
-      label: `${selectedBlock.label} copy`,
-    }
-    nextIdRef.current += 1
-    setBlocks((currentBlocks) => [...currentBlocks, block])
-    setSelectedId(block.id)
+  // 選択中の全ブロックを +1,+1 ずらして複製し、複製側を選択する
+  const duplicateSelected = () => {
+    const targets = blocks.filter((b) => selectedIds.includes(b.id))
+    if (targets.length === 0) return
+    const dups = targets.map((b) => ({
+      ...b,
+      id: `block-${nextIdRef.current++}`,
+      x: clamp(b.x + 1, 0, gridColumns - b.width),
+      y: clamp(b.y + 1, 0, gridRows - b.height),
+    }))
+    setBlocks((currentBlocks) => [...currentBlocks, ...dups])
+    setSelectedIds(dups.map((d) => d.id))
   }
 
-  const deleteSelectedBlock = () => {
-    if (!selectedBlock || blocks.length === 1) return
-    const remainingBlocks = blocks.filter(
-      (block) => block.id !== selectedBlock.id
-    )
-    setBlocks(remainingBlocks)
-    setSelectedId(remainingBlocks[0].id)
+  const deleteSelected = () => {
+    const remaining = blocks.filter((b) => !selectedIds.includes(b.id))
+    if (remaining.length === 0) return
+    setBlocks(remaining)
+    setSelectedIds([remaining[0].id])
   }
 
   const startMove = (event: React.PointerEvent, block: SpanBoxBlock) => {
     if (isControlTarget(event.target)) return
+    // 修飾キー押下時は選択のトグルのみ (ドラッグ移動しない)
+    if (event.shiftKey || event.metaKey || event.ctrlKey) {
+      setSelectedIds((cur) =>
+        cur.includes(block.id)
+          ? cur.filter((id) => id !== block.id)
+          : [...cur, block.id]
+      )
+      return
+    }
     event.currentTarget.setPointerCapture(event.pointerId)
-    setSelectedId(block.id)
+    const ids = selectedIds.includes(block.id) ? selectedIds : [block.id]
+    setSelectedIds(ids)
     setDragAction({
       kind: 'move',
-      id: block.id,
       origin: getGridPoint(event, cellSize),
-      block,
+      snapshot: blocks.filter((b) => ids.includes(b.id)),
     })
   }
 
@@ -245,13 +258,13 @@ const SpanBox = () => {
   ) => {
     event.stopPropagation()
     event.currentTarget.setPointerCapture(event.pointerId)
-    setSelectedId(block.id)
+    const ids = selectedIds.includes(block.id) ? selectedIds : [block.id]
+    setSelectedIds(ids)
     setDragAction({
       kind: 'resize',
-      id: block.id,
       edge,
       origin: getGridPoint(event, cellSize),
-      block,
+      snapshot: blocks.filter((b) => ids.includes(b.id)),
     })
   }
 
@@ -262,21 +275,17 @@ const SpanBox = () => {
       x: currentPoint.x - dragAction.origin.x,
       y: currentPoint.y - dragAction.origin.y,
     }
-    const nextBlock =
+    // 選択中の全ブロックへ delta を適用 (移動は群として境界クランプ)
+    const updated =
       dragAction.kind === 'move'
-        ? moveBlock(dragAction.block, delta, gridColumns, gridRows)
-        : resizeBlock(
-            dragAction.block,
-            delta,
-            dragAction.edge,
-            gridColumns,
-            gridRows
+        ? moveGroup(dragAction.snapshot, delta, gridColumns, gridRows)
+        : dragAction.snapshot.map((b) =>
+            resizeBlock(b, delta, dragAction.edge, gridColumns, gridRows)
           )
+    const updatedMap = new Map(updated.map((b) => [b.id, b]))
 
     setBlocks((currentBlocks) =>
-      currentBlocks.map((block) =>
-        block.id === dragAction.id ? nextBlock : block
-      )
+      currentBlocks.map((block) => updatedMap.get(block.id) ?? block)
     )
   }
 
@@ -296,16 +305,16 @@ const SpanBox = () => {
             Add
           </PrimaryButton>
           <ToolButton
-            onClick={duplicateBlock}
-            disabled={!selectedBlock}
-            title="Duplicate selected block"
+            onClick={duplicateSelected}
+            disabled={selectedIds.length === 0}
+            title="選択ブロックを複製"
           >
             <FaCopy />
           </ToolButton>
           <ToolButton
-            onClick={deleteSelectedBlock}
-            disabled={blocks.length === 1}
-            title="Delete selected block"
+            onClick={deleteSelected}
+            disabled={blocks.length <= selectedIds.length}
+            title="選択ブロックを削除"
           >
             <FaTrash />
           </ToolButton>
@@ -401,7 +410,7 @@ const SpanBox = () => {
                 <GhostCell key={cell} />
               ))}
               {blocks.map((block) => {
-                const isSelected = block.id === selectedId
+                const isSelected = selectedIds.includes(block.id)
                 return (
                   <BlockItem
                     key={block.id}
@@ -584,16 +593,23 @@ const getGridPoint = (
   y: Math.round(event.clientY / cellSize),
 })
 
-const moveBlock = (
-  block: SpanBoxBlock,
+// 群移動: delta を群の外接矩形でクランプし、相対位置を保ったまま全員を動かす
+const moveGroup = (
+  snapshot: SpanBoxBlock[],
   delta: GridPoint,
   gridColumns: number,
   gridRows: number
-): SpanBoxBlock => ({
-  ...block,
-  x: clamp(block.x + delta.x, 0, gridColumns - block.width),
-  y: clamp(block.y + delta.y, 0, gridRows - block.height),
-})
+): SpanBoxBlock[] => {
+  if (snapshot.length === 0) return snapshot
+  const minX = Math.min(...snapshot.map((b) => b.x))
+  const minY = Math.min(...snapshot.map((b) => b.y))
+  const maxRight = Math.max(...snapshot.map((b) => b.x + b.width))
+  const maxBottom = Math.max(...snapshot.map((b) => b.y + b.height))
+  const dx = clamp(delta.x, -minX, gridColumns - maxRight)
+  const dy = clamp(delta.y, -minY, gridRows - maxBottom)
+
+  return snapshot.map((b) => ({ ...b, x: b.x + dx, y: b.y + dy }))
+}
 
 const resizeBlock = (
   block: SpanBoxBlock,
