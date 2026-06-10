@@ -10,3 +10,9 @@ minimumReleaseAgeExclude:
 # は既定で全てブロックされる。実行を許可するものだけを明示的に列挙する。
 # (空 = 全ブロック。pnpm install 後に必要なものを `pnpm approve-builds` で追加)
 onlyBuiltDependencies: []
+
+# 既知脆弱性のある transitive 依存を patched 版へ強制したい場合は overrides を使う:
+#   overrides:
+#     'some-pkg@<1.2.3': '>=1.2.3'
+# (現状の audit 指摘は多くが古い依存で patched 版が npm 未公開のため、
+#  本質的な解消には依存自体のアップグレードが必要)
