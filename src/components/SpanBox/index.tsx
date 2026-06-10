@@ -1,5 +1,5 @@
 import type React from 'react'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   FaClipboard,
   FaCopy,
@@ -109,6 +109,7 @@ const initialBlocks: SpanBoxBlock[] = [
 const SpanBox = () => {
   const boardRef = useRef<HTMLDivElement>(null)
   const nextIdRef = useRef(4)
+  const clipboardRef = useRef<SpanBoxBlock[]>([])
   const [blocks, setBlocks] = useState<SpanBoxBlock[]>(initialBlocks)
   const [selectedIds, setSelectedIds] = useState<string[]>([
     initialBlocks[0].id,
@@ -242,12 +243,23 @@ const SpanBox = () => {
       return
     }
     event.currentTarget.setPointerCapture(event.pointerId)
-    const ids = selectedIds.includes(block.id) ? selectedIds : [block.id]
+    let ids = selectedIds.includes(block.id) ? selectedIds : [block.id]
+    let snapshot = blocks.filter((b) => ids.includes(b.id))
+    // Alt ドラッグ: 複製して複製側をドラッグ (元は据え置き)
+    if (event.altKey) {
+      const dups = snapshot.map((b) => ({
+        ...b,
+        id: `block-${nextIdRef.current++}`,
+      }))
+      setBlocks((currentBlocks) => [...currentBlocks, ...dups])
+      ids = dups.map((d) => d.id)
+      snapshot = dups
+    }
     setSelectedIds(ids)
     setDragAction({
       kind: 'move',
       origin: getGridPoint(event, cellSize),
-      snapshot: blocks.filter((b) => ids.includes(b.id)),
+      snapshot,
     })
   }
 
@@ -288,6 +300,36 @@ const SpanBox = () => {
       currentBlocks.map((block) => updatedMap.get(block.id) ?? block)
     )
   }
+
+  // Cmd/Ctrl + C / V で選択ブロックをコピー&ペースト (入力中は無視)
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null
+      if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
+        return
+      }
+      if (!(event.metaKey || event.ctrlKey)) return
+
+      if (event.key === 'c') {
+        clipboardRef.current = blocks.filter((b) => selectedIds.includes(b.id))
+      } else if (event.key === 'v') {
+        const clip = clipboardRef.current
+        if (clip.length === 0) return
+        event.preventDefault()
+        const dups = clip.map((b) => ({
+          ...b,
+          id: `block-${nextIdRef.current++}`,
+          x: clamp(b.x + 1, 0, gridColumns - b.width),
+          y: clamp(b.y + 1, 0, gridRows - b.height),
+        }))
+        setBlocks((currentBlocks) => [...currentBlocks, ...dups])
+        setSelectedIds(dups.map((d) => d.id))
+      }
+    }
+    window.addEventListener('keydown', onKey)
+
+    return () => window.removeEventListener('keydown', onKey)
+  }, [blocks, selectedIds, gridColumns, gridRows])
 
   return (
     <Shell>
