@@ -1,10 +1,8 @@
 import type React from 'react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import {
-  FaArrowsAlt,
   FaClipboard,
   FaCopy,
-  FaExpandArrowsAlt,
   FaFont,
   FaPalette,
   FaPlus,
@@ -351,17 +349,6 @@ const SpanBox = () => {
 
       <Workspace>
         <BoardPanel>
-          <RailHeader>
-            <RailCaption>
-              <FaArrowsAlt />
-              snap grid
-            </RailCaption>
-            <RailCaption>
-              <FaExpandArrowsAlt />
-              edge rails resize
-            </RailCaption>
-          </RailHeader>
-
           <Board
             ref={boardRef}
             onPointerMove={dragBlock}
@@ -679,7 +666,7 @@ const Shell = styled.div`
   min-height: calc(100vh - 40px);
   background: #f6f7fb;
   color: #202631;
-  padding: 18px;
+  padding: 14px 6px;
 `
 
 const TopBar = styled.div`
@@ -810,25 +797,6 @@ const BoardPanel = styled.section`
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 10px 28px rgba(31, 39, 54, 0.08);
-`
-
-const RailHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-height: 42px;
-  padding: 0 14px;
-  border-bottom: 1px solid #d7dde8;
-  background: #fbfcff;
-`
-
-const RailCaption = styled.span`
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: #566174;
-  font-size: 0.82rem;
-  font-weight: 700;
 `
 
 const Board = styled.div`
