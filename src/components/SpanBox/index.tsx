@@ -3,6 +3,8 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import {
   FaClipboard,
   FaCopy,
+  FaEye,
+  FaEyeSlash,
   FaFont,
   FaPalette,
   FaPlus,
@@ -115,6 +117,7 @@ const SpanBox = () => {
   const [gridColumns, setGridColumns] = useState(defaultColumns)
   const [gridRows, setGridRows] = useState(defaultRows)
   const [cellSize, setCellSize] = useState(defaultCellSize)
+  const [showMeta, setShowMeta] = useState(true)
 
   // グリッド縮小時にはみ出すブロックを内側へ収める
   const resizeGrid = (cols: number, rows: number) => {
@@ -306,6 +309,12 @@ const SpanBox = () => {
           >
             <FaTrash />
           </ToolButton>
+          <ToolButton
+            onClick={() => setShowMeta((v) => !v)}
+            title={showMeta ? 'サイズ表示を隠す' : 'サイズ表示する'}
+          >
+            {showMeta ? <FaEye /> : <FaEyeSlash />}
+          </ToolButton>
 
           <GridSizeControls>
             <GridField>
@@ -402,9 +411,11 @@ const SpanBox = () => {
                     onPointerDown={(event) => startMove(event, block)}
                   >
                     <BlockLabel>{block.label}</BlockLabel>
-                    <BlockMeta>
-                      {block.width} x {block.height}
-                    </BlockMeta>
+                    {showMeta && (
+                      <BlockMeta>
+                        {block.width} x {block.height}
+                      </BlockMeta>
+                    )}
                     {isSelected &&
                       (
                         [
