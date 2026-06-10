@@ -45,7 +45,6 @@ type ResizeEdge =
   | 'bottom-left'
   | 'bottom-right'
 
-const cellSize = 32
 const minBlockSize = 1
 const defaultColumns = 56
 const defaultRows = 36
@@ -53,6 +52,9 @@ const minColumns = 8
 const maxColumns = 96
 const minRows = 6
 const maxRows = 64
+const defaultCellSize = 32
+const minCellSize = 12
+const maxCellSize = 64
 
 // Share 行: 「ラベル  X,Y  WxH  #color」(ラベルに空白可、末尾から確定的に解釈)
 const SHARE_LINE_RE =
@@ -112,6 +114,7 @@ const SpanBox = () => {
   const [dragAction, setDragAction] = useState<DragAction | null>(null)
   const [gridColumns, setGridColumns] = useState(defaultColumns)
   const [gridRows, setGridRows] = useState(defaultRows)
+  const [cellSize, setCellSize] = useState(defaultCellSize)
 
   // グリッド縮小時にはみ出すブロックを内側へ収める
   const resizeGrid = (cols: number, rows: number) => {
@@ -227,7 +230,7 @@ const SpanBox = () => {
     setDragAction({
       kind: 'move',
       id: block.id,
-      origin: getGridPoint(event),
+      origin: getGridPoint(event, cellSize),
       block,
     })
   }
@@ -244,14 +247,14 @@ const SpanBox = () => {
       kind: 'resize',
       id: block.id,
       edge,
-      origin: getGridPoint(event),
+      origin: getGridPoint(event, cellSize),
       block,
     })
   }
 
   const dragBlock = (event: React.PointerEvent) => {
     if (!dragAction) return
-    const currentPoint = getGridPoint(event)
+    const currentPoint = getGridPoint(event, cellSize)
     const delta = {
       x: currentPoint.x - dragAction.origin.x,
       y: currentPoint.y - dragAction.origin.y,
@@ -343,6 +346,25 @@ const SpanBox = () => {
                 }
               />
             </GridField>
+            <GridField>
+              <span>セル</span>
+              <GridNumberInput
+                type="number"
+                min={minCellSize}
+                max={maxCellSize}
+                step={2}
+                value={cellSize}
+                onChange={(event) =>
+                  setCellSize(
+                    clamp(
+                      Number(event.target.value) || defaultCellSize,
+                      minCellSize,
+                      maxCellSize
+                    )
+                  )
+                }
+              />
+            </GridField>
           </GridSizeControls>
         </ToolbarGroup>
       </TopBar>
@@ -355,17 +377,17 @@ const SpanBox = () => {
             onPointerUp={() => setDragAction(null)}
             onPointerCancel={() => setDragAction(null)}
           >
-            <ColumnRail $cols={gridColumns}>
+            <ColumnRail $cols={gridColumns} $cell={cellSize}>
               {Array.from({ length: gridColumns }, (_, index) => (
                 <RailTick key={index}>{index + 1}</RailTick>
               ))}
             </ColumnRail>
-            <RowRail $rows={gridRows}>
+            <RowRail $rows={gridRows} $cell={cellSize}>
               {Array.from({ length: gridRows }, (_, index) => (
                 <RailTick key={index}>{index + 1}</RailTick>
               ))}
             </RowRail>
-            <GridPaper $cols={gridColumns} $rows={gridRows}>
+            <GridPaper $cols={gridColumns} $rows={gridRows} $cell={cellSize}>
               {occupiedCells.map((cell) => (
                 <GhostCell key={cell} />
               ))}
@@ -376,6 +398,7 @@ const SpanBox = () => {
                     key={block.id}
                     $block={block}
                     $selected={isSelected}
+                    $cell={cellSize}
                     onPointerDown={(event) => startMove(event, block)}
                   >
                     <BlockLabel>{block.label}</BlockLabel>
@@ -542,7 +565,10 @@ const getOccupiedCells = (blocks: SpanBoxBlock[]) =>
     })
   )
 
-const getGridPoint = (event: React.PointerEvent): GridPoint => ({
+const getGridPoint = (
+  event: React.PointerEvent,
+  cellSize: number
+): GridPoint => ({
   x: Math.round(event.clientX / cellSize),
   y: Math.round(event.clientY / cellSize),
 })
@@ -806,22 +832,25 @@ const Board = styled.div`
   touch-action: none;
 `
 
-const ColumnRail = styled.div<{ $cols: number }>`
+const ColumnRail = styled.div<{ $cols: number; $cell: number }>`
   position: absolute;
   top: 0;
   left: 34px;
   display: grid;
-  grid-template-columns: repeat(${({ $cols }) => $cols}, ${cellSize}px);
+  grid-template-columns: repeat(
+    ${({ $cols }) => $cols},
+    ${({ $cell }) => $cell}px
+  );
   height: 28px;
   background: #eef2f8;
 `
 
-const RowRail = styled.div<{ $rows: number }>`
+const RowRail = styled.div<{ $rows: number; $cell: number }>`
   position: absolute;
   top: 28px;
   left: 0;
   display: grid;
-  grid-template-rows: repeat(${({ $rows }) => $rows}, ${cellSize}px);
+  grid-template-rows: repeat(${({ $rows }) => $rows}, ${({ $cell }) => $cell}px);
   width: 34px;
   background: #eef2f8;
 `
@@ -836,27 +865,31 @@ const RailTick = styled.div`
   font-weight: 700;
 `
 
-const GridPaper = styled.div<{ $cols: number; $rows: number }>`
+const GridPaper = styled.div<{ $cols: number; $rows: number; $cell: number }>`
   position: relative;
-  width: ${({ $cols }) => $cols * cellSize}px;
-  height: ${({ $rows }) => $rows * cellSize}px;
+  width: ${({ $cols, $cell }) => $cols * $cell}px;
+  height: ${({ $rows, $cell }) => $rows * $cell}px;
   background-color: #ffffff;
   background-image:
     linear-gradient(#dce2ec 1px, transparent 1px),
     linear-gradient(90deg, #dce2ec 1px, transparent 1px);
-  background-size: ${cellSize}px ${cellSize}px;
+  background-size: ${({ $cell }) => $cell}px ${({ $cell }) => $cell}px;
 `
 
 const GhostCell = styled.div`
   display: none;
 `
 
-const BlockItem = styled.div<{ $block: SpanBoxBlock; $selected: boolean }>`
+const BlockItem = styled.div<{
+  $block: SpanBoxBlock
+  $selected: boolean
+  $cell: number
+}>`
   position: absolute;
-  left: ${({ $block }) => $block.x * cellSize}px;
-  top: ${({ $block }) => $block.y * cellSize}px;
-  width: ${({ $block }) => $block.width * cellSize}px;
-  height: ${({ $block }) => $block.height * cellSize}px;
+  left: ${({ $block, $cell }) => $block.x * $cell}px;
+  top: ${({ $block, $cell }) => $block.y * $cell}px;
+  width: ${({ $block, $cell }) => $block.width * $cell}px;
+  height: ${({ $block, $cell }) => $block.height * $cell}px;
   display: grid;
   align-content: center;
   gap: 2px;
