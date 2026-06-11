@@ -1,4 +1,4 @@
-import crypto from 'node:crypto'
+import CryptoJS from 'crypto-js'
 import type { SourceCodeFeatures } from './codeFeatures'
 
 // MagicSymbol 型
@@ -45,7 +45,7 @@ export function convertFeaturesToMagicLayer(
   )
 
   return {
-    id: crypto.createHash('md5').update(JSON.stringify(features)).digest('hex'),
+    id: CryptoJS.MD5(JSON.stringify(features)).toString(),
     geometry: {
       type: 'circle',
       radius,
