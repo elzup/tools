@@ -331,6 +331,11 @@ const routings: RoutingGroup[] = [
         label: 'RGB 全組み合わせ',
         path: '/rgb-combo',
       },
+      {
+        icon: faImage,
+        label: 'Filter Lens',
+        path: '/filter-lens',
+      },
     ],
   },
   {

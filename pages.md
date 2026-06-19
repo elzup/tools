@@ -54,6 +54,7 @@
 | creative-coding.tsx    | Graphical       | クリエイティブコーディングプレイグラウンド                           | react-p5, p5                                   | **要更新**     | \*  | P5.js 使用                   | 4    |
 | d3-play.tsx            | Graphical       | D3.js 実験プレイグラウンド                                           | @elzup/kit, lodash, styled-components          | 現在           |     | データ可視化実験             | 5    |
 | rgb-combo.tsx          | Graphical       | RGB 全組み合わせ網羅・原色点滅(時間混色)可視化                       | @elzup/kit, @mui, react-use, styled-components | 現在           |     | R/G/B 個別分割数調整         | 5    |
+| filter-lens.tsx        | Graphical       | カーソル追従の円形レンズで backdrop-filter を部分適用するデモ        | @mui, styled-components                        | 現在           | \*  | 画像/element 両対応の虫眼鏡  | 5    |
 | ellip-billiards.tsx    | Physics         | 楕円ビリヤードシミュレーション                                       |                                                | 現在           |     | 物理シミュレーション         | 4    |
 | diginima.tsx           | Draft           | デジニマ - デジタル実験                                              |                                                | 現在           |     | プロトタイプ                 | 3    |
 | decimal.tsx            | Draft           | 十進数表示実験                                                       | @elzup/kit                                     | 現在           |     | 数値表示                     | 3    |
