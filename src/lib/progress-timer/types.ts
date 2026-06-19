@@ -11,6 +11,11 @@ export type Step = {
 }
 
 export type PlanState = {
+  /**
+   * 保存スロット識別子。テキストの `@9:00 projA_001` の第2トークン由来。
+   * 未指定 (id なし) はどのスロットにも紐付かない作業中の予定。
+   */
+  id?: string
   /** 予定開始時刻 (当日 0:00 からの分, >= 0) */
   startClockMin: number
   steps: Step[]

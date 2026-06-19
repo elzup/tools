@@ -21,10 +21,13 @@ function b64urlDecode(s: string): string {
     : Buffer.from(b64, 'base64').toString('binary')
 }
 
-/** REQ-SH01/SH02: 予定を URL 安全文字列へ。 */
+/** REQ-SH01/SH02: 予定を URL 安全文字列へ。id があれば先頭セグメントに `|` 区切りで載せる。 */
 export function serializePlan(plan: PlanState): string {
+  const head = plan.id
+    ? `${plan.startClockMin}|${encodeURIComponent(plan.id)}`
+    : String(plan.startClockMin)
   const body = [
-    String(plan.startClockMin),
+    head,
     ...plan.steps.map((s) => `${s.durationMin},${encodeURIComponent(s.name)}`),
   ].join(';')
 
@@ -40,7 +43,9 @@ export function deserializePlan(text: string): PlanState | null {
   try {
     const body = b64urlDecode(text)
     const parts = body.split(';')
-    const startClockMin = Number(parts[0])
+    const [clockStr, idEnc] = parts[0].split('|')
+    const startClockMin = Number(clockStr)
+    const id = idEnc ? decodeURIComponent(idEnc) : undefined
 
     if (!isNonNegInt(startClockMin)) return null
 
@@ -60,8 +65,9 @@ export function deserializePlan(text: string): PlanState | null {
     })
 
     if (steps.some((s) => s === null)) return null
+    const plan = { startClockMin, steps: steps as PlanState['steps'] }
 
-    return { startClockMin, steps: steps as PlanState['steps'] }
+    return id ? { ...plan, id } : plan
   } catch {
     return null
   }

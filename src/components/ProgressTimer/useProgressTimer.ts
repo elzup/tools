@@ -2,15 +2,19 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   type ActualState,
   type PlanState,
+  type SavedPlan,
   computeActualRows,
   computePlanRows,
   createStep,
   currentStepIndex,
   decodePlanText,
   defaultPlan,
+  deserializeLibrary,
   deserializePlan,
   emptyActual,
   planEndClockMin,
+  removeFromLibrary,
+  serializeLibrary,
   serializePlan,
   setAbsoluteEnd,
   setCumulativeEnd,
@@ -19,9 +23,11 @@ import {
   startActual,
   stepProgress,
   totalDurationMin,
+  upsertLibrary,
 } from '../../lib/progress-timer'
 
 const STORAGE_KEY = 'progress-timer:plan'
+const LIBRARY_KEY = 'progress-timer:library'
 
 /** 当日 0:00 からの分 (秒を小数で含む)。 */
 const clockNowMin = (): number => {
@@ -51,10 +57,18 @@ const loadInitialPlan = (): PlanState => {
   return defaultPlan()
 }
 
+/** 保存スロット一覧を localStorage から読む。 */
+const loadInitialLibrary = (): SavedPlan[] => {
+  if (typeof window === 'undefined') return []
+
+  return deserializeLibrary(window.localStorage.getItem(LIBRARY_KEY))
+}
+
 export function useProgressTimer() {
   const [plan, setPlan] = useState<PlanState>(loadInitialPlan)
   const [actual, setActual] = useState<ActualState>(emptyActual)
   const [nowMin, setNowMin] = useState<number>(clockNowMin)
+  const [library, setLibrary] = useState<SavedPlan[]>(loadInitialLibrary)
 
   // ライブ時計 (REQ-U05)
   useEffect(() => {
@@ -71,6 +85,15 @@ export function useProgressTimer() {
       /* localStorage 不可環境は無視 */
     }
   }, [plan])
+
+  // 保存スロット一覧の永続化
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(LIBRARY_KEY, serializeLibrary(library))
+    } catch {
+      /* localStorage 不可環境は無視 */
+    }
+  }, [library])
 
   const planRows = useMemo(() => computePlanRows(plan), [plan])
   const actualRows = useMemo(
@@ -120,7 +143,35 @@ export function useProgressTimer() {
   )
   // テキスト編集モードからの反映 (spec:textproto)
   const setPlanFromText = useCallback(
-    (text: string) => setPlan((p) => decodePlanText(text, p.startClockMin)),
+    (text: string) =>
+      setPlan((p) => decodePlanText(text, p.startClockMin, p.id)),
+    []
+  )
+
+  // --- 保存スロット ---
+  // 編集テキストの再初期化トリガ (スロット読込時に PlanTextEditor を作り直す)
+  const [loadRevision, setLoadRevision] = useState(0)
+
+  /** 現在の予定を id のスロットへ保存 (id 無しは不可)。 */
+  const saveSlot = useCallback(
+    () => setLibrary((lib) => upsertLibrary(lib, plan)),
+    [plan]
+  )
+  /** スロットを編集中の予定として読み込む。 */
+  const loadSlot = useCallback(
+    (id: string) => {
+      const entry = library.find((e) => e.id === id)
+
+      if (!entry) return
+      setPlan(entry.plan)
+      setActual(emptyActual())
+      setLoadRevision((r) => r + 1)
+    },
+    [library]
+  )
+  /** スロットを削除する。 */
+  const removeSlot = useCallback(
+    (id: string) => setLibrary((lib) => removeFromLibrary(lib, id)),
     []
   )
 
@@ -169,6 +220,12 @@ export function useProgressTimer() {
     reset,
     shift,
     buildShareUrl,
+    // 保存スロット
+    library,
+    loadRevision,
+    saveSlot,
+    loadSlot,
+    removeSlot,
   }
 }
 

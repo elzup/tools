@@ -91,6 +91,32 @@ describe('実アジェンダ (長い名前・記号・数字混じり)', () => {
   })
 })
 
+describe('@行の id トークン (保存スロット識別子)', () => {
+  test('encode: id があれば @開始 の後ろに付く', () => {
+    expect(encodePlanText({ ...plan, id: 'projA_001' })).toContain(
+      '@14:00 projA_001'
+    )
+  })
+  test('encode: id 無しは時刻のみ', () => {
+    expect(encodePlanText(plan).split('\n')[0]).toBe('@14:00')
+  })
+  test('decode: @9:00 projA_001 で id を拾う', () => {
+    const p = decodePlanText('@9:00 projA_001\na 10')
+    expect(p.id).toBe('projA_001')
+    expect(p.startClockMin).toBe(540)
+  })
+  test('decode: id トークン無しは id なし (fallbackId も無視)', () => {
+    expect(decodePlanText('@9:00\na 10', 0, 'prev').id).toBeUndefined()
+  })
+  test('decode: @行が無ければ fallbackId を引き継ぐ', () => {
+    expect(decodePlanText('a 10', 540, 'projA_001').id).toBe('projA_001')
+  })
+  test('round-trip: id を保存', () => {
+    const withId: PlanState = { ...plan, id: 'projB_x' }
+    expect(decodePlanText(encodePlanText(withId)).id).toBe('projB_x')
+  })
+})
+
 describe('REQ-TP10: round-trip', () => {
   test('start/duration/name 保存 (数字・空白を含む名前でも)', () => {
     const tricky: PlanState = {

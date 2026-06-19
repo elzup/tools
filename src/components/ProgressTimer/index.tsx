@@ -11,6 +11,7 @@ import {
   parseDuration,
 } from '../../lib/progress-timer'
 import { EditableText } from './EditableText'
+import { SavedPlans } from './SavedPlans'
 import { Timeline } from './Timeline'
 import { VerticalList } from './VerticalList'
 import { type ProgressTimerApi, useProgressTimer } from './useProgressTimer'
@@ -81,6 +82,9 @@ const ProgressTimer = () => {
           {copied ? 'コピー済' : 'URL共有'}
         </Button>
       </Controls>
+
+      {/* 保存スロット (名前付き複数保持) */}
+      <SavedPlans t={t} />
 
       {/* 現在ステップの進捗 */}
       {t.progress && t.curIndex !== null && (
@@ -196,7 +200,7 @@ const ProgressTimer = () => {
           </Table>
         </TableScroll>
       ) : (
-        <PlanTextEditor t={t} />
+        <PlanTextEditor key={t.loadRevision} t={t} />
       )}
 
       <Help>
@@ -204,8 +208,11 @@ const ProgressTimer = () => {
         <code>0:70</code>=70分
         (=1:10)。配分・絶対終了・累積終了のどれを編集しても同期します。テキスト編集は{' '}
         <code>@14:00</code> で開始、各行 <code>名前 配分</code>
-        (配分は末尾)。開始後は実績バーの境界 <code>⇆</code>{' '}
-        をドラッグして左右にずらせます (予定とは別、後続が平行移動)。
+        (配分は末尾)。<code>@9:00 projA_001</code> のように開始時刻の後ろに id
+        を付けると、その名前で保存スロットに保持でき (id
+        無しは未保存)、チップのクリックで切り替えられます。開始後は実績バーの境界{' '}
+        <code>⇆</code> をドラッグして左右にずらせます
+        (予定とは別、後続が平行移動)。
       </Help>
     </Wrap>
   )

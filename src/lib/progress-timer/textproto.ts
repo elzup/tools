@@ -11,9 +11,10 @@ import {
 } from './notation'
 import { createStep } from './factory'
 
-/** REQ-TP01/TP02: 予定 → テキスト。 */
+/** REQ-TP01/TP02: 予定 → テキスト。id があれば `@9:00 projA_001` 形式で先頭行に付与。 */
 export function encodePlanText(plan: PlanState): string {
-  const lines = [`@${formatClock(plan.startClockMin)}`]
+  const head = `@${formatClock(plan.startClockMin)}`
+  const lines = [plan.id ? `${head} ${plan.id}` : head]
 
   for (const s of plan.steps) {
     const dur = formatDuration(s.durationMin)
@@ -24,9 +25,17 @@ export function encodePlanText(plan: PlanState): string {
   return lines.join('\n')
 }
 
-/** REQ-TP03..TP09: テキスト → 予定。例外を投げず、常に PlanState を返す。 */
-export function decodePlanText(text: string, fallbackStart = 0): PlanState {
+/**
+ * REQ-TP03..TP09: テキスト → 予定。例外を投げず、常に PlanState を返す。
+ * 先頭の `@9:00 projA_001` のように時刻の後ろに付くトークンを id として扱う。
+ */
+export function decodePlanText(
+  text: string,
+  fallbackStart = 0,
+  fallbackId?: string
+): PlanState {
   let startClockMin = Math.max(0, fallbackStart)
+  let id = fallbackId
   const steps: PlanState['steps'] = []
 
   for (const raw of text.split('\n')) {
@@ -35,9 +44,11 @@ export function decodePlanText(text: string, fallbackStart = 0): PlanState {
     if (!line) continue
 
     if (line.startsWith('@')) {
-      const c = parseClock(line.slice(1).trim())
+      const tokens = line.slice(1).trim().split(/\s+/)
+      const c = parseClock(tokens[0])
 
       if (c !== null) startClockMin = c
+      id = tokens.length > 1 ? tokens.slice(1).join(' ') : undefined
       continue
     }
 
@@ -51,5 +62,5 @@ export function decodePlanText(text: string, fallbackStart = 0): PlanState {
     }
   }
 
-  return { startClockMin, steps }
+  return id ? { id, startClockMin, steps } : { startClockMin, steps }
 }

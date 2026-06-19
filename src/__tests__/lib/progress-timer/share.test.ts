@@ -31,6 +31,16 @@ describe('serialize / deserialize', () => {
     expect(new Set(ids).size).toBe(ids.length)
     ids.forEach((id) => expect(id).toBeTruthy())
   })
+  test('id ありのラウンドトリップ (保存スロット識別子)', () => {
+    const restored = deserializePlan(
+      serializePlan({ ...plan, id: 'projA_001' })
+    )
+    expect(restored!.id).toBe('projA_001')
+    expect(restored!.startClockMin).toBe(840)
+  })
+  test('id 無しは id プロパティを持たない (旧形式互換)', () => {
+    expect(deserializePlan(serializePlan(plan))!.id).toBeUndefined()
+  })
   test('REQ-SH04: 破損入力は null (throw しない)', () => {
     expect(deserializePlan('')).toBeNull()
     expect(deserializePlan('!!!not-valid!!!')).toBeNull()
