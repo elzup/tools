@@ -12,6 +12,7 @@ import {
   FaTrash,
 } from 'react-icons/fa'
 import styled from 'styled-components'
+import { useLocalStorage } from '../../utils/useLocalStorage'
 
 type SpanBoxBlock = {
   id: string
@@ -109,18 +110,32 @@ const initialBlocks: SpanBoxBlock[] = [
 
 const SpanBox = () => {
   const boardRef = useRef<HTMLDivElement>(null)
-  const nextIdRef = useRef(4)
   const clipboardRef = useRef<SpanBoxBlock[]>([])
-  const [blocks, setBlocks] = useState<SpanBoxBlock[]>(initialBlocks)
-  const [selectedIds, setSelectedIds] = useState<string[]>([
-    initialBlocks[0].id,
+  // 作業内容 (ブロック・グリッド設定) はリロードで消えないよう localStorage に永続化する
+  const [blocks, setBlocks] = useLocalStorage<SpanBoxBlock[]>(
+    'spanbox:blocks',
+    initialBlocks
+  )
+  const [gridColumns, setGridColumns] = useLocalStorage(
+    'spanbox:cols',
+    defaultColumns
+  )
+  const [gridRows, setGridRows] = useLocalStorage('spanbox:rows', defaultRows)
+  const [cellSize, setCellSize] = useLocalStorage(
+    'spanbox:cell',
+    defaultCellSize
+  )
+  const [showMeta, setShowMeta] = useLocalStorage('spanbox:showMeta', true)
+  // 復元したブロックの最大連番から採番を再開し、リロード後の ID 衝突を防ぐ
+  const nextIdRef = useRef(
+    Math.max(0, ...blocks.map((b) => Number(b.id.replace('block-', '')) || 0)) +
+      1
+  )
+  const [selectedIds, setSelectedIds] = useState<string[]>(() => [
+    blocks[0]?.id ?? initialBlocks[0].id,
   ])
   const [shareDraft, setShareDraft] = useState<string | null>(null)
   const [dragAction, setDragAction] = useState<DragAction | null>(null)
-  const [gridColumns, setGridColumns] = useState(defaultColumns)
-  const [gridRows, setGridRows] = useState(defaultRows)
-  const [cellSize, setCellSize] = useState(defaultCellSize)
-  const [showMeta, setShowMeta] = useState(true)
 
   // グリッド縮小時にはみ出すブロックを内側へ収める
   const resizeGrid = (cols: number, rows: number) => {
