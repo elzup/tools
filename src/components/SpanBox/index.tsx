@@ -1,11 +1,14 @@
 import type React from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+  FaChevronDown,
+  FaChevronUp,
   FaClipboard,
   FaCopy,
   FaEye,
   FaEyeSlash,
   FaFont,
+  FaLayerGroup,
   FaPalette,
   FaPlus,
   FaRetweet,
@@ -221,6 +224,12 @@ const SpanBox = () => {
     })
   }
   const occupiedCells = useMemo(() => getOccupiedCells(blocks), [blocks])
+  // 自分より手前 (配列で後ろ) のブロックに重なられている = 裏に隠れている
+  const occludedIds = useMemo(() => getOccludedIds(blocks), [blocks])
+
+  // 重なり順 (配列順) を入れ替える。手前 = 配列末尾。
+  const moveStack = (id: string, dir: StackDirection) =>
+    setBlocks((current) => stackMove(current, id, dir))
 
   const updateSelectedBlock = (updates: Partial<SpanBoxBlock>) => {
     if (!selectedBlock) return
@@ -498,6 +507,7 @@ const SpanBox = () => {
                     key={block.id}
                     $block={block}
                     $selected={isSelected}
+                    $occluded={occludedIds.has(block.id)}
                     $cell={cellSize}
                     onPointerDown={(event) => startMove(event, block)}
                   >
@@ -652,6 +662,48 @@ const SpanBox = () => {
               </CopyButton>
             </>
           )}
+
+          <Separator />
+          <FieldLabel>
+            <FaLayerGroup />
+            Blocks (上＝手前)
+          </FieldLabel>
+          <LayerList>
+            {blocks
+              .map((block, index) => ({ block, index }))
+              .reverse()
+              .map(({ block, index }) => {
+                const isSelected = selectedIds.includes(block.id)
+                const isFront = index === blocks.length - 1
+                const isBack = index === 0
+                return (
+                  <LayerRow key={block.id} $selected={isSelected}>
+                    <LayerColorDot $color={block.color} />
+                    <LayerName
+                      onClick={() => setSelectedIds([block.id])}
+                      title={block.label}
+                    >
+                      {block.label || '(no label)'}
+                    </LayerName>
+                    {occludedIds.has(block.id) && <LayerTag>隠</LayerTag>}
+                    <MiniButton
+                      onClick={() => moveStack(block.id, 'forward')}
+                      disabled={isFront}
+                      title="手前へ"
+                    >
+                      <FaChevronUp />
+                    </MiniButton>
+                    <MiniButton
+                      onClick={() => moveStack(block.id, 'backward')}
+                      disabled={isBack}
+                      title="奥へ"
+                    >
+                      <FaChevronDown />
+                    </MiniButton>
+                  </LayerRow>
+                )
+              })}
+          </LayerList>
         </Inspector>
       </Workspace>
     </Shell>
@@ -666,6 +718,49 @@ const getOccupiedCells = (blocks: SpanBoxBlock[]) =>
       return `${x}-${y}`
     })
   )
+
+type StackDirection = 'front' | 'back' | 'forward' | 'backward'
+
+// 2 つのブロック矩形が 1 セルでも重なるか
+const rectsOverlap = (a: SpanBoxBlock, b: SpanBoxBlock): boolean =>
+  a.x < b.x + b.width &&
+  b.x < a.x + a.width &&
+  a.y < b.y + b.height &&
+  b.y < a.y + a.height
+
+// 自分より手前 (配列で後ろ) に重なるブロックがある id の集合 = 裏に隠れている
+const getOccludedIds = (blocks: SpanBoxBlock[]): Set<string> => {
+  const occluded = new Set<string>()
+  blocks.forEach((block, index) => {
+    const coveredByUpper = blocks
+      .slice(index + 1)
+      .some((upper) => rectsOverlap(block, upper))
+    if (coveredByUpper) occluded.add(block.id)
+  })
+
+  return occluded
+}
+
+// 重なり順を入れ替える (immutable)。手前 = 配列末尾。
+const stackMove = (
+  blocks: SpanBoxBlock[],
+  id: string,
+  dir: StackDirection
+): SpanBoxBlock[] => {
+  const index = blocks.findIndex((b) => b.id === id)
+  if (index < 0) return blocks
+  const next = [...blocks]
+  const [item] = next.splice(index, 1)
+  if (dir === 'front') next.push(item)
+  else if (dir === 'back') next.unshift(item)
+  else if (dir === 'forward') {
+    next.splice(Math.min(index + 1, blocks.length - 1), 0, item)
+  } else {
+    next.splice(Math.max(index - 1, 0), 0, item)
+  }
+
+  return next
+}
 
 const getGridPoint = (
   event: React.PointerEvent,
@@ -992,6 +1087,7 @@ const GhostCell = styled.div`
 const BlockItem = styled.div<{
   $block: SpanBoxBlock
   $selected: boolean
+  $occluded: boolean
   $cell: number
 }>`
   position: absolute;
@@ -999,11 +1095,18 @@ const BlockItem = styled.div<{
   top: ${({ $block, $cell }) => $block.y * $cell}px;
   width: ${({ $block, $cell }) => $block.width * $cell}px;
   height: ${({ $block, $cell }) => $block.height * $cell}px;
+  /* 選択中は最前面へ。コントロールが他ブロックの下に隠れるのを防ぐ */
+  z-index: ${({ $selected }) => ($selected ? 50 : 'auto')};
   display: grid;
   align-content: center;
   gap: 2px;
   padding: 8px 10px;
-  border: ${({ $selected }) => ($selected ? '3px solid #202631' : '1px solid rgba(32, 38, 49, 0.22)')};
+  border: ${({ $selected, $occluded }) =>
+    $selected
+      ? '3px solid #202631'
+      : $occluded
+        ? '2px dashed rgba(32, 38, 49, 0.6)'
+        : '1px solid rgba(32, 38, 49, 0.22)'};
   background: ${({ $block }) => $block.color};
   box-shadow: ${({ $selected }) =>
     $selected
@@ -1277,6 +1380,78 @@ const StatBox = styled.div`
   strong {
     color: #202631;
     font-size: 1.1rem;
+  }
+`
+
+const LayerList = styled.div`
+  display: grid;
+  gap: 4px;
+  max-height: 240px;
+  overflow: auto;
+`
+
+const LayerRow = styled.div<{ $selected: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border: 1px solid ${({ $selected }) => ($selected ? '#202631' : '#e2e7f0')};
+  border-radius: 6px;
+  background: ${({ $selected }) => ($selected ? '#eef2fb' : '#ffffff')};
+`
+
+const LayerColorDot = styled.span<{ $color: string }>`
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+  background: ${({ $color }) => $color};
+`
+
+const LayerName = styled.button`
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #202631;
+  font-size: 0.82rem;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+`
+
+const LayerTag = styled.span`
+  flex-shrink: 0;
+  padding: 0 4px;
+  border: 1px dashed #b6bece;
+  border-radius: 4px;
+  color: #8a93a6;
+  font-size: 0.62rem;
+`
+
+const MiniButton = styled.button`
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border: 1px solid #c7d0dd;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #202631;
+  cursor: pointer;
+
+  &:hover {
+    background: #f0f4fa;
+  }
+
+  &:disabled {
+    color: #c2c9d6;
+    cursor: not-allowed;
   }
 `
 
