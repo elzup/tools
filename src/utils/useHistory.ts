@@ -22,6 +22,7 @@ import {
   recordChange,
   removeEntry,
   restore,
+  toggleBookmark,
 } from '../lib/history'
 
 export type UseHistoryOptions<T> = {
@@ -44,6 +45,8 @@ export type UseHistoryResult<T> = {
   restore: (id: string, mode?: RestoreMode) => T | undefined
   /** 指定エントリを削除する。 */
   remove: (id: string) => void
+  /** 指定エントリのブックマーク (お気に入り) を反転する。 */
+  toggleBookmark: (id: string) => void
   /** 全消去する。 */
   clear: () => void
 }
@@ -75,6 +78,8 @@ export const useHistory = <T>(
   }
 
   const remove = (id: string) => setState(removeEntry(state, id))
+  const toggleBookmarkEntry = (id: string) =>
+    setState(toggleBookmark(state, id))
   const clear = () => setState(clearHistory<T>())
 
   return {
@@ -83,6 +88,7 @@ export const useHistory = <T>(
     record,
     restore: restoreEntry,
     remove,
+    toggleBookmark: toggleBookmarkEntry,
     clear,
   }
 }

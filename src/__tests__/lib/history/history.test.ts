@@ -11,6 +11,7 @@ import {
   removeEntry,
   restore,
   serializeHistory,
+  toggleBookmark,
 } from '../../../lib/history'
 
 // 決定的な now / id を注入してテストする
@@ -110,6 +111,50 @@ describe('removeEntry / clearHistory', () => {
 
   test('clearHistory は空に', () => {
     expect(clearHistory<string>().entries).toEqual([])
+  })
+})
+
+describe('toggleBookmark', () => {
+  const build = () => {
+    const s1 = recordChange(createHistory<string>(), 'a', opts(1)).state
+
+    return recordChange(s1, 'b', opts(2)).state // [b, a]
+  }
+
+  test('該当エントリの bookmarked を反転する', () => {
+    const s = toggleBookmark(build(), 'id-1')
+    expect(s.entries.find((e) => e.id === 'id-1')?.bookmarked).toBe(true)
+    expect(s.entries.find((e) => e.id === 'id-2')?.bookmarked).toBeFalsy()
+  })
+
+  test('もう一度呼ぶと解除される', () => {
+    const s = toggleBookmark(toggleBookmark(build(), 'id-1'), 'id-1')
+    expect(s.entries.find((e) => e.id === 'id-1')?.bookmarked).toBe(false)
+  })
+})
+
+describe('cap はブックマークを破棄しない', () => {
+  test('max 超過時は古い非ブックマークから落とし、★は残す', () => {
+    // [1] を記録 → ブックマーク → 2,3,4 を max:2 で記録
+    let s = recordChange(createHistory<number>(), 1, opts(1)).state
+    s = toggleBookmark(s, 'id-1')
+    for (const n of [2, 3, 4]) {
+      s = recordChange(s, n, { ...opts(n), max: 2 }).state
+    }
+    // 最新 (4) と ブックマーク (1) が残る。2,3 は破棄
+    expect(s.entries.map((e) => e.value)).toEqual([4, 1])
+    expect(s.entries.find((e) => e.value === 1)?.bookmarked).toBe(true)
+  })
+
+  test('ブックマークだけで max を超える場合は全て残る', () => {
+    let s = createHistory<number>()
+    for (const n of [1, 2, 3]) {
+      s = recordChange(s, n, opts(n)).state
+      s = toggleBookmark(s, `id-${n}`)
+    }
+    s = recordChange(s, 4, { ...opts(4), max: 1 }).state
+    // 1,2,3 は★で保護、4 が最新。max:1 でも 4 件残る
+    expect(s.entries.map((e) => e.value)).toEqual([4, 3, 2, 1])
   })
 })
 

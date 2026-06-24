@@ -110,17 +110,37 @@ export const removeEntry = <T>(
   entries: state.entries.filter((e) => e.id !== id),
 })
 
+/** 指定エントリのブックマーク (お気に入り) を反転する。 */
+export const toggleBookmark = <T>(
+  state: HistoryState<T>,
+  id: string
+): HistoryState<T> => ({
+  entries: state.entries.map((e) =>
+    e.id === id ? { ...e, bookmarked: !e.bookmarked } : e
+  ),
+})
+
 /** 全消去。 */
 export const clearHistory = <T>(): HistoryState<T> => ({ entries: [] })
 
-/** 上限件数に収める (先頭優先で残し、末尾を捨てる)。 */
+/**
+ * 上限件数に収める。新しい順を保ったまま、古い (末尾) の非ブックマークから捨てる。
+ * ブックマーク済みは破棄しないため、それだけで max を超える場合は全て残る。
+ */
 const capEntries = <T>(
   entries: HistoryEntry<T>[],
   max?: number
-): HistoryEntry<T>[] =>
-  max !== undefined && max > 0 && entries.length > max
-    ? entries.slice(0, max)
-    : entries
+): HistoryEntry<T>[] => {
+  if (max === undefined || max <= 0 || entries.length <= max) return entries
+  const result = [...entries]
+
+  // 末尾 (最古) の非ブックマークから落とす。先頭 (最新) は常に残すため i>=1。
+  for (let i = result.length - 1; i >= 1 && result.length > max; i--) {
+    if (!result[i].bookmarked) result.splice(i, 1)
+  }
+
+  return result
+}
 
 /** HistoryState を保存文字列へ。 */
 export const serializeHistory = <T>(state: HistoryState<T>): string =>
@@ -151,6 +171,7 @@ export const deserializeHistory = <T>(
           value: e.value as T,
           timestamp: e.timestamp,
           label: typeof e.label === 'string' ? e.label : undefined,
+          ...(e.bookmarked === true ? { bookmarked: true } : {}),
         },
       ]
     })

@@ -14,6 +14,8 @@ export type HistoryEntry<T> = {
   timestamp: number
   /** 任意の表示ラベル (一覧の見出し等)。 */
   label?: string
+  /** ブックマーク (お気に入り)。true のものは max 超過時も破棄されない。 */
+  bookmarked?: boolean
 }
 
 /** 履歴全体。entries は新しい順 (先頭が最新)。 */
