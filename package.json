@@ -14,7 +14,8 @@
     "check": "biome check src",
     "audit": "pnpm audit --audit-level=moderate",
     "init:wordlist": "ts-node scripts/init-wordlelist.ts",
-    "type-check": "tsc"
+    "type-check": "tsc",
+    "prepare": "lefthook install"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.4",
