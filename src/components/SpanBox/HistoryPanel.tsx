@@ -8,6 +8,8 @@ type Props = {
   entries: HistoryEntry<Block[]>[]
   /** 表示の基準時刻 (ms)。相対表記に使う。 */
   now: number
+  /** 現在ライブ状態に対応するエントリ id (restore で過去に駐機中)。 */
+  activeId?: string | null
   onRestore: (id: string) => void
   onToggleBookmark: (id: string) => void
   onRemove: (id: string) => void
@@ -37,6 +39,7 @@ const formatAgo = (timestamp: number, now: number): string => {
 export const HistoryPanel = ({
   entries,
   now,
+  activeId,
   onRestore,
   onToggleBookmark,
   onRemove,
@@ -45,6 +48,12 @@ export const HistoryPanel = ({
   if (entries.length === 0) {
     return <Empty>履歴なし — 編集すると自動で記録されます</Empty>
   }
+
+  // 駐機中なら、現在位置より新しい (先=redo 相当) エントリをグレーアウトする
+  const activeTs =
+    activeId != null
+      ? entries.find((e) => e.id === activeId)?.timestamp
+      : undefined
 
   return (
     <>
@@ -55,7 +64,12 @@ export const HistoryPanel = ({
       </ClearRow>
       <List>
         {entries.map((entry) => (
-          <Row key={entry.id} $bookmarked={!!entry.bookmarked}>
+          <Row
+            key={entry.id}
+            $bookmarked={!!entry.bookmarked}
+            $active={entry.id === activeId}
+            $future={activeTs !== undefined && entry.timestamp > activeTs}
+          >
             <StarButton
               type="button"
               onClick={() => onToggleBookmark(entry.id)}
@@ -117,19 +131,31 @@ const ClearButton = styled.button`
 
 const List = styled.div`
   display: grid;
+  align-content: start;
   gap: 4px;
-  max-height: 260px;
+  flex: 1;
+  min-height: 0;
+  max-height: 420px;
   overflow: auto;
 `
 
-const Row = styled.div<{ $bookmarked: boolean }>`
+const Row = styled.div<{
+  $bookmarked: boolean
+  $active: boolean
+  $future: boolean
+}>`
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 4px 6px;
-  border: 1px solid ${({ $bookmarked }) => ($bookmarked ? '#f5b301' : '#e2e7f0')};
+  border: 1px solid
+    ${({ $active, $bookmarked }) =>
+      $active ? '#256ee8' : $bookmarked ? '#f5b301' : '#e2e7f0'};
   border-radius: 6px;
-  background: ${({ $bookmarked }) => ($bookmarked ? '#fff8e6' : '#ffffff')};
+  background: ${({ $active, $bookmarked }) =>
+    $active ? '#eef2fb' : $bookmarked ? '#fff8e6' : '#ffffff'};
+  /* 現在位置より先 (redo 相当) は薄く表示 */
+  opacity: ${({ $future }) => ($future ? 0.45 : 1)};
 `
 
 const Meta = styled.button`

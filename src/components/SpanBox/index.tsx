@@ -11,10 +11,14 @@ import {
   FaFont,
   FaHistory,
   FaLayerGroup,
+  FaLock,
+  FaLockOpen,
   FaPalette,
   FaPlus,
+  FaRedo,
   FaRetweet,
   FaTrash,
+  FaUndo,
 } from 'react-icons/fa'
 import styled from 'styled-components'
 import { combineAll, recordOnChange, recordOnInterval } from '../../lib/history'
@@ -30,6 +34,8 @@ type SpanBoxBlock = {
   height: number
   color: string
   label: string
+  /** ロック中は re-color の対象外 (色を保持する)。 */
+  locked?: boolean
 }
 
 type DragAction =
@@ -84,6 +90,18 @@ const colorPalette = [
   ['#9333ea', '#a855f7', '#c084fc', '#d8b4fe', '#e9d5ff', '#f3e8ff'],
   // Neutrals
   ['#374151', '#6b7280', '#9ca3af', '#d1d5db', '#e5e7eb', '#f3f4f6'],
+]
+
+// re-color 用グラデーション。並び順に沿って全ブロックへ補間配色する。
+const gradientPresets: { name: string; stops: string[] }[] = [
+  { name: 'Sunset', stops: ['#f43f5e', '#fb7185', '#fdba74', '#fde68a'] },
+  { name: 'Ocean', stops: ['#0d9488', '#2563eb', '#6366f1'] },
+  {
+    name: 'Rainbow',
+    stops: ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#a855f7'],
+  },
+  { name: 'Forest', stops: ['#14532d', '#16a34a', '#86efac'] },
+  { name: 'Mono', stops: ['#374151', '#9ca3af', '#e5e7eb'] },
 ]
 
 const initialBlocks: SpanBoxBlock[] = [
@@ -142,20 +160,113 @@ const SpanBox = () => {
     max: 40,
     label: (bs) => `${bs.length} blocks`,
   })
-  // record は毎レンダー生成されるため ref 経由で呼び、effect の依存を blocks に絞る
+  // --- Undo / Redo (blocks の編集ごとの細かい履歴) ---
+  const undoPast = useRef<SpanBoxBlock[][]>([])
+  const undoFuture = useRef<SpanBoxBlock[][]>([])
+  const prevBlocksRef = useRef(blocks)
+  const isTimeTravel = useRef(false)
+  // ドラッグ移動/リサイズは pointermove ごとに setBlocks するので 1 ドラッグ =
+  // 1 undo にまとめる。開始時の状態を保持し、終了時に 1 回だけ過去へ積む。
+  const dragActiveRef = useRef(false)
+  const dragUndoSnapshot = useRef<SpanBoxBlock[] | null>(null)
+  // TEXT 編集中はスナップショットを積まず、blur (確定) で 1 件だけ残す
+  const textEditingRef = useRef(false)
+  // restore 由来の blocks 変化では新規スナップショットを作らない (1 回だけ抑制)
+  const skipSnapshotRef = useRef(false)
+  // 現在ライブ状態が対応するスナップショット id。restore で過去に「駐機」すると、
+  // それより新しい (先の) エントリは履歴上で先 (redo 相当) としてグレー表示する。
+  const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null)
+
+  // record は毎レンダー生成されるため ref 経由で呼び、effect の依存を blocks に絞る。
+  // この effect は下の undo 追跡 effect より先に走る必要がある (フラグを読んでから消す)。
   const recordHistoryRef = useRef(history.record)
   recordHistoryRef.current = history.record
   useEffect(() => {
+    // undo/redo の往復はスナップショット履歴に積まない
+    if (isTimeTravel.current) return
+    // TEXT 編集中は積まない (blur 時に force 記録する)
+    if (textEditingRef.current) return
+    // restore 由来は新規スナップショットを作らない (現在位置は維持)
+    if (skipSnapshotRef.current) {
+      skipSnapshotRef.current = false
+      return
+    }
     recordHistoryRef.current(blocks)
+    // 通常編集をしたら最新 (ライブ) に戻る = 駐機解除
+    setActiveHistoryId(null)
   }, [blocks])
 
-  const restoreHistory = (id: string) => {
-    const restored = history.restore(id)
-
-    if (restored) {
-      setBlocks(restored)
-      setSelectedIds(restored[0] ? [restored[0].id] : [])
+  // blocks の変化を監視し、ユーザー操作なら過去スタックへ積む (undo/redo 由来は除外)
+  useEffect(() => {
+    if (isTimeTravel.current) {
+      isTimeTravel.current = false
+      prevBlocksRef.current = blocks
+      return
     }
+    // ドラッグ中は積まず prev だけ進める (終了時にまとめて積む)
+    if (dragActiveRef.current) {
+      prevBlocksRef.current = blocks
+      return
+    }
+    if (prevBlocksRef.current !== blocks) {
+      undoPast.current = [...undoPast.current, prevBlocksRef.current].slice(
+        -100
+      )
+      undoFuture.current = []
+      prevBlocksRef.current = blocks
+    }
+  }, [blocks])
+
+  // ドラッグ開始: 開始前の状態を保持
+  const beginDragUndo = () => {
+    dragActiveRef.current = true
+    dragUndoSnapshot.current = prevBlocksRef.current
+  }
+  // ドラッグ終了: 変化があれば開始時状態を 1 回だけ過去へ積む
+  const endDragUndo = () => {
+    if (!dragActiveRef.current) return
+    dragActiveRef.current = false
+    const snapshot = dragUndoSnapshot.current
+    dragUndoSnapshot.current = null
+    if (snapshot && snapshot !== prevBlocksRef.current) {
+      undoPast.current = [...undoPast.current, snapshot].slice(-100)
+      undoFuture.current = []
+    }
+  }
+
+  // 選択を現存ブロックだけに整える (undo/redo で消えた id を除く)
+  const sanitizeSelection = (next: SpanBoxBlock[]) =>
+    setSelectedIds((prev) => prev.filter((id) => next.some((b) => b.id === id)))
+
+  const undo = () => {
+    if (undoPast.current.length === 0) return
+    const prev = undoPast.current[undoPast.current.length - 1]
+    undoPast.current = undoPast.current.slice(0, -1)
+    undoFuture.current = [...undoFuture.current, prevBlocksRef.current]
+    isTimeTravel.current = true
+    setBlocks(prev)
+    sanitizeSelection(prev)
+  }
+
+  const redo = () => {
+    if (undoFuture.current.length === 0) return
+    const next = undoFuture.current[undoFuture.current.length - 1]
+    undoFuture.current = undoFuture.current.slice(0, -1)
+    undoPast.current = [...undoPast.current, prevBlocksRef.current]
+    isTimeTravel.current = true
+    setBlocks(next)
+    sanitizeSelection(next)
+  }
+
+  // 履歴から復元: 並びは変えずその場に「駐機」し、現在位置として記録する。
+  // (新規スナップショットは作らないが、undo スタックには載るので Cmd+Z で戻れる)
+  const restoreHistory = (id: string) => {
+    const entry = history.entries.find((e) => e.id === id)
+    if (!entry) return
+    skipSnapshotRef.current = true
+    setBlocks(entry.value)
+    setActiveHistoryId(id)
+    setSelectedIds(entry.value[0] ? [entry.value[0].id] : [])
   }
 
   // 復元したブロックの最大連番から採番を再開し、リロード後の ID 衝突を防ぐ
@@ -173,11 +284,23 @@ const SpanBox = () => {
     'spanbox:paletteOpen',
     false
   )
-  // TEXT エディタ列の開閉。表示中は TEXT | Board | Inspector の 3 カラム
-  // (Board がプレビュー役)。スマホでは TEXT と Board のトグル切替になる。
-  const [textOpen, setTextOpen] = useLocalStorage('spanbox:textOpen', false)
+  // Activity Bar で開く左サイドパネル (VSCode 風に 1 つだけ開く)。
+  // 表示中は SidePanel | Board | Inspector の 3 カラム (Board がプレビュー役)。
+  // スマホではサイドパネルと Board のトグル切替になる。
+  const [sidePanel, setSidePanel] = useLocalStorage<
+    'none' | 'text' | 'blocks' | 'history'
+  >('spanbox:sidePanel', 'none')
+  const panelOpen = sidePanel !== 'none'
+  // 同じパネルをもう一度押したら閉じる
+  const toggleSidePanel = (panel: 'text' | 'blocks' | 'history') =>
+    setSidePanel((current) => (current === panel ? 'none' : panel))
   // レイヤー一覧のドラッグ並び替え中の id
   const [dragLayerId, setDragLayerId] = useState<string | null>(null)
+  // re-color プリセットのホバープレビュー (id→色)。確定はしない。
+  const [previewColors, setPreviewColors] = useState<Record<
+    string,
+    string
+  > | null>(null)
   // ツールバーの「その他」メニュー (転置・サイズ表示などをまとめる)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -213,19 +336,40 @@ const SpanBox = () => {
     [history.entries]
   )
 
-  // グリッド縮小時にはみ出すブロックを内側へ収める
-  const resizeGrid = (cols: number, rows: number) => {
-    setGridColumns(cols)
-    setGridRows(rows)
-    setBlocks((current) =>
-      current.map((block) => ({
-        ...block,
-        width: clamp(block.width, minBlockSize, cols),
-        height: clamp(block.height, minBlockSize, rows),
-        x: clamp(block.x, 0, cols - Math.min(block.width, cols)),
-        y: clamp(block.y, 0, rows - Math.min(block.height, rows)),
-      }))
-    )
+  // 列/行は即時反映せず、自由入力 → submit でバリデーション。
+  // ブロックがはみ出す縮小は弾く (勝手にクランプしない)。
+  const [gridDraft, setGridDraft] = useState({
+    cols: String(gridColumns),
+    rows: String(gridRows),
+  })
+  // 外部変更 (転置・復元) に追従して下書きを同期
+  useEffect(() => {
+    setGridDraft({ cols: String(gridColumns), rows: String(gridRows) })
+  }, [gridColumns, gridRows])
+
+  // 全ブロックを収めるのに必要な最小の列/行
+  const neededCols = Math.max(1, ...blocks.map((b) => b.x + b.width))
+  const neededRows = Math.max(1, ...blocks.map((b) => b.y + b.height))
+  const draftCols = Number(gridDraft.cols)
+  const draftRows = Number(gridDraft.rows)
+  const gridError = !Number.isInteger(draftCols)
+    ? '列は整数で'
+    : !Number.isInteger(draftRows)
+      ? '行は整数で'
+      : draftCols < minColumns || draftCols > maxColumns
+        ? `列は ${minColumns}〜${maxColumns}`
+        : draftRows < minRows || draftRows > maxRows
+          ? `行は ${minRows}〜${maxRows}`
+          : draftCols < neededCols
+            ? `列が不足 (最小 ${neededCols})`
+            : draftRows < neededRows
+              ? `行が不足 (最小 ${neededRows})`
+              : null
+  const gridDirty = draftCols !== gridColumns || draftRows !== gridRows
+  const submitGrid = () => {
+    if (gridError) return
+    setGridColumns(draftCols)
+    setGridRows(draftRows)
   }
 
   // 転置: グリッドと全ブロックの縦横 (x↔y, width↔height) を入れ替える
@@ -308,6 +452,47 @@ const SpanBox = () => {
   const moveStack = (id: string, dir: StackDirection) =>
     setBlocks((current) => stackMove(current, id, dir))
 
+  // 指定ブロックのラベルを更新 (Blocks パネルからの名前編集用)
+  const updateBlockLabel = (id: string, label: string) =>
+    setBlocks((current) =>
+      current.map((block) => (block.id === id ? { ...block, label } : block))
+    )
+
+  // 指定ブロックを削除 (最後の 1 つは残す)
+  const removeBlock = (id: string) => {
+    setBlocks((current) =>
+      current.length <= 1 ? current : current.filter((block) => block.id !== id)
+    )
+    setSelectedIds((prev) => prev.filter((sid) => sid !== id))
+  }
+
+  // ロック切り替え (ロック中は re-color の対象外)
+  const toggleLock = (id: string) =>
+    setBlocks((current) =>
+      current.map((block) =>
+        block.id === id ? { ...block, locked: !block.locked } : block
+      )
+    )
+
+  // 並び順 (一覧=手前から) に沿ってグラデーションを割り当てた id→色 を作る。
+  // ロック中のブロックは対象から除外し色を保持する。
+  const computeRecolor = (stops: string[]): Record<string, string> => {
+    const ordered = [...blocks].reverse().filter((b) => !b.locked)
+    const colors = gradientColors(stops, ordered.length)
+
+    return Object.fromEntries(ordered.map((b, i) => [b.id, colors[i]]))
+  }
+
+  const applyRecolor = (stops: string[]) => {
+    const colorById = computeRecolor(stops)
+    setBlocks((current) =>
+      current.map((b) =>
+        colorById[b.id] ? { ...b, color: colorById[b.id] } : b
+      )
+    )
+    setPreviewColors(null)
+  }
+
   const updateSelectedBlock = (updates: Partial<SpanBoxBlock>) => {
     if (!selectedBlock) return
     setBlocks((currentBlocks) =>
@@ -367,6 +552,7 @@ const SpanBox = () => {
       return
     }
     event.currentTarget.setPointerCapture(event.pointerId)
+    beginDragUndo()
     let ids = selectedIds.includes(block.id) ? selectedIds : [block.id]
     let snapshot = blocks.filter((b) => ids.includes(b.id))
     // Alt ドラッグ: 複製して複製側をドラッグ (元は据え置き)
@@ -394,6 +580,7 @@ const SpanBox = () => {
   ) => {
     event.stopPropagation()
     event.currentTarget.setPointerCapture(event.pointerId)
+    beginDragUndo()
     const ids = selectedIds.includes(block.id) ? selectedIds : [block.id]
     setSelectedIds(ids)
     setDragAction({
@@ -437,7 +624,27 @@ const SpanBox = () => {
         clearSelection()
         return
       }
+      // Delete / Backspace で選択ブロックを削除 (修飾キー不要)
+      if (event.key === 'Delete' || event.key === 'Backspace') {
+        if (selectedIds.length > 0) {
+          event.preventDefault()
+          deleteSelected()
+        }
+        return
+      }
       if (!(event.metaKey || event.ctrlKey)) return
+
+      // Cmd/Ctrl+Z で undo、Cmd/Ctrl+Shift+Z または Cmd/Ctrl+Y で redo
+      if (event.key === 'z' && !event.shiftKey) {
+        event.preventDefault()
+        undo()
+        return
+      }
+      if ((event.key === 'z' && event.shiftKey) || event.key === 'y') {
+        event.preventDefault()
+        redo()
+        return
+      }
 
       if (event.key === 'c') {
         clipboardRef.current = blocks.filter((b) => selectedIds.includes(b.id))
@@ -475,6 +682,12 @@ const SpanBox = () => {
             <FaPlus />
             Add
           </PrimaryButton>
+          <ToolButton onClick={undo} title="元に戻す (Cmd/Ctrl+Z)">
+            <FaUndo />
+          </ToolButton>
+          <ToolButton onClick={redo} title="やり直す (Cmd/Ctrl+Shift+Z)">
+            <FaRedo />
+          </ToolButton>
           <ToolButton
             onClick={duplicateSelected}
             disabled={selectedIds.length === 0}
@@ -519,23 +732,21 @@ const SpanBox = () => {
             )}
           </MoreMenuWrap>
 
-          <GridSizeControls>
+          <GridSizeControls
+            as="form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              submitGrid()
+            }}
+          >
             <GridField>
               <span>列</span>
               <GridNumberInput
                 type="number"
-                min={minColumns}
-                max={maxColumns}
-                value={gridColumns}
+                value={gridDraft.cols}
+                $invalid={!!gridError && draftCols !== gridColumns}
                 onChange={(event) =>
-                  resizeGrid(
-                    clamp(
-                      Number(event.target.value) || minColumns,
-                      minColumns,
-                      maxColumns
-                    ),
-                    gridRows
-                  )
+                  setGridDraft((d) => ({ ...d, cols: event.target.value }))
                 }
               />
             </GridField>
@@ -543,21 +754,20 @@ const SpanBox = () => {
               <span>行</span>
               <GridNumberInput
                 type="number"
-                min={minRows}
-                max={maxRows}
-                value={gridRows}
+                value={gridDraft.rows}
+                $invalid={!!gridError && draftRows !== gridRows}
                 onChange={(event) =>
-                  resizeGrid(
-                    gridColumns,
-                    clamp(
-                      Number(event.target.value) || minRows,
-                      minRows,
-                      maxRows
-                    )
-                  )
+                  setGridDraft((d) => ({ ...d, rows: event.target.value }))
                 }
               />
             </GridField>
+            <SubmitGridButton
+              type="submit"
+              disabled={!!gridError || !gridDirty}
+              title={gridError ?? '列/行を適用'}
+            >
+              {gridError ?? '適用'}
+            </SubmitGridButton>
             <GridField>
               <span>セル</span>
               <GridNumberInput
@@ -581,43 +791,182 @@ const SpanBox = () => {
         </ToolbarGroup>
       </TopBar>
 
-      <Workspace $textOpen={textOpen}>
-        {/* VSCode 風アクティビティバー: 折りたたまれた TEXT サイドの開閉 */}
+      <Workspace $open={panelOpen}>
+        {/* VSCode 風アクティビティバー: 左サイドパネル (TEXT / Blocks) の切替 */}
         <ActivityBar>
           <ActivityButton
             type="button"
-            $active={textOpen}
-            onClick={() => setTextOpen((v) => !v)}
-            title={textOpen ? 'TEXT を閉じる' : 'TEXT を開く'}
+            $active={sidePanel === 'text'}
+            onClick={() => toggleSidePanel('text')}
+            title="TEXT エディタ"
           >
             <FaFileAlt />
             <span>TEXT</span>
           </ActivityButton>
+          <ActivityButton
+            type="button"
+            $active={sidePanel === 'blocks'}
+            onClick={() => toggleSidePanel('blocks')}
+            title="Blocks 一覧"
+          >
+            <FaLayerGroup />
+            <span>LIST</span>
+          </ActivityButton>
+          <ActivityButton
+            type="button"
+            $active={sidePanel === 'history'}
+            onClick={() => toggleSidePanel('history')}
+            title="作業履歴"
+          >
+            <FaHistory />
+            <span>HIST</span>
+          </ActivityButton>
         </ActivityBar>
-        {textOpen && (
-          <TextPanel>
-            <TextPanelHead>
+        {sidePanel === 'text' && (
+          <SidePanel>
+            <SidePanelHead>
               <span>TEXT</span>
               <CopyButton onClick={copyShareText}>
                 <FaCopy />
                 Copy
               </CopyButton>
-            </TextPanelHead>
+            </SidePanelHead>
             <TextPanelArea
               value={shareDraft ?? generateShareText(blocks)}
-              onFocus={() => setShareDraft(generateShareText(blocks))}
-              onBlur={() => setShareDraft(null)}
+              onFocus={() => {
+                setShareDraft(generateShareText(blocks))
+                // 編集中は自動記録を止め、編集前の状態を 1 undo に集約
+                textEditingRef.current = true
+                beginDragUndo()
+              }}
+              onBlur={() => {
+                setShareDraft(null)
+                textEditingRef.current = false
+                endDragUndo()
+                // 確定タイミングで履歴に 1 件だけ残す (変化があれば)
+                history.record(blocks, { force: true })
+              }}
               onChange={(event) => handleShareChange(event.target.value)}
               spellCheck={false}
             />
-          </TextPanel>
+          </SidePanel>
         )}
-        <BoardPanel $textOpen={textOpen}>
+        {sidePanel === 'blocks' && (
+          <SidePanel>
+            <SidePanelHead>
+              <span>LIST ({blocks.length})</span>
+            </SidePanelHead>
+            <LayerList>
+              {blocks
+                .map((block, index) => ({ block, index }))
+                .reverse()
+                .map(({ block, index }) => {
+                  const isSelected = selectedIds.includes(block.id)
+                  const isFront = index === blocks.length - 1
+                  const isBack = index === 0
+                  return (
+                    <LayerRow
+                      key={block.id}
+                      $selected={isSelected}
+                      $dragging={dragLayerId === block.id}
+                      draggable
+                      onDragStart={() => setDragLayerId(block.id)}
+                      onDragOver={(event) => event.preventDefault()}
+                      onDrop={() => dropLayer(block.id)}
+                      onDragEnd={() => setDragLayerId(null)}
+                    >
+                      <DragHandle title="ドラッグで並び替え">⠿</DragHandle>
+                      <LayerColorDot
+                        $color={previewColors?.[block.id] ?? block.color}
+                      />
+                      <NameInput
+                        value={block.label}
+                        placeholder="(no label)"
+                        onFocus={() => setSelectedIds([block.id])}
+                        onChange={(event) =>
+                          updateBlockLabel(block.id, event.target.value)
+                        }
+                      />
+                      {occludedIds.has(block.id) && <LayerTag>隠</LayerTag>}
+                      <MiniButton
+                        onClick={() => toggleLock(block.id)}
+                        $active={block.locked}
+                        title={block.locked ? 'ロック解除' : 'ロック (色固定)'}
+                      >
+                        {block.locked ? <FaLock /> : <FaLockOpen />}
+                      </MiniButton>
+                      <MiniButton
+                        onClick={() => moveStack(block.id, 'forward')}
+                        disabled={isFront}
+                        title="手前へ"
+                      >
+                        <FaChevronUp />
+                      </MiniButton>
+                      <MiniButton
+                        onClick={() => moveStack(block.id, 'backward')}
+                        disabled={isBack}
+                        title="奥へ"
+                      >
+                        <FaChevronDown />
+                      </MiniButton>
+                      <MiniButton
+                        onClick={() => removeBlock(block.id)}
+                        disabled={blocks.length <= 1}
+                        title="削除"
+                      >
+                        <FaTrash />
+                      </MiniButton>
+                    </LayerRow>
+                  )
+                })}
+            </LayerList>
+            {/* re-color は使用頻度が低いのでフッターに控えめに置く */}
+            <RecolorBar>
+              <span>re-color</span>
+              {gradientPresets.map((preset) => (
+                <RecolorButton
+                  key={preset.name}
+                  type="button"
+                  $stops={preset.stops}
+                  title={`${preset.name} (ロックは除外)`}
+                  onPointerEnter={() =>
+                    setPreviewColors(computeRecolor(preset.stops))
+                  }
+                  onPointerLeave={() => setPreviewColors(null)}
+                  onClick={() => applyRecolor(preset.stops)}
+                />
+              ))}
+            </RecolorBar>
+          </SidePanel>
+        )}
+        {sidePanel === 'history' && (
+          <SidePanel>
+            <SidePanelHead>
+              <span>HISTORY</span>
+            </SidePanelHead>
+            <HistoryPanel
+              entries={pinnedHistory}
+              now={Date.now()}
+              activeId={activeHistoryId}
+              onRestore={restoreHistory}
+              onToggleBookmark={history.toggleBookmark}
+              onRemove={history.remove}
+              onClear={history.clear}
+            />
+          </SidePanel>
+        )}
+        <BoardPanel $open={panelOpen}>
           <Board
             ref={boardRef}
             onPointerMove={dragBlock}
-            onPointerUp={() => setDragAction(null)}
-            onPointerCancel={() => setDragAction(null)}
+            onPointerUp={() => {
+              endDragUndo()
+              setDragAction(null)
+            }}
+            onPointerCancel={() => {
+              endDragUndo()
+              setDragAction(null)
+            }}
           >
             <ColumnRail $cols={gridColumns} $cell={cellSize}>
               {Array.from({ length: gridColumns }, (_, index) => (
@@ -646,6 +995,7 @@ const SpanBox = () => {
                 <BlockItem
                   key={block.id}
                   $block={block}
+                  $color={previewColors?.[block.id]}
                   $cell={cellSize}
                   onPointerDown={(event) => startMove(event, block)}
                 >
@@ -804,71 +1154,8 @@ const SpanBox = () => {
             </>
           )}
 
-          <Separator />
-          <FieldLabel>
-            <FaLayerGroup />
-            Blocks (上＝手前)
-          </FieldLabel>
-          <LayerList>
-            {blocks
-              .map((block, index) => ({ block, index }))
-              .reverse()
-              .map(({ block, index }) => {
-                const isSelected = selectedIds.includes(block.id)
-                const isFront = index === blocks.length - 1
-                const isBack = index === 0
-                return (
-                  <LayerRow
-                    key={block.id}
-                    $selected={isSelected}
-                    $dragging={dragLayerId === block.id}
-                    draggable
-                    onDragStart={() => setDragLayerId(block.id)}
-                    onDragOver={(event) => event.preventDefault()}
-                    onDrop={() => dropLayer(block.id)}
-                    onDragEnd={() => setDragLayerId(null)}
-                  >
-                    <DragHandle title="ドラッグで並び替え">⠿</DragHandle>
-                    <LayerColorDot $color={block.color} />
-                    <LayerName
-                      onClick={() => setSelectedIds([block.id])}
-                      title={block.label}
-                    >
-                      {block.label || '(no label)'}
-                    </LayerName>
-                    {occludedIds.has(block.id) && <LayerTag>隠</LayerTag>}
-                    <MiniButton
-                      onClick={() => moveStack(block.id, 'forward')}
-                      disabled={isFront}
-                      title="手前へ"
-                    >
-                      <FaChevronUp />
-                    </MiniButton>
-                    <MiniButton
-                      onClick={() => moveStack(block.id, 'backward')}
-                      disabled={isBack}
-                      title="奥へ"
-                    >
-                      <FaChevronDown />
-                    </MiniButton>
-                  </LayerRow>
-                )
-              })}
-          </LayerList>
-
-          <Separator />
-          <FieldLabel>
-            <FaHistory />
-            History (★=ブックマーク)
-          </FieldLabel>
-          <HistoryPanel
-            entries={pinnedHistory}
-            now={Date.now()}
-            onRestore={restoreHistory}
-            onToggleBookmark={history.toggleBookmark}
-            onRemove={history.remove}
-            onClear={history.clear}
-          />
+          {/* Blocks 一覧と History は Activity Bar の LIST / HIST パネルへ移動 */}
+          {!selectedBlock && <Hint>ブロックを選択すると編集できます</Hint>}
         </Inspector>
       </Workspace>
     </Shell>
@@ -1070,6 +1357,32 @@ const resizeBlock = (
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max)
 
+// #rrggbb → [r,g,b]
+const hexToRgb = (hex: string): [number, number, number] => {
+  const n = Number.parseInt(hex.replace('#', ''), 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+}
+
+const rgbToHex = (r: number, g: number, b: number): string =>
+  `#${[r, g, b].map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')}`
+
+// stops を n 個に線形補間したグラデーション色配列を返す。
+const gradientColors = (stops: string[], n: number): string[] => {
+  if (n <= 0) return []
+  const rgbs = stops.map(hexToRgb)
+  if (n === 1) return [rgbToHex(...rgbs[0])]
+
+  return Array.from({ length: n }, (_, i) => {
+    const seg = (i / (n - 1)) * (rgbs.length - 1)
+    const idx = Math.min(Math.floor(seg), rgbs.length - 2)
+    const t = seg - idx
+    const [ar, ag, ab] = rgbs[idx]
+    const [br, bg, bb] = rgbs[idx + 1]
+
+    return rgbToHex(ar + (br - ar) * t, ag + (bg - ag) * t, ab + (bb - ab) * t)
+  })
+}
+
 const isControlTarget = (target: EventTarget) =>
   target instanceof HTMLElement &&
   ['INPUT', 'TEXTAREA', 'BUTTON', 'SELECT'].includes(target.tagName)
@@ -1118,15 +1431,39 @@ const GridField = styled.label`
   font-weight: 700;
 `
 
-const GridNumberInput = styled.input`
+const GridNumberInput = styled.input<{ $invalid?: boolean }>`
   width: 56px;
   height: 38px;
   box-sizing: border-box;
-  border: 1px solid #c7d0dd;
+  border: 1px solid ${({ $invalid }) => ($invalid ? '#e11d48' : '#c7d0dd')};
   border-radius: 6px;
   padding: 0 8px;
   color: #202631;
   font-size: 0.9rem;
+`
+
+const SubmitGridButton = styled.button`
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #1e5fd8;
+  border-radius: 6px;
+  background: #256ee8;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    background: #1e5fd8;
+  }
+
+  &:disabled {
+    border-color: #d7dde8;
+    background: #eef1f6;
+    color: #9aa3b2;
+    cursor: not-allowed;
+  }
 `
 
 const TitleText = styled.h1`
@@ -1192,14 +1529,14 @@ const ToolButton = styled.button<{ $active?: boolean }>`
 
 // 先頭にアクティビティバー(46px)。TEXT 列を開くと
 // [rail | TEXT | Board | Inspector]、閉じると [rail | Board | Inspector]。
-const Workspace = styled.div<{ $textOpen: boolean }>`
+const Workspace = styled.div<{ $open: boolean }>`
   display: grid;
-  grid-template-columns: ${({ $textOpen }) =>
-    $textOpen
-      ? '46px minmax(0, 340px) minmax(0, 1fr) 280px'
+  grid-template-columns: ${({ $open }) =>
+    $open
+      ? '46px minmax(0, 320px) minmax(0, 1fr) 280px'
       : '46px minmax(0, 1fr) 280px'};
   gap: 12px;
-  max-width: ${({ $textOpen }) => ($textOpen ? '1580px' : '1260px')};
+  max-width: ${({ $open }) => ($open ? '1580px' : '1260px')};
   margin: 0 auto;
 
   @media (max-width: 920px) {
@@ -1286,7 +1623,7 @@ const MenuItem = styled.button`
   }
 `
 
-const BoardPanel = styled.section<{ $textOpen: boolean }>`
+const BoardPanel = styled.section<{ $open: boolean }>`
   min-width: 0;
   background: #ffffff;
   border: 1px solid #d7dde8;
@@ -1294,13 +1631,13 @@ const BoardPanel = styled.section<{ $textOpen: boolean }>`
   overflow: hidden;
   box-shadow: 0 10px 28px rgba(31, 39, 54, 0.08);
 
-  /* スマホでは TEXT を開いている間は Board を隠して切替表示にする */
+  /* スマホではサイドパネルを開いている間は Board を隠して切替表示にする */
   @media (max-width: 920px) {
-    display: ${({ $textOpen }) => ($textOpen ? 'none' : 'block')};
+    display: ${({ $open }) => ($open ? 'none' : 'block')};
   }
 `
 
-const TextPanel = styled.section`
+const SidePanel = styled.section`
   display: flex;
   min-width: 0;
   flex-direction: column;
@@ -1312,7 +1649,7 @@ const TextPanel = styled.section`
   box-shadow: 0 10px 28px rgba(31, 39, 54, 0.08);
 `
 
-const TextPanelHead = styled.div`
+const SidePanelHead = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1399,6 +1736,7 @@ const GhostCell = styled.div`
 
 const BlockItem = styled.div<{
   $block: SpanBoxBlock
+  $color?: string
   $cell: number
 }>`
   position: absolute;
@@ -1411,7 +1749,8 @@ const BlockItem = styled.div<{
   gap: 2px;
   padding: 8px 10px;
   border: 1px solid rgba(32, 38, 49, 0.22);
-  background: ${({ $block }) => $block.color};
+  /* $color は re-color プレビュー時の一時上書き */
+  background: ${({ $block, $color }) => $color ?? $block.color};
   box-shadow: 0 5px 12px rgba(32, 38, 49, 0.13);
   color: #10141b;
   cursor: grab;
@@ -1564,6 +1903,12 @@ const PanelTitle = styled.h2`
   color: #202631;
 `
 
+const Hint = styled.p`
+  margin: 0;
+  color: #9aa3b2;
+  font-size: 0.78rem;
+`
+
 const FieldLabel = styled.label`
   display: inline-flex;
   align-items: center;
@@ -1657,12 +2002,6 @@ const SelectInput = styled.select`
   font-size: 0.9rem;
 `
 
-const Separator = styled.hr`
-  margin: 4px 0;
-  border: 0;
-  border-top: 1px solid #d7dde8;
-`
-
 const CopyButton = styled.button`
   justify-self: end;
   display: inline-flex;
@@ -1710,10 +2049,13 @@ const StatBox = styled.div`
   }
 `
 
+// サイドパネル一杯まで伸ばし、あふれた分だけスクロール (高さ固定にしない)
 const LayerList = styled.div`
   display: grid;
+  align-content: start;
   gap: 4px;
-  max-height: 240px;
+  flex: 1;
+  min-height: 0;
   overflow: auto;
 `
 
@@ -1750,19 +2092,27 @@ const LayerColorDot = styled.span<{ $color: string }>`
   background: ${({ $color }) => $color};
 `
 
-const LayerName = styled.button`
+// Blocks パネルの名前編集用インライン入力
+const NameInput = styled.input`
   flex: 1;
   min-width: 0;
-  overflow: hidden;
-  padding: 0;
-  border: 0;
+  height: 26px;
+  box-sizing: border-box;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 5px;
   background: none;
   color: #202631;
   font-size: 0.82rem;
-  text-align: left;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: pointer;
+
+  &:hover {
+    border-color: #e2e7f0;
+  }
+  &:focus {
+    border-color: #256ee8;
+    background: #ffffff;
+    outline: none;
+  }
 `
 
 const LayerTag = styled.span`
@@ -1774,16 +2124,16 @@ const LayerTag = styled.span`
   font-size: 0.62rem;
 `
 
-const MiniButton = styled.button`
+const MiniButton = styled.button<{ $active?: boolean }>`
   display: grid;
   place-items: center;
   width: 26px;
   height: 26px;
   flex-shrink: 0;
-  border: 1px solid #c7d0dd;
+  border: 1px solid ${({ $active }) => ($active ? '#256ee8' : '#c7d0dd')};
   border-radius: 5px;
-  background: #ffffff;
-  color: #202631;
+  background: ${({ $active }) => ($active ? '#eef2fb' : '#ffffff')};
+  color: ${({ $active }) => ($active ? '#256ee8' : '#202631')};
   cursor: pointer;
 
   &:hover {
@@ -1793,6 +2143,37 @@ const MiniButton = styled.button`
   &:disabled {
     color: #c2c9d6;
     cursor: not-allowed;
+  }
+`
+
+const RecolorBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+  padding-top: 8px;
+  border-top: 1px solid #eceff4;
+
+  > span {
+    color: #9aa3b2;
+    font-size: 0.66rem;
+    font-weight: 700;
+  }
+`
+
+const RecolorButton = styled.button<{ $stops: string[] }>`
+  width: 34px;
+  height: 20px;
+  flex-shrink: 0;
+  border: 1px solid #c7d0dd;
+  border-radius: 4px;
+  cursor: pointer;
+  background: ${({ $stops }) => `linear-gradient(90deg, ${$stops.join(', ')})`};
+
+  &:hover {
+    outline: 2px solid #256ee8;
+    outline-offset: 1px;
   }
 `
 
