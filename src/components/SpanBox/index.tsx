@@ -3,11 +3,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   FaChevronDown,
   FaChevronUp,
-  FaClipboard,
   FaCopy,
+  FaEllipsisV,
   FaEye,
   FaEyeSlash,
+  FaFileAlt,
   FaFont,
+  FaHistory,
   FaLayerGroup,
   FaPalette,
   FaPlus,
@@ -15,7 +17,10 @@ import {
   FaTrash,
 } from 'react-icons/fa'
 import styled from 'styled-components'
+import { combineAll, recordOnChange, recordOnInterval } from '../../lib/history'
+import { useHistory } from '../../utils/useHistory'
 import { useLocalStorage } from '../../utils/useLocalStorage'
+import { HistoryPanel } from './HistoryPanel'
 
 type SpanBoxBlock = {
   id: string
@@ -129,6 +134,30 @@ const SpanBox = () => {
     defaultCellSize
   )
   const [showMeta, setShowMeta] = useLocalStorage('spanbox:showMeta', true)
+
+  // 作業内容のスナップショット履歴。連続編集で溢れないよう「変化あり かつ
+  // 前回記録から 4 秒以上」で間引き、上限 40 件 (ブックマークは除外されない)。
+  const history = useHistory<SpanBoxBlock[]>('spanbox:history', {
+    shouldRecord: combineAll(recordOnChange(), recordOnInterval(4000)),
+    max: 40,
+    label: (bs) => `${bs.length} blocks`,
+  })
+  // record は毎レンダー生成されるため ref 経由で呼び、effect の依存を blocks に絞る
+  const recordHistoryRef = useRef(history.record)
+  recordHistoryRef.current = history.record
+  useEffect(() => {
+    recordHistoryRef.current(blocks)
+  }, [blocks])
+
+  const restoreHistory = (id: string) => {
+    const restored = history.restore(id)
+
+    if (restored) {
+      setBlocks(restored)
+      setSelectedIds(restored[0] ? [restored[0].id] : [])
+    }
+  }
+
   // 復元したブロックの最大連番から採番を再開し、リロード後の ID 衝突を防ぐ
   const nextIdRef = useRef(
     Math.max(0, ...blocks.map((b) => Number(b.id.replace('block-', '')) || 0)) +
@@ -139,6 +168,50 @@ const SpanBox = () => {
   ])
   const [shareDraft, setShareDraft] = useState<string | null>(null)
   const [dragAction, setDragAction] = useState<DragAction | null>(null)
+  // Inspector の表示設定 (永続化)
+  const [paletteOpen, setPaletteOpen] = useLocalStorage(
+    'spanbox:paletteOpen',
+    false
+  )
+  // TEXT エディタ列の開閉。表示中は TEXT | Board | Inspector の 3 カラム
+  // (Board がプレビュー役)。スマホでは TEXT と Board のトグル切替になる。
+  const [textOpen, setTextOpen] = useLocalStorage('spanbox:textOpen', false)
+  // レイヤー一覧のドラッグ並び替え中の id
+  const [dragLayerId, setDragLayerId] = useState<string | null>(null)
+  // ツールバーの「その他」メニュー (転置・サイズ表示などをまとめる)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!menuOpen) return
+    const onDown = (event: PointerEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false)
+    }
+    window.addEventListener('pointerdown', onDown)
+
+    return () => window.removeEventListener('pointerdown', onDown)
+  }, [menuOpen])
+
+  // ドラッグした行を、ドロップ先の行の位置へ差し込む (一覧は手前=上の逆順表示)
+  const dropLayer = (targetId: string) => {
+    if (!dragLayerId || dragLayerId === targetId) {
+      setDragLayerId(null)
+      return
+    }
+    setBlocks((current) => {
+      const displayed = [...current].reverse()
+      return reorderById(displayed, dragLayerId, targetId).reverse()
+    })
+    setDragLayerId(null)
+  }
+
+  // ブックマークを先頭に固定して埋もれないようにする (各群内は新しい順を維持)
+  const pinnedHistory = useMemo(
+    () => [
+      ...history.entries.filter((e) => e.bookmarked),
+      ...history.entries.filter((e) => !e.bookmarked),
+    ],
+    [history.entries]
+  )
 
   // グリッド縮小時にはみ出すブロックを内側へ収める
   const resizeGrid = (cols: number, rows: number) => {
@@ -176,10 +249,14 @@ const SpanBox = () => {
     )
   }
 
-  // primary = 最後に選択したブロック (インスペクタ編集の対象)
+  // primary = 最後に選択したブロック (インスペクタ編集の対象)。未選択なら undefined。
   const primaryId = selectedIds[selectedIds.length - 1]
-  const selectedBlock =
-    blocks.find((block) => block.id === primaryId) ?? blocks[0]
+  const selectedBlock = primaryId
+    ? blocks.find((block) => block.id === primaryId)
+    : undefined
+
+  // 選択解除 (空白クリック / Esc など共通の入口)
+  const clearSelection = () => setSelectedIds([])
 
   const generateShareText = (blocks: SpanBoxBlock[]) =>
     blocks
@@ -271,10 +348,11 @@ const SpanBox = () => {
   }
 
   const deleteSelected = () => {
+    if (selectedIds.length === 0) return
     const remaining = blocks.filter((b) => !selectedIds.includes(b.id))
     if (remaining.length === 0) return
     setBlocks(remaining)
-    setSelectedIds([remaining[0].id])
+    clearSelection()
   }
 
   const startMove = (event: React.PointerEvent, block: SpanBoxBlock) => {
@@ -354,6 +432,11 @@ const SpanBox = () => {
       if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
         return
       }
+      // Esc で選択解除 (修飾キー不要)
+      if (event.key === 'Escape') {
+        clearSelection()
+        return
+      }
       if (!(event.metaKey || event.ctrlKey)) return
 
       if (event.key === 'c') {
@@ -401,20 +484,40 @@ const SpanBox = () => {
           </ToolButton>
           <ToolButton
             onClick={deleteSelected}
-            disabled={blocks.length <= selectedIds.length}
+            disabled={
+              selectedIds.length === 0 || blocks.length <= selectedIds.length
+            }
             title="選択ブロックを削除"
           >
             <FaTrash />
           </ToolButton>
-          <ToolButton
-            onClick={() => setShowMeta((v) => !v)}
-            title={showMeta ? 'サイズ表示を隠す' : 'サイズ表示する'}
-          >
-            {showMeta ? <FaEye /> : <FaEyeSlash />}
-          </ToolButton>
-          <ToolButton onClick={transpose} title="縦横を入れ替える (転置)">
-            <FaRetweet />
-          </ToolButton>
+          <MoreMenuWrap ref={menuRef}>
+            <ToolButton
+              onClick={() => setMenuOpen((v) => !v)}
+              $active={menuOpen}
+              title="その他"
+            >
+              <FaEllipsisV />
+            </ToolButton>
+            {menuOpen && (
+              <MoreMenu>
+                <MenuItem
+                  type="button"
+                  onClick={() => {
+                    transpose()
+                    setMenuOpen(false)
+                  }}
+                >
+                  <FaRetweet />
+                  縦横を入れ替える (転置)
+                </MenuItem>
+                <MenuItem type="button" onClick={() => setShowMeta((v) => !v)}>
+                  {showMeta ? <FaEye /> : <FaEyeSlash />}
+                  ブロックにサイズ表示
+                </MenuItem>
+              </MoreMenu>
+            )}
+          </MoreMenuWrap>
 
           <GridSizeControls>
             <GridField>
@@ -478,8 +581,38 @@ const SpanBox = () => {
         </ToolbarGroup>
       </TopBar>
 
-      <Workspace>
-        <BoardPanel>
+      <Workspace $textOpen={textOpen}>
+        {/* VSCode 風アクティビティバー: 折りたたまれた TEXT サイドの開閉 */}
+        <ActivityBar>
+          <ActivityButton
+            type="button"
+            $active={textOpen}
+            onClick={() => setTextOpen((v) => !v)}
+            title={textOpen ? 'TEXT を閉じる' : 'TEXT を開く'}
+          >
+            <FaFileAlt />
+            <span>TEXT</span>
+          </ActivityButton>
+        </ActivityBar>
+        {textOpen && (
+          <TextPanel>
+            <TextPanelHead>
+              <span>TEXT</span>
+              <CopyButton onClick={copyShareText}>
+                <FaCopy />
+                Copy
+              </CopyButton>
+            </TextPanelHead>
+            <TextPanelArea
+              value={shareDraft ?? generateShareText(blocks)}
+              onFocus={() => setShareDraft(generateShareText(blocks))}
+              onBlur={() => setShareDraft(null)}
+              onChange={(event) => handleShareChange(event.target.value)}
+              spellCheck={false}
+            />
+          </TextPanel>
+        )}
+        <BoardPanel $textOpen={textOpen}>
           <Board
             ref={boardRef}
             onPointerMove={dragBlock}
@@ -496,52 +629,70 @@ const SpanBox = () => {
                 <RailTick key={index}>{index + 1}</RailTick>
               ))}
             </RowRail>
-            <GridPaper $cols={gridColumns} $rows={gridRows} $cell={cellSize}>
+            <GridPaper
+              $cols={gridColumns}
+              $rows={gridRows}
+              $cell={cellSize}
+              onPointerDown={(event) => {
+                // 空白 (グリッド地そのもの) を押したら選択解除
+                if (event.target === event.currentTarget) clearSelection()
+              }}
+            >
               {occupiedCells.map((cell) => (
                 <GhostCell key={cell} />
               ))}
-              {blocks.map((block) => {
-                const isSelected = selectedIds.includes(block.id)
-                return (
-                  <BlockItem
+              {/* 本体はレイヤー順 (配列順) を維持して描画。手前のものが重なりを覆う */}
+              {blocks.map((block) => (
+                <BlockItem
+                  key={block.id}
+                  $block={block}
+                  $cell={cellSize}
+                  onPointerDown={(event) => startMove(event, block)}
+                >
+                  <BlockLabel>{block.label}</BlockLabel>
+                  {/* サイズは選択中ブロックだけ小さく表示 (常時表示しない) */}
+                  {showMeta && selectedIds.includes(block.id) && (
+                    <BlockMeta>
+                      {block.width}×{block.height}
+                    </BlockMeta>
+                  )}
+                </BlockItem>
+              ))}
+              {/* 選択枠とリサイズハンドルは最前面のオーバーレイに出す。
+                  本体を持ち上げないので重なり順は維持しつつ、覆われていても
+                  枠 (覆われ時は点線) とハンドルが見えて操作できる */}
+              {blocks
+                .filter((block) => selectedIds.includes(block.id))
+                .map((block) => (
+                  <SelectionOverlay
                     key={block.id}
                     $block={block}
-                    $selected={isSelected}
-                    $occluded={occludedIds.has(block.id)}
                     $cell={cellSize}
-                    onPointerDown={(event) => startMove(event, block)}
+                    $occluded={occludedIds.has(block.id)}
                   >
-                    <BlockLabel>{block.label}</BlockLabel>
-                    {showMeta && (
-                      <BlockMeta>
-                        {block.width} x {block.height}
-                      </BlockMeta>
-                    )}
-                    {isSelected &&
-                      (
-                        [
-                          'top',
-                          'right',
-                          'bottom',
-                          'left',
-                          'top-left',
-                          'top-right',
-                          'bottom-left',
-                          'bottom-right',
-                        ] as ResizeEdge[]
-                      ).map((edge) => (
-                        <ResizeHandle
-                          key={edge}
-                          $edge={edge}
-                          onPointerDown={(event) =>
-                            startResize(event, block, edge)
-                          }
-                          aria-label={`resize ${edge}`}
-                        />
-                      ))}
-                  </BlockItem>
-                )
-              })}
+                    {(
+                      [
+                        'top',
+                        'right',
+                        'bottom',
+                        'left',
+                        'top-left',
+                        'top-right',
+                        'bottom-left',
+                        'bottom-right',
+                      ] as ResizeEdge[]
+                    ).map((edge) => (
+                      <ResizeHandle
+                        key={edge}
+                        $edge={edge}
+                        onPointerDown={(event) =>
+                          startResize(event, block, edge)
+                        }
+                        aria-label={`resize ${edge}`}
+                      />
+                    ))}
+                  </SelectionOverlay>
+                ))}
             </GridPaper>
           </Board>
         </BoardPanel>
@@ -561,22 +712,28 @@ const SpanBox = () => {
                 }
               />
 
-              <FieldLabel>
+              <CollapseHeader
+                type="button"
+                onClick={() => setPaletteOpen((v) => !v)}
+              >
                 <FaPalette />
                 Color
-              </FieldLabel>
-              <Swatches>
-                {colorPalette.map((row) =>
-                  row.map((color) => (
-                    <SwatchButton
-                      key={color}
-                      $color={color}
-                      $selected={selectedBlock.color === color}
-                      onClick={() => updateSelectedBlock({ color })}
-                    />
-                  ))
-                )}
-              </Swatches>
+                {paletteOpen ? <FaChevronUp /> : <FaChevronDown />}
+              </CollapseHeader>
+              {paletteOpen && (
+                <Swatches>
+                  {colorPalette.map((row) =>
+                    row.map((color) => (
+                      <SwatchButton
+                        key={color}
+                        $color={color}
+                        $selected={selectedBlock.color === color}
+                        onClick={() => updateSelectedBlock({ color })}
+                      />
+                    ))
+                  )}
+                </Swatches>
+              )}
               <CustomColorRow>
                 <ColorInput
                   type="color"
@@ -597,6 +754,26 @@ const SpanBox = () => {
                 />
               </CustomColorRow>
 
+              <StatsGrid>
+                <StatBox>
+                  <span>X</span>
+                  <strong>{selectedBlock.x + 1}</strong>
+                </StatBox>
+                <StatBox>
+                  <span>Y</span>
+                  <strong>{selectedBlock.y + 1}</strong>
+                </StatBox>
+                <StatBox>
+                  <span>W</span>
+                  <strong>{selectedBlock.width}</strong>
+                </StatBox>
+                <StatBox>
+                  <span>H</span>
+                  <strong>{selectedBlock.height}</strong>
+                </StatBox>
+              </StatsGrid>
+
+              {/* 使用頻度が低いので一番下に置く */}
               <FieldLabel>Size preset</FieldLabel>
               <SelectInput
                 value={`${selectedBlock.width}x${selectedBlock.height}`}
@@ -624,42 +801,6 @@ const SpanBox = () => {
                 <option value="7x2">7 x 2</option>
                 <option value="8x4">8 x 4</option>
               </SelectInput>
-
-              <StatsGrid>
-                <StatBox>
-                  <span>X</span>
-                  <strong>{selectedBlock.x + 1}</strong>
-                </StatBox>
-                <StatBox>
-                  <span>Y</span>
-                  <strong>{selectedBlock.y + 1}</strong>
-                </StatBox>
-                <StatBox>
-                  <span>W</span>
-                  <strong>{selectedBlock.width}</strong>
-                </StatBox>
-                <StatBox>
-                  <span>H</span>
-                  <strong>{selectedBlock.height}</strong>
-                </StatBox>
-              </StatsGrid>
-
-              <Separator />
-              <FieldLabel>
-                <FaClipboard />
-                Share (編集可)
-              </FieldLabel>
-              <ShareText
-                value={shareDraft ?? generateShareText(blocks)}
-                onFocus={() => setShareDraft(generateShareText(blocks))}
-                onBlur={() => setShareDraft(null)}
-                onChange={(event) => handleShareChange(event.target.value)}
-                spellCheck={false}
-              />
-              <CopyButton onClick={copyShareText}>
-                <FaCopy />
-                Copy
-              </CopyButton>
             </>
           )}
 
@@ -677,7 +818,17 @@ const SpanBox = () => {
                 const isFront = index === blocks.length - 1
                 const isBack = index === 0
                 return (
-                  <LayerRow key={block.id} $selected={isSelected}>
+                  <LayerRow
+                    key={block.id}
+                    $selected={isSelected}
+                    $dragging={dragLayerId === block.id}
+                    draggable
+                    onDragStart={() => setDragLayerId(block.id)}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={() => dropLayer(block.id)}
+                    onDragEnd={() => setDragLayerId(null)}
+                  >
+                    <DragHandle title="ドラッグで並び替え">⠿</DragHandle>
                     <LayerColorDot $color={block.color} />
                     <LayerName
                       onClick={() => setSelectedIds([block.id])}
@@ -704,6 +855,20 @@ const SpanBox = () => {
                 )
               })}
           </LayerList>
+
+          <Separator />
+          <FieldLabel>
+            <FaHistory />
+            History (★=ブックマーク)
+          </FieldLabel>
+          <HistoryPanel
+            entries={pinnedHistory}
+            now={Date.now()}
+            onRestore={restoreHistory}
+            onToggleBookmark={history.toggleBookmark}
+            onRemove={history.remove}
+            onClear={history.clear}
+          />
         </Inspector>
       </Workspace>
     </Shell>
@@ -758,6 +923,23 @@ const stackMove = (
   } else {
     next.splice(Math.max(index - 1, 0), 0, item)
   }
+
+  return next
+}
+
+// ドラッグした id を、ドロップ先 id の位置へ差し込む (immutable)。
+const reorderById = (
+  blocks: SpanBoxBlock[],
+  draggedId: string,
+  targetId: string
+): SpanBoxBlock[] => {
+  const from = blocks.findIndex((b) => b.id === draggedId)
+  const to = blocks.findIndex((b) => b.id === targetId)
+  if (from < 0 || to < 0 || from === to) return blocks
+  const next = [...blocks]
+  const [item] = next.splice(from, 1)
+  const targetIndex = next.findIndex((b) => b.id === targetId)
+  next.splice(from < to ? targetIndex + 1 : targetIndex, 0, item)
 
   return next
 }
@@ -987,19 +1169,19 @@ const PrimaryButton = styled.button`
   }
 `
 
-const ToolButton = styled.button`
+const ToolButton = styled.button<{ $active?: boolean }>`
   display: inline-grid;
   place-items: center;
   width: 38px;
   height: 38px;
-  border: 1px solid #c7d0dd;
+  border: 1px solid ${({ $active }) => ($active ? '#1e5fd8' : '#c7d0dd')};
   border-radius: 6px;
-  background: #ffffff;
-  color: #202631;
+  background: ${({ $active }) => ($active ? '#256ee8' : '#ffffff')};
+  color: ${({ $active }) => ($active ? '#ffffff' : '#202631')};
   cursor: pointer;
 
   &:hover {
-    background: #f0f4fa;
+    background: ${({ $active }) => ($active ? '#1e5fd8' : '#f0f4fa')};
   }
 
   &:disabled {
@@ -1008,11 +1190,16 @@ const ToolButton = styled.button`
   }
 `
 
-const Workspace = styled.div`
+// 先頭にアクティビティバー(46px)。TEXT 列を開くと
+// [rail | TEXT | Board | Inspector]、閉じると [rail | Board | Inspector]。
+const Workspace = styled.div<{ $textOpen: boolean }>`
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
-  gap: 16px;
-  max-width: 1240px;
+  grid-template-columns: ${({ $textOpen }) =>
+    $textOpen
+      ? '46px minmax(0, 340px) minmax(0, 1fr) 280px'
+      : '46px minmax(0, 1fr) 280px'};
+  gap: 12px;
+  max-width: ${({ $textOpen }) => ($textOpen ? '1580px' : '1260px')};
   margin: 0 auto;
 
   @media (max-width: 920px) {
@@ -1020,13 +1207,139 @@ const Workspace = styled.div`
   }
 `
 
-const BoardPanel = styled.section`
+const ActivityBar = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+  padding: 6px;
+  background: #20262f;
+  border-radius: 8px;
+
+  /* スマホでは横並びのトップバーになる */
+  @media (max-width: 920px) {
+    flex-direction: row;
+  }
+`
+
+const ActivityButton = styled.button<{ $active: boolean }>`
+  display: grid;
+  place-items: center;
+  gap: 3px;
+  padding: 8px 2px;
+  border: 0;
+  border-radius: 6px;
+  background: ${({ $active }) => ($active ? '#256ee8' : 'transparent')};
+  color: ${({ $active }) => ($active ? '#ffffff' : '#9aa6b6')};
+  cursor: pointer;
+
+  svg {
+    font-size: 1.1rem;
+  }
+  span {
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  &:hover {
+    background: ${({ $active }) => ($active ? '#256ee8' : '#2c3542')};
+    color: #ffffff;
+  }
+`
+
+const MoreMenuWrap = styled.div`
+  position: relative;
+  display: inline-flex;
+`
+
+const MoreMenu = styled.div`
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 200;
+  display: grid;
+  gap: 2px;
+  min-width: 220px;
+  padding: 4px;
+  background: #ffffff;
+  border: 1px solid #c7d0dd;
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(31, 39, 54, 0.18);
+`
+
+const MenuItem = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: #202631;
+  font-size: 0.84rem;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: #f0f4fa;
+  }
+`
+
+const BoardPanel = styled.section<{ $textOpen: boolean }>`
   min-width: 0;
   background: #ffffff;
   border: 1px solid #d7dde8;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 10px 28px rgba(31, 39, 54, 0.08);
+
+  /* スマホでは TEXT を開いている間は Board を隠して切替表示にする */
+  @media (max-width: 920px) {
+    display: ${({ $textOpen }) => ($textOpen ? 'none' : 'block')};
+  }
+`
+
+const TextPanel = styled.section`
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid #d7dde8;
+  border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(31, 39, 54, 0.08);
+`
+
+const TextPanelHead = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  span {
+    color: #566174;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+`
+
+const TextPanelArea = styled.textarea`
+  width: 100%;
+  flex: 1;
+  min-height: 60vh;
+  box-sizing: border-box;
+  border: 1px solid #c7d0dd;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #202631;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  resize: none;
+  background: #f6f8fb;
 `
 
 const Board = styled.div`
@@ -1086,7 +1399,34 @@ const GhostCell = styled.div`
 
 const BlockItem = styled.div<{
   $block: SpanBoxBlock
-  $selected: boolean
+  $cell: number
+}>`
+  position: absolute;
+  left: ${({ $block, $cell }) => $block.x * $cell}px;
+  top: ${({ $block, $cell }) => $block.y * $cell}px;
+  width: ${({ $block, $cell }) => $block.width * $cell}px;
+  height: ${({ $block, $cell }) => $block.height * $cell}px;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid rgba(32, 38, 49, 0.22);
+  background: ${({ $block }) => $block.color};
+  box-shadow: 0 5px 12px rgba(32, 38, 49, 0.13);
+  color: #10141b;
+  cursor: grab;
+  user-select: none;
+  overflow: hidden;
+
+  &:active {
+    cursor: grabbing;
+  }
+`
+
+// 選択枠＋ハンドルの最前面オーバーレイ。本体の重なり順に関係なく見える。
+// 覆われている (occluded) ときは枠を点線にして「裏に隠れている」ことを示す。
+const SelectionOverlay = styled.div<{
+  $block: SpanBoxBlock
   $occluded: boolean
   $cell: number
 }>`
@@ -1095,31 +1435,12 @@ const BlockItem = styled.div<{
   top: ${({ $block, $cell }) => $block.y * $cell}px;
   width: ${({ $block, $cell }) => $block.width * $cell}px;
   height: ${({ $block, $cell }) => $block.height * $cell}px;
-  /* 選択中は最前面へ。コントロールが他ブロックの下に隠れるのを防ぐ */
-  z-index: ${({ $selected }) => ($selected ? 50 : 'auto')};
-  display: grid;
-  align-content: center;
-  gap: 2px;
-  padding: 8px 10px;
-  border: ${({ $selected, $occluded }) =>
-    $selected
-      ? '3px solid #202631'
-      : $occluded
-        ? '2px dashed rgba(32, 38, 49, 0.6)'
-        : '1px solid rgba(32, 38, 49, 0.22)'};
-  background: ${({ $block }) => $block.color};
-  box-shadow: ${({ $selected }) =>
-    $selected
-      ? '0 9px 20px rgba(32, 38, 49, 0.24)'
-      : '0 5px 12px rgba(32, 38, 49, 0.13)'};
-  color: #10141b;
-  cursor: grab;
-  user-select: none;
-  overflow: visible;
-
-  &:active {
-    cursor: grabbing;
-  }
+  z-index: 100;
+  box-sizing: border-box;
+  border: ${({ $occluded }) =>
+    $occluded ? '2px dashed #202631' : '3px solid #202631'};
+  /* 枠自体はクリックを透過し、本体の選択・ドラッグを邪魔しない */
+  pointer-events: none;
 `
 
 const BlockLabel = styled.div`
@@ -1132,8 +1453,8 @@ const BlockLabel = styled.div`
 `
 
 const BlockMeta = styled.div`
-  color: rgba(16, 20, 27, 0.68);
-  font-size: 0.72rem;
+  color: rgba(16, 20, 27, 0.6);
+  font-size: 0.6rem;
   font-weight: 700;
 `
 
@@ -1145,6 +1466,8 @@ const ResizeHandle = styled.button<{ $edge: ResizeEdge }>`
   background: #202631;
   box-shadow: 0 0 0 2px #ffffff;
   padding: 0;
+  /* オーバーレイは透過なので、ハンドルだけ操作を受け取る */
+  pointer-events: auto;
 
   ${({ $edge }) => {
     if ($edge === 'top') {
@@ -1264,16 +1587,35 @@ const LabelInput = styled.input`
 
 const Swatches = styled.div`
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 4px;
 `
 
 const SwatchButton = styled.button<{ $color: string; $selected: boolean }>`
   aspect-ratio: 1;
-  border: ${({ $selected }) => ($selected ? '3px solid #202631' : '1px solid #c8d0dd')};
-  border-radius: 6px;
+  border: ${({ $selected }) => ($selected ? '2px solid #202631' : '1px solid #c8d0dd')};
+  border-radius: 4px;
   background: ${({ $color }) => $color};
   cursor: pointer;
+`
+
+const CollapseHeader = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #566174;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  svg:last-child {
+    margin-left: auto;
+    color: #9aa3b2;
+  }
 `
 
 const CustomColorRow = styled.div`
@@ -1319,21 +1661,6 @@ const Separator = styled.hr`
   margin: 4px 0;
   border: 0;
   border-top: 1px solid #d7dde8;
-`
-
-const ShareText = styled.textarea`
-  width: 100%;
-  height: 110px;
-  box-sizing: border-box;
-  border: 1px solid #c7d0dd;
-  border-radius: 6px;
-  padding: 8px 10px;
-  color: #202631;
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-  font-size: 0.76rem;
-  line-height: 1.5;
-  resize: none;
-  background: #f6f8fb;
 `
 
 const CopyButton = styled.button`
@@ -1390,7 +1717,7 @@ const LayerList = styled.div`
   overflow: auto;
 `
 
-const LayerRow = styled.div<{ $selected: boolean }>`
+const LayerRow = styled.div<{ $selected: boolean; $dragging: boolean }>`
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1398,6 +1725,20 @@ const LayerRow = styled.div<{ $selected: boolean }>`
   border: 1px solid ${({ $selected }) => ($selected ? '#202631' : '#e2e7f0')};
   border-radius: 6px;
   background: ${({ $selected }) => ($selected ? '#eef2fb' : '#ffffff')};
+  opacity: ${({ $dragging }) => ($dragging ? 0.4 : 1)};
+`
+
+const DragHandle = styled.span`
+  flex-shrink: 0;
+  color: #b6bece;
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: grab;
+  user-select: none;
+
+  &:active {
+    cursor: grabbing;
+  }
 `
 
 const LayerColorDot = styled.span<{ $color: string }>`
