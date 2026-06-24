@@ -20,6 +20,7 @@ import {
   clearHistory,
   createHistory,
   recordChange,
+  recordOnChange,
   removeEntry,
   restore,
   toggleBookmark,
@@ -39,8 +40,12 @@ export type UseHistoryResult<T> = {
   entries: HistoryEntry<T>[]
   /** 最新エントリ (無ければ undefined)。 */
   latest: HistoryEntry<T> | undefined
-  /** 値を記録する。実際に記録されたら true、判定で弾かれたら false。 */
-  record: (value: T) => boolean
+  /**
+   * 値を記録する。実際に記録されたら true、判定で弾かれたら false。
+   * force=true で shouldRecord (間引き) を無視し、変化があれば必ず記録する
+   * (確定タイミングで 1 件残したいとき用)。
+   */
+  record: (value: T, opts?: { force?: boolean }) => boolean
   /** 過去エントリを復元して値を返す。順序も mode に従って更新する。 */
   restore: (id: string, mode?: RestoreMode) => T | undefined
   /** 指定エントリを削除する。 */
@@ -61,8 +66,14 @@ export const useHistory = <T>(
   )
   const { shouldRecord, max, label } = options
 
-  const record = (value: T): boolean => {
-    const result = recordChange(state, value, { shouldRecord, max, label })
+  const record = (value: T, opts?: { force?: boolean }): boolean => {
+    // force 時は間引き (interval 等) を外し、変化があれば必ず記録する
+    const decider = opts?.force ? recordOnChange<T>() : shouldRecord
+    const result = recordChange(state, value, {
+      shouldRecord: decider,
+      max,
+      label,
+    })
 
     if (result.recorded) setState(result.state)
 
