@@ -17,6 +17,7 @@ import {
   FaPlus,
   FaRedo,
   FaRetweet,
+  FaTimes,
   FaTrash,
   FaUndo,
 } from 'react-icons/fa'
@@ -301,6 +302,11 @@ const SpanBox = () => {
     string,
     string
   > | null>(null)
+  // 選択中の行/列 (ルーラーのクリックで選択し、まとめて削除できる)
+  const [selectedLine, setSelectedLine] = useState<{
+    axis: 'row' | 'col'
+    index: number
+  } | null>(null)
   // ツールバーの「その他」メニュー (転置・サイズ表示などをまとめる)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -400,7 +406,33 @@ const SpanBox = () => {
     : undefined
 
   // 選択解除 (空白クリック / Esc など共通の入口)
-  const clearSelection = () => setSelectedIds([])
+  const clearSelection = () => {
+    setSelectedIds([])
+    setSelectedLine(null)
+  }
+
+  // ルーラーで行/列を選択 (ブロック選択は解除し排他に)
+  const selectLine = (axis: 'row' | 'col', index: number) => {
+    setSelectedIds([])
+    setSelectedLine((current) =>
+      current?.axis === axis && current.index === index ? null : { axis, index }
+    )
+  }
+
+  // 選択中の行/列を 1 本削除し、グリッドを 1 詰める (最小サイズは保つ)
+  const deleteSelectedLine = () => {
+    if (!selectedLine) return
+    if (selectedLine.axis === 'col') {
+      if (gridColumns <= minColumns) return
+      setBlocks((current) => removeColumnAt(current, selectedLine.index))
+      setGridColumns((current) => current - 1)
+    } else {
+      if (gridRows <= minRows) return
+      setBlocks((current) => removeRowAt(current, selectedLine.index))
+      setGridRows((current) => current - 1)
+    }
+    setSelectedLine(null)
+  }
 
   const generateShareText = (blocks: SpanBoxBlock[]) =>
     blocks
@@ -542,6 +574,7 @@ const SpanBox = () => {
 
   const startMove = (event: React.PointerEvent, block: SpanBoxBlock) => {
     if (isControlTarget(event.target)) return
+    setSelectedLine(null) // ブロック操作を始めたら行/列選択は解除
     // 修飾キー押下時は選択のトグルのみ (ドラッグ移動しない)
     if (event.shiftKey || event.metaKey || event.ctrlKey) {
       setSelectedIds((cur) =>
@@ -629,6 +662,9 @@ const SpanBox = () => {
         if (selectedIds.length > 0) {
           event.preventDefault()
           deleteSelected()
+        } else if (selectedLine) {
+          event.preventDefault()
+          deleteSelectedLine()
         }
         return
       }
@@ -665,7 +701,7 @@ const SpanBox = () => {
     window.addEventListener('keydown', onKey)
 
     return () => window.removeEventListener('keydown', onKey)
-  }, [blocks, selectedIds, gridColumns, gridRows])
+  }, [blocks, selectedIds, selectedLine, gridColumns, gridRows])
 
   return (
     <Shell>
@@ -731,6 +767,15 @@ const SpanBox = () => {
               </MoreMenu>
             )}
           </MoreMenuWrap>
+
+          {selectedLine && (
+            <DangerButton onClick={deleteSelectedLine}>
+              <FaTrash />
+              {selectedLine.axis === 'col'
+                ? `列 ${selectedLine.index + 1} を削除`
+                : `行 ${selectedLine.index + 1} を削除`}
+            </DangerButton>
+          )}
 
           <GridSizeControls
             as="form"
@@ -826,10 +871,19 @@ const SpanBox = () => {
           <SidePanel>
             <SidePanelHead>
               <span>TEXT</span>
-              <CopyButton onClick={copyShareText}>
-                <FaCopy />
-                Copy
-              </CopyButton>
+              <HeadActions>
+                <CopyButton onClick={copyShareText}>
+                  <FaCopy />
+                  Copy
+                </CopyButton>
+                <PanelCloseButton
+                  type="button"
+                  onClick={() => setSidePanel('none')}
+                  title="閉じる"
+                >
+                  <FaTimes />
+                </PanelCloseButton>
+              </HeadActions>
             </SidePanelHead>
             <TextPanelArea
               value={shareDraft ?? generateShareText(blocks)}
@@ -855,6 +909,13 @@ const SpanBox = () => {
           <SidePanel>
             <SidePanelHead>
               <span>LIST ({blocks.length})</span>
+              <PanelCloseButton
+                type="button"
+                onClick={() => setSidePanel('none')}
+                title="閉じる"
+              >
+                <FaTimes />
+              </PanelCloseButton>
             </SidePanelHead>
             <LayerList>
               {blocks
@@ -943,6 +1004,13 @@ const SpanBox = () => {
           <SidePanel>
             <SidePanelHead>
               <span>HISTORY</span>
+              <PanelCloseButton
+                type="button"
+                onClick={() => setSidePanel('none')}
+                title="閉じる"
+              >
+                <FaTimes />
+              </PanelCloseButton>
             </SidePanelHead>
             <HistoryPanel
               entries={pinnedHistory}
@@ -970,12 +1038,30 @@ const SpanBox = () => {
           >
             <ColumnRail $cols={gridColumns} $cell={cellSize}>
               {Array.from({ length: gridColumns }, (_, index) => (
-                <RailTick key={index}>{index + 1}</RailTick>
+                <RailTick
+                  key={index}
+                  $selected={
+                    selectedLine?.axis === 'col' && selectedLine.index === index
+                  }
+                  onClick={() => selectLine('col', index)}
+                  title={`列 ${index + 1} を選択`}
+                >
+                  {index + 1}
+                </RailTick>
               ))}
             </ColumnRail>
             <RowRail $rows={gridRows} $cell={cellSize}>
               {Array.from({ length: gridRows }, (_, index) => (
-                <RailTick key={index}>{index + 1}</RailTick>
+                <RailTick
+                  key={index}
+                  $selected={
+                    selectedLine?.axis === 'row' && selectedLine.index === index
+                  }
+                  onClick={() => selectLine('row', index)}
+                  title={`行 ${index + 1} を選択`}
+                >
+                  {index + 1}
+                </RailTick>
               ))}
             </RowRail>
             <GridPaper
@@ -990,6 +1076,15 @@ const SpanBox = () => {
               {occupiedCells.map((cell) => (
                 <GhostCell key={cell} />
               ))}
+              {selectedLine && (
+                <LineHighlight
+                  $axis={selectedLine.axis}
+                  $index={selectedLine.index}
+                  $cell={cellSize}
+                  $cols={gridColumns}
+                  $rows={gridRows}
+                />
+              )}
               {/* 本体はレイヤー順 (配列順) を維持して描画。手前のものが重なりを覆う */}
               {blocks.map((block) => (
                 <BlockItem
@@ -1231,6 +1326,32 @@ const reorderById = (
   return next
 }
 
+// 列 index を 1 本削除して詰める。またぐブロックは幅-1 (0 になれば消す)、
+// 右側のブロックは x-1。
+const removeColumnAt = (
+  blocks: SpanBoxBlock[],
+  index: number
+): SpanBoxBlock[] =>
+  blocks.flatMap((b) => {
+    if (b.x > index) return [{ ...b, x: b.x - 1 }]
+    if (index <= b.x + b.width - 1) {
+      const width = b.width - 1
+      return width >= minBlockSize ? [{ ...b, width }] : []
+    }
+    return [b]
+  })
+
+// 行 index を 1 本削除して詰める (列版の y/height 版)。
+const removeRowAt = (blocks: SpanBoxBlock[], index: number): SpanBoxBlock[] =>
+  blocks.flatMap((b) => {
+    if (b.y > index) return [{ ...b, y: b.y - 1 }]
+    if (index <= b.y + b.height - 1) {
+      const height = b.height - 1
+      return height >= minBlockSize ? [{ ...b, height }] : []
+    }
+    return [b]
+  })
+
 const getGridPoint = (
   event: React.PointerEvent,
   cellSize: number
@@ -1388,17 +1509,30 @@ const isControlTarget = (target: EventTarget) =>
   ['INPUT', 'TEXTAREA', 'BUTTON', 'SELECT'].includes(target.tagName)
 
 const Shell = styled.div`
-  min-height: calc(100vh - 40px);
+  box-sizing: border-box;
+  height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
   background: #f6f7fb;
   color: #202631;
   padding: 14px 6px;
+  overflow: hidden;
+
+  /* スマホは高さ固定をやめ、通常のページスクロールに戻す */
+  @media (max-width: 920px) {
+    height: auto;
+    min-height: calc(100vh - 40px);
+    overflow: visible;
+  }
 `
 
 const TopBar = styled.div`
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  width: 100%;
   max-width: 1240px;
   margin: 0 auto 14px;
 
@@ -1527,6 +1661,25 @@ const ToolButton = styled.button<{ $active?: boolean }>`
   }
 `
 
+const DangerButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #d94848;
+  border-radius: 6px;
+  background: #fff5f5;
+  color: #9f1d1d;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:hover {
+    background: #ffe3e3;
+  }
+`
+
 // 先頭にアクティビティバー(46px)。TEXT 列を開くと
 // [rail | TEXT | Board | Inspector]、閉じると [rail | Board | Inspector]。
 const Workspace = styled.div<{ $open: boolean }>`
@@ -1535,12 +1688,20 @@ const Workspace = styled.div<{ $open: boolean }>`
     $open
       ? '46px minmax(0, 320px) minmax(0, 1fr) 280px'
       : '46px minmax(0, 1fr) 280px'};
+  grid-template-rows: minmax(0, 1fr);
   gap: 12px;
+  width: 100%;
   max-width: ${({ $open }) => ($open ? '1580px' : '1260px')};
   margin: 0 auto;
+  /* 残り高さいっぱいに広げ、各カラムを内部スクロールさせる */
+  flex: 1;
+  min-height: 0;
 
   @media (max-width: 920px) {
     grid-template-columns: 1fr;
+    grid-template-rows: none;
+    flex: none;
+    min-height: 0;
   }
 `
 
@@ -1624,7 +1785,10 @@ const MenuItem = styled.button`
 `
 
 const BoardPanel = styled.section<{ $open: boolean }>`
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  min-height: 0;
   background: #ffffff;
   border: 1px solid #d7dde8;
   border-radius: 8px;
@@ -1634,28 +1798,38 @@ const BoardPanel = styled.section<{ $open: boolean }>`
   /* スマホではサイドパネルを開いている間は Board を隠して切替表示にする */
   @media (max-width: 920px) {
     display: ${({ $open }) => ($open ? 'none' : 'block')};
+    /* 高さ固定をやめ、内容なりの高さに */
+    min-height: 60vh;
   }
 `
 
 const SidePanel = styled.section`
   display: flex;
   min-width: 0;
+  min-height: 0;
   flex-direction: column;
   gap: 8px;
   padding: 12px;
   background: #ffffff;
   border: 1px solid #d7dde8;
   border-radius: 8px;
+  overflow: hidden;
   box-shadow: 0 10px 28px rgba(31, 39, 54, 0.08);
+
+  /* スマホでは内部スクロールをやめページなりの高さに */
+  @media (max-width: 920px) {
+    min-height: 60vh;
+  }
 `
 
 const SidePanelHead = styled.div`
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 
-  span {
+  > span {
     color: #566174;
     font-size: 0.78rem;
     font-weight: 800;
@@ -1663,10 +1837,35 @@ const SidePanelHead = styled.div`
   }
 `
 
+const HeadActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`
+
+// 左パネルを閉じる × ボタン (Activity Bar 再クリックが分かりにくい人向け)
+const PanelCloseButton = styled.button`
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border: 1px solid #d7dde8;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #566174;
+  cursor: pointer;
+
+  &:hover {
+    background: #f0f4fa;
+    color: #202631;
+  }
+`
+
 const TextPanelArea = styled.textarea`
   width: 100%;
   flex: 1;
-  min-height: 60vh;
+  min-height: 0;
   box-sizing: border-box;
   border: 1px solid #c7d0dd;
   border-radius: 6px;
@@ -1681,6 +1880,8 @@ const TextPanelArea = styled.textarea`
 
 const Board = styled.div`
   position: relative;
+  flex: 1;
+  min-height: 0;
   overflow: auto;
   padding: 28px 0 0 34px;
   touch-action: none;
@@ -1709,14 +1910,20 @@ const RowRail = styled.div<{ $rows: number; $cell: number }>`
   background: #eef2f8;
 `
 
-const RailTick = styled.div`
+const RailTick = styled.div<{ $selected?: boolean }>`
   display: grid;
   place-items: center;
   border-right: 1px solid #d7dde8;
   border-bottom: 1px solid #d7dde8;
-  color: #667286;
+  color: ${({ $selected }) => ($selected ? '#ffffff' : '#667286')};
   font-size: 0.68rem;
   font-weight: 700;
+  background: ${({ $selected }) => ($selected ? '#3f6fd9' : 'transparent')};
+  cursor: pointer;
+
+  &:hover {
+    background: ${({ $selected }) => ($selected ? '#3f6fd9' : '#dfe7f3')};
+  }
 `
 
 const GridPaper = styled.div<{ $cols: number; $rows: number; $cell: number }>`
@@ -1728,6 +1935,28 @@ const GridPaper = styled.div<{ $cols: number; $rows: number; $cell: number }>`
     linear-gradient(#dce2ec 1px, transparent 1px),
     linear-gradient(90deg, #dce2ec 1px, transparent 1px);
   background-size: ${({ $cell }) => $cell}px ${({ $cell }) => $cell}px;
+`
+
+const LineHighlight = styled.div<{
+  $axis: 'row' | 'col'
+  $index: number
+  $cell: number
+  $cols: number
+  $rows: number
+}>`
+  position: absolute;
+  pointer-events: none;
+  left: ${({ $axis, $index, $cell }) =>
+    $axis === 'col' ? $index * $cell : 0}px;
+  top: ${({ $axis, $index, $cell }) =>
+    $axis === 'row' ? $index * $cell : 0}px;
+  width: ${({ $axis, $cell, $cols }) =>
+    $axis === 'col' ? $cell : $cols * $cell}px;
+  height: ${({ $axis, $cell, $rows }) =>
+    $axis === 'row' ? $cell : $rows * $cell}px;
+  background: rgba(63, 111, 217, 0.16);
+  outline: 2px solid rgba(63, 111, 217, 0.55);
+  outline-offset: -2px;
 `
 
 const GhostCell = styled.div`
@@ -1887,14 +2116,21 @@ const ResizeHandle = styled.button<{ $edge: ResizeEdge }>`
 `
 
 const Inspector = styled.aside`
-  align-self: start;
   display: grid;
+  align-content: start;
   gap: 12px;
+  min-height: 0;
   background: #ffffff;
   border: 1px solid #d7dde8;
   border-radius: 8px;
   padding: 14px;
+  overflow-y: auto;
   box-shadow: 0 10px 28px rgba(31, 39, 54, 0.08);
+
+  /* スマホでは内部スクロールをやめページなりに */
+  @media (max-width: 920px) {
+    overflow-y: visible;
+  }
 `
 
 const PanelTitle = styled.h2`
