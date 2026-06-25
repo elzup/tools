@@ -27,6 +27,7 @@
 | time-clip.tsx          | DevTool         | 時間クリップツール                                                   | @mui, styled-components                        | 現在           |     | ローカルストレージ使用       | 5    |
 | text-transformer.tsx   | DevTool         | テキスト変換ツール                                                   | @mui                                           | 現在           |     | 複数変換機能                 | 6    |
 | pi-lab.tsx             | Math            | モンテカルロ法による π 計算実験                                      | @mui                                           | 現在           |     | 数学シミュレーション         | 4    |
+| cashew-fortune.tsx     | Math            | 1 つの物体が 2 枚に割れる向きを物理演算で近似シミュレーション        | @mui, styled-components                        | 現在           |     | 確率・物理近似               | 4    |
 | mandelbulb.tsx         | Math            | マンデルブロ集合可視化ツール                                         | @mui                                           | 現在           |     | 数学的可視化                 | 5    |
 | collatz-graph.tsx      | Math            | コラッツ予想グラフ可視化                                             |                                                | 現在           |     | 数学的グラフ                 | 4    |
 | frag-problab.tsx       | Math            | フラグメント確率実験                                                 | @mui                                           | 現在           |     | 確率シミュレーション         | 4    |

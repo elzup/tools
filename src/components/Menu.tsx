@@ -171,6 +171,11 @@ const routings: RoutingGroup[] = [
         path: '/pi-lab',
       },
       {
+        icon: faLeaf,
+        label: '割れ占い',
+        path: '/cashew-fortune',
+      },
+      {
         icon: faCalculator,
         label: 'Collatz graph',
         path: '/collatz-graph',
