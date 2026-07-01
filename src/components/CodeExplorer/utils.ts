@@ -1,5 +1,6 @@
 import { range } from '@elzup/kit/lib/range'
 import { controlCharLib } from '@elzup/kit/lib/char/ascii'
+import type { Endian } from './constants'
 
 export const uints = (b: Buffer) =>
   range(b.byteLength).map((i) => b.readUint8(i))
@@ -34,27 +35,33 @@ export const readableAscii = (c: number) => {
   return String.fromCharCode(c)
 }
 
-export const transCmdUnsafe = (cmd: Cmd, buf: Buffer) => {
-  // const buf = buffer.Buffer.from(b)
+export const transCmdUnsafe = (
+  cmd: Cmd,
+  buf: Buffer,
+  endian: Endian = 'LE'
+) => {
+  const le = endian === 'LE'
 
   if (cmd === 'c') return buf.readInt8()
   if (cmd === 'b') return buf.readInt8()
   if (cmd === 'B') return buf.readUint8()
-  if (cmd === 'h') return buf.readInt16LE()
-  if (cmd === 'H') return buf.readUInt16LE()
-  if (cmd === 'i' || cmd === 'l') return buf.readInt32LE()
-  if (cmd === 'I' || cmd === 'L') return buf.readUInt32LE()
-  if (cmd === 'q') return buf.readBigInt64LE()
-  if (cmd === 'Q') return buf.readBigUInt64LE()
+  if (cmd === 'h') return le ? buf.readInt16LE() : buf.readInt16BE()
+  if (cmd === 'H') return le ? buf.readUInt16LE() : buf.readUInt16BE()
+  if (cmd === 'i' || cmd === 'l')
+    return le ? buf.readInt32LE() : buf.readInt32BE()
+  if (cmd === 'I' || cmd === 'L')
+    return le ? buf.readUInt32LE() : buf.readUInt32BE()
+  if (cmd === 'q') return le ? buf.readBigInt64LE() : buf.readBigInt64BE()
+  if (cmd === 'Q') return le ? buf.readBigUInt64LE() : buf.readBigUInt64BE()
   // if (cmd === 'e') return buf.read
-  if (cmd === 'f') return buf.readFloatLE()
-  if (cmd === 'd') return buf.readDoubleLE()
+  if (cmd === 'f') return le ? buf.readFloatLE() : buf.readFloatBE()
+  if (cmd === 'd') return le ? buf.readDoubleLE() : buf.readDoubleBE()
   return ''
 }
 
-export const transCmd = (cmd: Cmd, buf: Buffer) => {
+export const transCmd = (cmd: Cmd, buf: Buffer, endian: Endian = 'LE') => {
   try {
-    return transCmdUnsafe(cmd, buf)
+    return transCmdUnsafe(cmd, buf, endian)
   } catch {
     return ''
   }

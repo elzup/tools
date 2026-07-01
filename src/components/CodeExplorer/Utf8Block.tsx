@@ -14,8 +14,8 @@ export const Utf8Block = ({ s }: Props) => {
 
   return (
     <Style>
-      <Typography>{s}</Typography>
-      <Box display="flex" gap="1px" p={0.5}>
+      <Typography className="char">{s}</Typography>
+      <Box display="flex" gap="2px" p={0.5}>
         {intNums.map((v, i) => (
           <ByteBlock key={i} c={v} variant="utf8" />
         ))}
@@ -25,8 +25,16 @@ export const Utf8Block = ({ s }: Props) => {
 }
 
 const Style = styled.div`
-  border: 1px solid gray;
+  border: 1px solid #e0dcd6;
+  border-radius: 8px;
+  padding: 2px 4px;
+  background: #fafafa;
   .asc {
     display: none;
+  }
+  .char {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #3e2723;
   }
 `
