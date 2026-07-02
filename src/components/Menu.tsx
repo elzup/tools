@@ -15,6 +15,7 @@ import {
   faCalculator,
   faCarSide,
   faChartLine,
+  faCircleNotch,
   faDiagramProject,
   faClipboard,
   faClock,
@@ -239,6 +240,11 @@ const routings: RoutingGroup[] = [
         icon: faBoxes,
         label: 'ドミノ倒し',
         path: '/domino-3d',
+      },
+      {
+        icon: faCircleNotch,
+        label: 'ボウル円運動',
+        path: '/tusi-bowl',
       },
       {
         icon: faPuzzlePiece,
