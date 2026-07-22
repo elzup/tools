@@ -211,6 +211,11 @@ const routings: RoutingGroup[] = [
         label: 'Float有効桁数デモ',
         path: '/float-precision',
       },
+      {
+        icon: faRing,
+        label: '3本の釘と糸の輪',
+        path: '/nail-loop-curve',
+      },
     ],
   },
   {
