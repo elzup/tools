@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "packageManager": "pnpm@10.26.2",
   "scripts": {
-    "dev": "portless run --name tools next dev",
+    "dev": "portless run --name tools next dev 2>&1 | grep -v --line-buffered -E -- '- (Local|Network):'",
     "build": "next build",
     "test": "jest",
     "test:e2e": "playwright test",
