@@ -9,7 +9,6 @@ import {
 } from '@mui/material'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Legend from './Legend'
-import SmpBand from './SmpBand'
 import {
   COLOR_MODES,
   type ColorMode,
@@ -178,7 +177,6 @@ const UnicodeHilbertMap = () => {
         }}
       />
       <Legend colorMode={colorMode} />
-      <SmpBand colorMode={colorMode} />
     </Box>
   )
 }

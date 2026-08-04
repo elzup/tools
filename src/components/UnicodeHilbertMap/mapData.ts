@@ -27,9 +27,6 @@ export const smpBlocks = blocks.filter((b) =>
   b.ranges.some(([lo]) => lo > 0xffff)
 )
 
-export const countOf = (block: Block) =>
-  block.ranges.reduce((sum, [lo, hi]) => sum + (hi - lo + 1), 0)
-
 /** codepoint -> blocks の index (-1 = 未割当) */
 export const buildBlockIndex = () => {
   const index = new Int16Array(TOTAL).fill(-1)
