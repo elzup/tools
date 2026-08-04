@@ -20,6 +20,7 @@
 | stamina-calc.tsx       | Tool/Game       | スタミナ/聖遺物/ストック運用シミュレーター                           | @mui, styled-components                        | 現在           |     | ゲームリソース管理           | 5    |
 | domino-3d.tsx          | Physics         | ドミノ倒し物理演算シミュレーター                                     | @react-three, @react-three/rapier, three, @mui | 現在           | \*  | 配置パターン切替             | 7    |
 | tusi-bowl.tsx          | Physics         | ボウルにタイミングよく球を置くと円運動に見える Tusi couple 体験      | @react-three, @react-three/rapier, three, @mui | 現在           | \*  | 球同士の衝突判定・タイミング判定 | 6    |
+| unicode-map.tsx        | Graphical       | Unicode BMP をヒルベルト曲線/行優先で色分け表示するマップ            | @mui                                           | 現在           | \*  | Canvas 描画, 壁 Lv.0-4       | 6    |
 | 1px.tsx                | DevTool         | 1px の画像データ URL 生成ツール                                      | react-color, @mui                              | 現在           |     | カラーピッカー使用           | 4    |
 | 4kpx.tsx               | DevTool         | 4K 解像度向けパターン SVG 生成ツール                                 | react-color, @mui, styled-components           | 現在           |     | SVG パターン生成             | 4    |
 | global-ip.tsx          | DevTool         | グローバルパブリック IP 取得ツール                                   | fetch API                                      | 現在           |     | 外部 API 使用                | 3    |

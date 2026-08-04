@@ -1,0 +1,1204 @@
+[
+  {
+    "id": "basic_latin",
+    "name": "基本ラテン文字",
+    "rarity": "N",
+    "ranges": [[0, 127]]
+  },
+  {
+    "id": "latin_1_supplement",
+    "name": "Latin 1 Supplement",
+    "rarity": "N",
+    "ranges": [[128, 255]]
+  },
+  {
+    "id": "latin_extended_a",
+    "name": "Latin Extended A",
+    "rarity": "N",
+    "ranges": [[256, 383]]
+  },
+  {
+    "id": "latin_extended_b",
+    "name": "Latin Extended B",
+    "rarity": "N",
+    "ranges": [[384, 591]]
+  },
+  {
+    "id": "ipa_extensions",
+    "name": "IPA Extensions",
+    "rarity": "N",
+    "ranges": [[592, 687]]
+  },
+  {
+    "id": "spacing_modifier_letters",
+    "name": "Spacing Modifier Letters",
+    "rarity": "N",
+    "ranges": [[688, 767]]
+  },
+  {
+    "id": "combining_diacritical_marks",
+    "name": "Combining Diacritical Marks",
+    "rarity": "N",
+    "ranges": [[768, 879]]
+  },
+  {
+    "id": "greek_and_coptic",
+    "name": "Greek And Coptic",
+    "rarity": "N",
+    "ranges": [
+      [880, 887],
+      [890, 895],
+      [900, 906],
+      [908, 908],
+      [910, 929],
+      [931, 1023]
+    ]
+  },
+  {
+    "id": "cyrillic",
+    "name": "キリル文字",
+    "rarity": "N",
+    "ranges": [[1024, 1279]]
+  },
+  {
+    "id": "cyrillic_supplement",
+    "name": "Cyrillic Supplement",
+    "rarity": "N",
+    "ranges": [[1280, 1327]]
+  },
+  {
+    "id": "armenian",
+    "name": "Armenian",
+    "rarity": "N",
+    "ranges": [[1329, 1366], [1369, 1418], [1421, 1423]]
+  },
+  {
+    "id": "hebrew",
+    "name": "Hebrew",
+    "rarity": "N",
+    "ranges": [[1425, 1479], [1488, 1514], [1519, 1524]]
+  },
+  { "id": "arabic", "name": "Arabic", "rarity": "N", "ranges": [[1536, 1791]] },
+  {
+    "id": "syriac",
+    "name": "Syriac",
+    "rarity": "N",
+    "ranges": [[1792, 1805], [1807, 1866], [1869, 1871]]
+  },
+  {
+    "id": "arabic_supplement",
+    "name": "Arabic Supplement",
+    "rarity": "N",
+    "ranges": [[1872, 1919]]
+  },
+  { "id": "thaana", "name": "Thaana", "rarity": "N", "ranges": [[1920, 1969]] },
+  {
+    "id": "n_ko",
+    "name": "NKo",
+    "rarity": "N",
+    "ranges": [[1984, 2042], [2045, 2047]]
+  },
+  {
+    "id": "samaritan",
+    "name": "Samaritan",
+    "rarity": "N",
+    "ranges": [[2048, 2093], [2096, 2110]]
+  },
+  {
+    "id": "mandaic",
+    "name": "Mandaic",
+    "rarity": "N",
+    "ranges": [[2112, 2139], [2142, 2142]]
+  },
+  {
+    "id": "syriac_supplement",
+    "name": "Syriac Supplement",
+    "rarity": "N",
+    "ranges": [[2144, 2154]]
+  },
+  {
+    "id": "arabic_extended_b",
+    "name": "Arabic Extended B",
+    "rarity": "N",
+    "ranges": [[2160, 2193], [2199, 2207]]
+  },
+  {
+    "id": "arabic_extended_a",
+    "name": "Arabic Extended A",
+    "rarity": "N",
+    "ranges": [[2208, 2303]]
+  },
+  {
+    "id": "devanagari",
+    "name": "Devanagari",
+    "rarity": "N",
+    "ranges": [[2304, 2431]]
+  },
+  {
+    "id": "bengali",
+    "name": "Bengali",
+    "rarity": "N",
+    "ranges": [
+      [2432, 2435],
+      [2437, 2444],
+      [2447, 2448],
+      [2451, 2472],
+      [2474, 2480],
+      [2482, 2482],
+      [2486, 2489],
+      [2492, 2500],
+      [2503, 2504],
+      [2507, 2510],
+      [2519, 2519],
+      [2524, 2525],
+      [2527, 2531],
+      [2534, 2558]
+    ]
+  },
+  {
+    "id": "gurmukhi",
+    "name": "Gurmukhi",
+    "rarity": "N",
+    "ranges": [
+      [2561, 2563],
+      [2565, 2570],
+      [2575, 2576],
+      [2579, 2600],
+      [2602, 2608],
+      [2610, 2611],
+      [2613, 2614],
+      [2616, 2617],
+      [2620, 2620],
+      [2622, 2626],
+      [2631, 2632],
+      [2635, 2637],
+      [2641, 2641],
+      [2649, 2652],
+      [2654, 2654],
+      [2662, 2678]
+    ]
+  },
+  {
+    "id": "gujarati",
+    "name": "Gujarati",
+    "rarity": "N",
+    "ranges": [
+      [2689, 2691],
+      [2693, 2701],
+      [2703, 2705],
+      [2707, 2728],
+      [2730, 2736],
+      [2738, 2739],
+      [2741, 2745],
+      [2748, 2757],
+      [2759, 2761],
+      [2763, 2765],
+      [2768, 2768],
+      [2784, 2787],
+      [2790, 2801],
+      [2809, 2815]
+    ]
+  },
+  {
+    "id": "oriya",
+    "name": "Oriya",
+    "rarity": "N",
+    "ranges": [
+      [2817, 2819],
+      [2821, 2828],
+      [2831, 2832],
+      [2835, 2856],
+      [2858, 2864],
+      [2866, 2867],
+      [2869, 2873],
+      [2876, 2884],
+      [2887, 2888],
+      [2891, 2893],
+      [2901, 2903],
+      [2908, 2909],
+      [2911, 2915],
+      [2918, 2935]
+    ]
+  },
+  {
+    "id": "tamil",
+    "name": "Tamil",
+    "rarity": "N",
+    "ranges": [
+      [2946, 2947],
+      [2949, 2954],
+      [2958, 2960],
+      [2962, 2965],
+      [2969, 2970],
+      [2972, 2972],
+      [2974, 2975],
+      [2979, 2980],
+      [2984, 2986],
+      [2990, 3001],
+      [3006, 3010],
+      [3014, 3016],
+      [3018, 3021],
+      [3024, 3024],
+      [3031, 3031],
+      [3046, 3066]
+    ]
+  },
+  {
+    "id": "telugu",
+    "name": "Telugu",
+    "rarity": "N",
+    "ranges": [
+      [3072, 3084],
+      [3086, 3088],
+      [3090, 3112],
+      [3114, 3129],
+      [3132, 3140],
+      [3142, 3144],
+      [3146, 3149],
+      [3157, 3158],
+      [3160, 3162],
+      [3164, 3165],
+      [3168, 3171],
+      [3174, 3183],
+      [3191, 3199]
+    ]
+  },
+  {
+    "id": "kannada",
+    "name": "Kannada",
+    "rarity": "N",
+    "ranges": [
+      [3200, 3212],
+      [3214, 3216],
+      [3218, 3240],
+      [3242, 3251],
+      [3253, 3257],
+      [3260, 3268],
+      [3270, 3272],
+      [3274, 3277],
+      [3285, 3286],
+      [3292, 3294],
+      [3296, 3299],
+      [3302, 3311],
+      [3313, 3315]
+    ]
+  },
+  {
+    "id": "malayalam",
+    "name": "Malayalam",
+    "rarity": "N",
+    "ranges": [
+      [3328, 3340],
+      [3342, 3344],
+      [3346, 3396],
+      [3398, 3400],
+      [3402, 3407],
+      [3412, 3427],
+      [3430, 3455]
+    ]
+  },
+  {
+    "id": "sinhala",
+    "name": "Sinhala",
+    "rarity": "N",
+    "ranges": [
+      [3457, 3459],
+      [3461, 3478],
+      [3482, 3505],
+      [3507, 3515],
+      [3517, 3517],
+      [3520, 3526],
+      [3530, 3530],
+      [3535, 3540],
+      [3542, 3542],
+      [3544, 3551],
+      [3558, 3567],
+      [3570, 3572]
+    ]
+  },
+  {
+    "id": "thai",
+    "name": "Thai",
+    "rarity": "N",
+    "ranges": [[3585, 3642], [3647, 3675]]
+  },
+  {
+    "id": "lao",
+    "name": "Lao",
+    "rarity": "N",
+    "ranges": [
+      [3713, 3714],
+      [3716, 3716],
+      [3718, 3722],
+      [3724, 3747],
+      [3749, 3749],
+      [3751, 3773],
+      [3776, 3780],
+      [3782, 3782],
+      [3784, 3790],
+      [3792, 3801],
+      [3804, 3807]
+    ]
+  },
+  {
+    "id": "tibetan",
+    "name": "Tibetan",
+    "rarity": "N",
+    "ranges": [
+      [3840, 3911],
+      [3913, 3948],
+      [3953, 3991],
+      [3993, 4028],
+      [4030, 4044],
+      [4046, 4058]
+    ]
+  },
+  {
+    "id": "myanmar",
+    "name": "Myanmar",
+    "rarity": "N",
+    "ranges": [[4096, 4255]]
+  },
+  {
+    "id": "georgian",
+    "name": "Georgian",
+    "rarity": "N",
+    "ranges": [[4256, 4293], [4295, 4295], [4301, 4301], [4304, 4351]]
+  },
+  {
+    "id": "hangul_jamo",
+    "name": "Hangul Jamo",
+    "rarity": "N",
+    "ranges": [[4352, 4607]]
+  },
+  {
+    "id": "ethiopic",
+    "name": "Ethiopic",
+    "rarity": "N",
+    "ranges": [
+      [4608, 4680],
+      [4682, 4685],
+      [4688, 4694],
+      [4696, 4696],
+      [4698, 4701],
+      [4704, 4744],
+      [4746, 4749],
+      [4752, 4784],
+      [4786, 4789],
+      [4792, 4798],
+      [4800, 4800],
+      [4802, 4805],
+      [4808, 4822],
+      [4824, 4880],
+      [4882, 4885],
+      [4888, 4954],
+      [4957, 4988]
+    ]
+  },
+  {
+    "id": "ethiopic_supplement",
+    "name": "Ethiopic Supplement",
+    "rarity": "N",
+    "ranges": [[4992, 5017]]
+  },
+  {
+    "id": "cherokee",
+    "name": "Cherokee",
+    "rarity": "N",
+    "ranges": [[5024, 5109], [5112, 5117]]
+  },
+  {
+    "id": "unified_canadian_aboriginal_syllabics",
+    "name": "Unified Canadian Aboriginal Syllabics",
+    "rarity": "N",
+    "ranges": [[5120, 5759]]
+  },
+  { "id": "ogham", "name": "Ogham", "rarity": "N", "ranges": [[5760, 5788]] },
+  {
+    "id": "runic",
+    "name": "ルーン文字",
+    "rarity": "N",
+    "ranges": [[5792, 5880]]
+  },
+  {
+    "id": "tagalog",
+    "name": "Tagalog",
+    "rarity": "N",
+    "ranges": [[5888, 5909], [5919, 5919]]
+  },
+  {
+    "id": "hanunoo",
+    "name": "Hanunoo",
+    "rarity": "N",
+    "ranges": [[5920, 5942]]
+  },
+  { "id": "buhid", "name": "Buhid", "rarity": "N", "ranges": [[5952, 5971]] },
+  {
+    "id": "tagbanwa",
+    "name": "Tagbanwa",
+    "rarity": "N",
+    "ranges": [[5984, 5996], [5998, 6000], [6002, 6003]]
+  },
+  {
+    "id": "khmer",
+    "name": "Khmer",
+    "rarity": "N",
+    "ranges": [[6016, 6109], [6112, 6121], [6128, 6137]]
+  },
+  {
+    "id": "mongolian",
+    "name": "Mongolian",
+    "rarity": "N",
+    "ranges": [[6144, 6169], [6176, 6264], [6272, 6314]]
+  },
+  {
+    "id": "unified_canadian_aboriginal_syllabics_extended",
+    "name": "Unified Canadian Aboriginal Syllabics Extended",
+    "rarity": "N",
+    "ranges": [[6320, 6389]]
+  },
+  {
+    "id": "limbu",
+    "name": "Limbu",
+    "rarity": "N",
+    "ranges": [
+      [6400, 6430],
+      [6432, 6443],
+      [6448, 6459],
+      [6464, 6464],
+      [6468, 6479]
+    ]
+  },
+  {
+    "id": "tai_le",
+    "name": "Tai Le",
+    "rarity": "N",
+    "ranges": [[6480, 6509], [6512, 6516]]
+  },
+  {
+    "id": "new_tai_lue",
+    "name": "New Tai Lue",
+    "rarity": "N",
+    "ranges": [[6528, 6571], [6576, 6601], [6608, 6618], [6622, 6623]]
+  },
+  {
+    "id": "khmer_symbols",
+    "name": "Khmer Symbols",
+    "rarity": "N",
+    "ranges": [[6624, 6655]]
+  },
+  {
+    "id": "buginese",
+    "name": "Buginese",
+    "rarity": "N",
+    "ranges": [[6656, 6683], [6686, 6687]]
+  },
+  {
+    "id": "tai_tham",
+    "name": "Tai Tham",
+    "rarity": "N",
+    "ranges": [
+      [6688, 6750],
+      [6752, 6780],
+      [6783, 6793],
+      [6800, 6809],
+      [6816, 6829]
+    ]
+  },
+  {
+    "id": "combining_diacritical_marks_extended",
+    "name": "Combining Diacritical Marks Extended",
+    "rarity": "N",
+    "ranges": [[6832, 6877], [6880, 6891]]
+  },
+  {
+    "id": "balinese",
+    "name": "Balinese",
+    "rarity": "N",
+    "ranges": [[6912, 6988], [6990, 7039]]
+  },
+  {
+    "id": "sundanese",
+    "name": "Sundanese",
+    "rarity": "N",
+    "ranges": [[7040, 7103]]
+  },
+  {
+    "id": "batak",
+    "name": "Batak",
+    "rarity": "N",
+    "ranges": [[7104, 7155], [7164, 7167]]
+  },
+  {
+    "id": "lepcha",
+    "name": "Lepcha",
+    "rarity": "N",
+    "ranges": [[7168, 7223], [7227, 7241], [7245, 7247]]
+  },
+  {
+    "id": "ol_chiki",
+    "name": "Ol Chiki",
+    "rarity": "N",
+    "ranges": [[7248, 7295]]
+  },
+  {
+    "id": "cyrillic_extended_c",
+    "name": "Cyrillic Extended C",
+    "rarity": "N",
+    "ranges": [[7296, 7306]]
+  },
+  {
+    "id": "georgian_extended",
+    "name": "Georgian Extended",
+    "rarity": "N",
+    "ranges": [[7312, 7354], [7357, 7359]]
+  },
+  {
+    "id": "sundanese_supplement",
+    "name": "Sundanese Supplement",
+    "rarity": "N",
+    "ranges": [[7360, 7367]]
+  },
+  {
+    "id": "vedic_extensions",
+    "name": "Vedic Extensions",
+    "rarity": "N",
+    "ranges": [[7376, 7418]]
+  },
+  {
+    "id": "phonetic_extensions",
+    "name": "Phonetic Extensions",
+    "rarity": "N",
+    "ranges": [[7424, 7551]]
+  },
+  {
+    "id": "phonetic_extensions_supplement",
+    "name": "Phonetic Extensions Supplement",
+    "rarity": "N",
+    "ranges": [[7552, 7615]]
+  },
+  {
+    "id": "combining_diacritical_marks_supplement",
+    "name": "Combining Diacritical Marks Supplement",
+    "rarity": "N",
+    "ranges": [[7616, 7679]]
+  },
+  {
+    "id": "latin_extended_additional",
+    "name": "Latin Extended Additional",
+    "rarity": "N",
+    "ranges": [[7680, 7935]]
+  },
+  {
+    "id": "greek_extended",
+    "name": "Greek Extended",
+    "rarity": "N",
+    "ranges": [
+      [7936, 7957],
+      [7960, 7965],
+      [7968, 8005],
+      [8008, 8013],
+      [8016, 8023],
+      [8025, 8025],
+      [8027, 8027],
+      [8029, 8029],
+      [8031, 8061],
+      [8064, 8116],
+      [8118, 8132],
+      [8134, 8147],
+      [8150, 8155],
+      [8157, 8175],
+      [8178, 8180],
+      [8182, 8190]
+    ]
+  },
+  {
+    "id": "general_punctuation",
+    "name": "General Punctuation",
+    "rarity": "N",
+    "ranges": [[8192, 8292], [8294, 8303]]
+  },
+  {
+    "id": "superscripts_and_subscripts",
+    "name": "Superscripts And Subscripts",
+    "rarity": "N",
+    "ranges": [[8304, 8305], [8308, 8334], [8336, 8348]]
+  },
+  {
+    "id": "currency_symbols",
+    "name": "Currency Symbols",
+    "rarity": "N",
+    "ranges": [[8352, 8385]]
+  },
+  {
+    "id": "combining_diacritical_marks_for_symbols",
+    "name": "Combining Diacritical Marks For Symbols",
+    "rarity": "N",
+    "ranges": [[8400, 8432]]
+  },
+  {
+    "id": "letterlike_symbols",
+    "name": "Letterlike Symbols",
+    "rarity": "N",
+    "ranges": [[8448, 8527]]
+  },
+  {
+    "id": "number_forms",
+    "name": "Number Forms",
+    "rarity": "N",
+    "ranges": [[8528, 8587]]
+  },
+  { "id": "arrows", "name": "矢印", "rarity": "N", "ranges": [[8592, 8703]] },
+  {
+    "id": "mathematical_operators",
+    "name": "Mathematical Operators",
+    "rarity": "N",
+    "ranges": [[8704, 8959]]
+  },
+  {
+    "id": "miscellaneous_technical",
+    "name": "Miscellaneous Technical",
+    "rarity": "N",
+    "ranges": [[8960, 9215]]
+  },
+  {
+    "id": "control_pictures",
+    "name": "Control Pictures",
+    "rarity": "N",
+    "ranges": [[9216, 9257]]
+  },
+  {
+    "id": "optical_character_recognition",
+    "name": "Optical Character Recognition",
+    "rarity": "N",
+    "ranges": [[9280, 9290]]
+  },
+  {
+    "id": "enclosed_alphanumerics",
+    "name": "Enclosed Alphanumerics",
+    "rarity": "N",
+    "ranges": [[9312, 9471]]
+  },
+  {
+    "id": "box_drawing",
+    "name": "Box Drawing",
+    "rarity": "N",
+    "ranges": [[9472, 9599]]
+  },
+  {
+    "id": "block_elements",
+    "name": "ブロック要素",
+    "rarity": "N",
+    "ranges": [[9600, 9631]]
+  },
+  {
+    "id": "geometric_shapes",
+    "name": "Geometric Shapes",
+    "rarity": "N",
+    "ranges": [[9632, 9727]]
+  },
+  {
+    "id": "miscellaneous_symbols",
+    "name": "Miscellaneous Symbols",
+    "rarity": "N",
+    "ranges": [[9728, 9983]]
+  },
+  {
+    "id": "dingbats",
+    "name": "Dingbats",
+    "rarity": "N",
+    "ranges": [[9984, 10175]]
+  },
+  {
+    "id": "miscellaneous_mathematical_symbols_a",
+    "name": "Miscellaneous Mathematical Symbols A",
+    "rarity": "N",
+    "ranges": [[10176, 10223]]
+  },
+  {
+    "id": "supplemental_arrows_a",
+    "name": "Supplemental Arrows A",
+    "rarity": "N",
+    "ranges": [[10224, 10239]]
+  },
+  {
+    "id": "braille_patterns",
+    "name": "Braille Patterns",
+    "rarity": "N",
+    "ranges": [[10240, 10495]]
+  },
+  {
+    "id": "supplemental_arrows_b",
+    "name": "Supplemental Arrows B",
+    "rarity": "N",
+    "ranges": [[10496, 10623]]
+  },
+  {
+    "id": "miscellaneous_mathematical_symbols_b",
+    "name": "Miscellaneous Mathematical Symbols B",
+    "rarity": "N",
+    "ranges": [[10624, 10751]]
+  },
+  {
+    "id": "supplemental_mathematical_operators",
+    "name": "Supplemental Mathematical Operators",
+    "rarity": "N",
+    "ranges": [[10752, 11007]]
+  },
+  {
+    "id": "miscellaneous_symbols_and_arrows",
+    "name": "Miscellaneous Symbols And Arrows",
+    "rarity": "N",
+    "ranges": [[11008, 11123], [11126, 11263]]
+  },
+  {
+    "id": "glagolitic",
+    "name": "Glagolitic",
+    "rarity": "N",
+    "ranges": [[11264, 11359]]
+  },
+  {
+    "id": "latin_extended_c",
+    "name": "Latin Extended C",
+    "rarity": "N",
+    "ranges": [[11360, 11391]]
+  },
+  {
+    "id": "coptic",
+    "name": "Coptic",
+    "rarity": "N",
+    "ranges": [[11392, 11507], [11513, 11519]]
+  },
+  {
+    "id": "georgian_supplement",
+    "name": "Georgian Supplement",
+    "rarity": "N",
+    "ranges": [[11520, 11557], [11559, 11559], [11565, 11565]]
+  },
+  {
+    "id": "tifinagh",
+    "name": "Tifinagh",
+    "rarity": "N",
+    "ranges": [[11568, 11623], [11631, 11632], [11647, 11647]]
+  },
+  {
+    "id": "ethiopic_extended",
+    "name": "Ethiopic Extended",
+    "rarity": "N",
+    "ranges": [
+      [11648, 11670],
+      [11680, 11686],
+      [11688, 11694],
+      [11696, 11702],
+      [11704, 11710],
+      [11712, 11718],
+      [11720, 11726],
+      [11728, 11734],
+      [11736, 11742]
+    ]
+  },
+  {
+    "id": "cyrillic_extended_a",
+    "name": "Cyrillic Extended A",
+    "rarity": "N",
+    "ranges": [[11744, 11775]]
+  },
+  {
+    "id": "supplemental_punctuation",
+    "name": "Supplemental Punctuation",
+    "rarity": "N",
+    "ranges": [[11776, 11869]]
+  },
+  {
+    "id": "cjk_radicals_supplement",
+    "name": "CJK Radicals Supplement",
+    "rarity": "N",
+    "ranges": [[11904, 11929], [11931, 12019]]
+  },
+  {
+    "id": "kangxi_radicals",
+    "name": "Kangxi Radicals",
+    "rarity": "N",
+    "ranges": [[12032, 12245]]
+  },
+  {
+    "id": "ideographic_description_characters",
+    "name": "Ideographic Description Characters",
+    "rarity": "N",
+    "ranges": [[12272, 12287]]
+  },
+  {
+    "id": "cjk_symbols_and_punctuation",
+    "name": "CJK Symbols And Punctuation",
+    "rarity": "N",
+    "ranges": [[12288, 12351]]
+  },
+  {
+    "id": "hiragana",
+    "name": "ひらがな",
+    "rarity": "N",
+    "ranges": [[12353, 12438], [12441, 12447]]
+  },
+  {
+    "id": "katakana",
+    "name": "カタカナ",
+    "rarity": "N",
+    "ranges": [[12448, 12543]]
+  },
+  {
+    "id": "bopomofo",
+    "name": "Bopomofo",
+    "rarity": "N",
+    "ranges": [[12549, 12591]]
+  },
+  {
+    "id": "hangul_compatibility_jamo",
+    "name": "Hangul Compatibility Jamo",
+    "rarity": "N",
+    "ranges": [[12593, 12686]]
+  },
+  {
+    "id": "kanbun",
+    "name": "Kanbun",
+    "rarity": "N",
+    "ranges": [[12688, 12703]]
+  },
+  {
+    "id": "bopomofo_extended",
+    "name": "Bopomofo Extended",
+    "rarity": "N",
+    "ranges": [[12704, 12735]]
+  },
+  {
+    "id": "cjk_strokes",
+    "name": "CJK Strokes",
+    "rarity": "N",
+    "ranges": [[12736, 12773], [12783, 12783]]
+  },
+  {
+    "id": "katakana_phonetic_extensions",
+    "name": "Katakana Phonetic Extensions",
+    "rarity": "N",
+    "ranges": [[12784, 12799]]
+  },
+  {
+    "id": "enclosed_cjk_letters_and_months",
+    "name": "Enclosed CJK Letters And Months",
+    "rarity": "N",
+    "ranges": [[12800, 12830], [12832, 13055]]
+  },
+  {
+    "id": "cjk_compatibility",
+    "name": "CJK Compatibility",
+    "rarity": "N",
+    "ranges": [[13056, 13311]]
+  },
+  {
+    "id": "cjk_unified_ideographs_extension_a",
+    "name": "CJK Unified Ideographs Extension A",
+    "rarity": "N",
+    "ranges": [[13312, 19903]]
+  },
+  {
+    "id": "yijing_hexagram_symbols",
+    "name": "Yijing Hexagram Symbols",
+    "rarity": "N",
+    "ranges": [[19904, 19967]]
+  },
+  {
+    "id": "cjk_unified_ideographs",
+    "name": "CJK Unified Ideographs",
+    "rarity": "N",
+    "ranges": [[19968, 40959]]
+  },
+  {
+    "id": "yi_syllables",
+    "name": "Yi Syllables",
+    "rarity": "N",
+    "ranges": [[40960, 42124]]
+  },
+  {
+    "id": "yi_radicals",
+    "name": "Yi Radicals",
+    "rarity": "N",
+    "ranges": [[42128, 42182]]
+  },
+  { "id": "lisu", "name": "Lisu", "rarity": "N", "ranges": [[42192, 42239]] },
+  { "id": "vai", "name": "Vai", "rarity": "N", "ranges": [[42240, 42539]] },
+  {
+    "id": "cyrillic_extended_b",
+    "name": "Cyrillic Extended B",
+    "rarity": "N",
+    "ranges": [[42560, 42655]]
+  },
+  { "id": "bamum", "name": "Bamum", "rarity": "N", "ranges": [[42656, 42743]] },
+  {
+    "id": "modifier_tone_letters",
+    "name": "Modifier Tone Letters",
+    "rarity": "N",
+    "ranges": [[42752, 42783]]
+  },
+  {
+    "id": "latin_extended_d",
+    "name": "Latin Extended D",
+    "rarity": "N",
+    "ranges": [[42784, 42972], [42993, 43007]]
+  },
+  {
+    "id": "syloti_nagri",
+    "name": "Syloti Nagri",
+    "rarity": "N",
+    "ranges": [[43008, 43052]]
+  },
+  {
+    "id": "common_indic_number_forms",
+    "name": "Common Indic Number Forms",
+    "rarity": "N",
+    "ranges": [[43056, 43065]]
+  },
+  {
+    "id": "phags_pa",
+    "name": "Phags Pa",
+    "rarity": "N",
+    "ranges": [[43072, 43127]]
+  },
+  {
+    "id": "saurashtra",
+    "name": "Saurashtra",
+    "rarity": "N",
+    "ranges": [[43136, 43205], [43214, 43225]]
+  },
+  {
+    "id": "devanagari_extended",
+    "name": "Devanagari Extended",
+    "rarity": "N",
+    "ranges": [[43232, 43263]]
+  },
+  {
+    "id": "kayah_li",
+    "name": "Kayah Li",
+    "rarity": "N",
+    "ranges": [[43264, 43311]]
+  },
+  {
+    "id": "rejang",
+    "name": "Rejang",
+    "rarity": "N",
+    "ranges": [[43312, 43347], [43359, 43359]]
+  },
+  {
+    "id": "hangul_jamo_extended_a",
+    "name": "Hangul Jamo Extended A",
+    "rarity": "N",
+    "ranges": [[43360, 43388]]
+  },
+  {
+    "id": "javanese",
+    "name": "Javanese",
+    "rarity": "N",
+    "ranges": [[43392, 43469], [43471, 43481], [43486, 43487]]
+  },
+  {
+    "id": "myanmar_extended_b",
+    "name": "Myanmar Extended B",
+    "rarity": "N",
+    "ranges": [[43488, 43518]]
+  },
+  {
+    "id": "cham",
+    "name": "Cham",
+    "rarity": "N",
+    "ranges": [[43520, 43574], [43584, 43597], [43600, 43609], [43612, 43615]]
+  },
+  {
+    "id": "myanmar_extended_a",
+    "name": "Myanmar Extended A",
+    "rarity": "N",
+    "ranges": [[43616, 43647]]
+  },
+  {
+    "id": "tai_viet",
+    "name": "Tai Viet",
+    "rarity": "N",
+    "ranges": [[43648, 43714], [43739, 43743]]
+  },
+  {
+    "id": "meetei_mayek_extensions",
+    "name": "Meetei Mayek Extensions",
+    "rarity": "N",
+    "ranges": [[43744, 43766]]
+  },
+  {
+    "id": "ethiopic_extended_a",
+    "name": "Ethiopic Extended A",
+    "rarity": "N",
+    "ranges": [
+      [43777, 43782],
+      [43785, 43790],
+      [43793, 43798],
+      [43808, 43814],
+      [43816, 43822]
+    ]
+  },
+  {
+    "id": "latin_extended_e",
+    "name": "Latin Extended E",
+    "rarity": "N",
+    "ranges": [[43824, 43883]]
+  },
+  {
+    "id": "cherokee_supplement",
+    "name": "Cherokee Supplement",
+    "rarity": "N",
+    "ranges": [[43888, 43967]]
+  },
+  {
+    "id": "meetei_mayek",
+    "name": "Meetei Mayek",
+    "rarity": "N",
+    "ranges": [[43968, 44013], [44016, 44025]]
+  },
+  {
+    "id": "hangul_syllables",
+    "name": "Hangul Syllables",
+    "rarity": "N",
+    "ranges": [[44032, 55203]]
+  },
+  {
+    "id": "hangul_jamo_extended_b",
+    "name": "Hangul Jamo Extended B",
+    "rarity": "N",
+    "ranges": [[55216, 55238], [55243, 55291]]
+  },
+  {
+    "id": "high_surrogates",
+    "name": "High Surrogates",
+    "rarity": "N",
+    "ranges": [[55296, 56191]]
+  },
+  {
+    "id": "high_private_use_surrogates",
+    "name": "High Private Use Surrogates",
+    "rarity": "N",
+    "ranges": [[56192, 56319]]
+  },
+  {
+    "id": "low_surrogates",
+    "name": "Low Surrogates",
+    "rarity": "N",
+    "ranges": [[56320, 57343]]
+  },
+  {
+    "id": "private_use_area",
+    "name": "Private Use Area",
+    "rarity": "N",
+    "ranges": [[57344, 63743]]
+  },
+  {
+    "id": "cjk_compatibility_ideographs",
+    "name": "CJK Compatibility Ideographs",
+    "rarity": "N",
+    "ranges": [[63744, 64109], [64112, 64217]]
+  },
+  {
+    "id": "alphabetic_presentation_forms",
+    "name": "Alphabetic Presentation Forms",
+    "rarity": "N",
+    "ranges": [
+      [64256, 64262],
+      [64275, 64279],
+      [64285, 64310],
+      [64312, 64316],
+      [64318, 64318],
+      [64320, 64321],
+      [64323, 64324],
+      [64326, 64335]
+    ]
+  },
+  {
+    "id": "arabic_presentation_forms_a",
+    "name": "Arabic Presentation Forms A",
+    "rarity": "N",
+    "ranges": [[64336, 64975], [65008, 65023]]
+  },
+  {
+    "id": "variation_selectors",
+    "name": "Variation Selectors",
+    "rarity": "N",
+    "ranges": [[65024, 65039]]
+  },
+  {
+    "id": "vertical_forms",
+    "name": "Vertical Forms",
+    "rarity": "N",
+    "ranges": [[65040, 65049]]
+  },
+  {
+    "id": "combining_half_marks",
+    "name": "Combining Half Marks",
+    "rarity": "N",
+    "ranges": [[65056, 65071]]
+  },
+  {
+    "id": "cjk_compatibility_forms",
+    "name": "CJK Compatibility Forms",
+    "rarity": "N",
+    "ranges": [[65072, 65103]]
+  },
+  {
+    "id": "small_form_variants",
+    "name": "Small Form Variants",
+    "rarity": "N",
+    "ranges": [[65104, 65106], [65108, 65126], [65128, 65131]]
+  },
+  {
+    "id": "arabic_presentation_forms_b",
+    "name": "Arabic Presentation Forms B",
+    "rarity": "N",
+    "ranges": [[65136, 65140], [65142, 65276], [65279, 65279]]
+  },
+  {
+    "id": "halfwidth_and_fullwidth_forms",
+    "name": "Halfwidth And Fullwidth Forms",
+    "rarity": "N",
+    "ranges": [
+      [65281, 65470],
+      [65474, 65479],
+      [65482, 65487],
+      [65490, 65495],
+      [65498, 65500],
+      [65504, 65510],
+      [65512, 65518]
+    ]
+  },
+  {
+    "id": "specials",
+    "name": "Specials",
+    "rarity": "N",
+    "ranges": [[65529, 65533]]
+  },
+  {
+    "id": "mahjong",
+    "name": "麻雀牌",
+    "rarity": "SR",
+    "ranges": [[126976, 127019]]
+  },
+  {
+    "id": "alchemical",
+    "name": "錬金術記号",
+    "rarity": "SR",
+    "ranges": [[128768, 128815]]
+  },
+  {
+    "id": "domino_h",
+    "name": "ドミノ牌",
+    "rarity": "SR",
+    "ranges": [[127024, 127073]]
+  },
+  {
+    "id": "playing_cards_1",
+    "name": "トランプ (スペード)",
+    "rarity": "SSR",
+    "ranges": [[127137, 127150]]
+  }
+]

@@ -24,6 +24,7 @@ import {
   faDna,
   faExchangeAlt,
   faFeatherAlt,
+  faFont,
   faGlobe,
   faGraduationCap,
   faHome,
@@ -326,6 +327,11 @@ export const routings: RoutingGroup[] = [
   {
     label: 'Graphical',
     routings: [
+      {
+        icon: faFont,
+        label: 'Unicode ヒルベルトマップ',
+        path: '/unicode-map',
+      },
       {
         icon: faPaintBrush,
         label: 'Creative Coding playground',
