@@ -1,14 +1,21 @@
-import { specialOf } from '../../components/UnicodeHilbertMap/colors'
+import {
+  type Block,
+  blockRgbOf,
+  cssRgb,
+  specialOf,
+} from '../../components/UnicodeHilbertMap/colors'
 import { familyOf } from '../../components/UnicodeHilbertMap/family'
 import { d2xy } from '../../components/UnicodeHilbertMap/hilbert'
 import {
   N,
   SIZE,
   TOTAL,
+  blockCount,
   blocks,
   bmpBlocks,
   buildBlockIndex,
   smpBlocks,
+  spectrumIndexOf,
   toHex,
 } from '../../components/UnicodeHilbertMap/mapData'
 import { buildPositions } from '../../components/UnicodeHilbertMap/positions'
@@ -161,6 +168,38 @@ describe('buildWalls (ヒルベルト曲線の壁)', () => {
     expect(isWall(cell, 0, cell, cell)).toBe(false)
     // d=1 (1,0) と (2,0) は曲線上で 1 と 14 なので壁になる
     expect(isWall(cell * 2, 0, cell * 2, cell)).toBe(true)
+  })
+})
+
+describe('スペクトラム配色', () => {
+  const spectrumOf = (blockId: string) =>
+    cssRgb(
+      blockRgbOf(blocks.find((b) => b.id === blockId) as Block, 'spectrum')
+    )
+
+  it('同じブロック内の codepoint はすべて同じ色になる', () => {
+    const index = buildBlockIndex()
+    const colorAt = (cp: number) =>
+      cssRgb(blockRgbOf(blocks[index[cp]], 'spectrum'))
+
+    // ひらがな 3 文字は同じ色
+    expect(new Set([0x3042, 0x3060, 0x3093].map(colorAt)).size).toBe(1)
+    // ブロックをまたぐと色が変わる (あ / ア)
+    expect(colorAt(0x3042)).not.toBe(colorAt(0x30a2))
+  })
+
+  it('隣り合うブロックは別の色になる', () => {
+    expect(spectrumOf('hiragana')).not.toBe(spectrumOf('katakana'))
+    expect(spectrumOf('basic_latin')).not.toBe(spectrumOf('latin_1_supplement'))
+  })
+
+  it('codepoint 順に色相が一周する', () => {
+    expect(spectrumIndexOf('basic_latin')).toBe(0)
+    expect(spectrumIndexOf('hiragana')).toBeLessThan(
+      spectrumIndexOf('katakana')
+    )
+    // 末尾は SMP の錬金術記号 (U+1F700)
+    expect(spectrumIndexOf('alchemical')).toBe(blockCount - 1)
   })
 })
 

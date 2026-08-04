@@ -1,5 +1,5 @@
 import blocksJson from '../../data/unicodeBlocks.json'
-import type { Block } from './colors'
+import type { Block } from './types'
 
 export const N = 256
 export const TOTAL = N * N // BMP = 65,536 codepoints
@@ -34,6 +34,21 @@ export const buildBlockIndex = () => {
   })
   return index
 }
+
+/**
+ * codepoint 順に並べたブロックの通し番号。
+ * スペクトラム配色で「ブロック単位に色を配る」ために使う。
+ */
+const spectrumOrder = new Map(
+  [...blocks]
+    .sort((a, b) => a.ranges[0][0] - b.ranges[0][0])
+    .map((block, i) => [block.id, i] as const)
+)
+
+export const blockCount = blocks.length
+
+export const spectrumIndexOf = (blockId: string) =>
+  spectrumOrder.get(blockId) ?? 0
 
 export const toHex = (cp: number) =>
   `U+${cp.toString(16).toUpperCase().padStart(4, '0')}`

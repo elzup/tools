@@ -4,13 +4,12 @@ import {
   UNASSIGNED_COLOR,
   blockRgbOf,
   hexToRgb,
-  hslToRgb,
   specialColorOf,
   specialOf,
 } from './colors'
 import { N, SIZE, TOTAL, blocks } from './mapData'
 import type { MapLayout } from './positions'
-import { buildWalls } from './walls'
+import { type Wall, buildWalls } from './walls'
 
 export type Positions = { xs: Uint8Array; ys: Uint8Array; cpAt: Int32Array }
 
@@ -25,13 +24,12 @@ const UNASSIGNED_RGB = hexToRgb(UNASSIGNED_COLOR)
 
 /** ブロックごとの代表色を先に配列化しておき、65,536 回のループを軽くする */
 const buildPalette = (mode: ColorMode): Rgb[] =>
-  blocks.map((block) => blockRgbOf(block, mode, 0))
+  blocks.map((block) => blockRgbOf(block, mode))
 
 const paintPixels = (
   data: Uint8ClampedArray,
   positions: Positions,
   blockIndex: Int16Array,
-  mode: ColorMode,
   palette: Rgb[]
 ) => {
   for (let cp = 0; cp < TOTAL; cp++) {
@@ -41,9 +39,7 @@ const paintPixels = (
       ? SPECIAL_RGB[special]
       : blockIdx < 0
         ? UNASSIGNED_RGB
-        : mode === 'spectrum'
-          ? hslToRgb((cp / TOTAL) * 360)
-          : palette[blockIdx]
+        : palette[blockIdx]
     const offset = (positions.ys[cp] * N + positions.xs[cp]) * 4
 
     data[offset] = rgb[0]
@@ -53,14 +49,29 @@ const paintPixels = (
   }
 }
 
-/** ヒルベルト曲線の再帰レベルに対応する補助線 (壁) */
-// 上位レベルの壁ほど太く濃く描き、再帰構造を読み取れるようにする
-const WALL_STYLES = [
-  { width: 3, alpha: 0.85 },
-  { width: 2, alpha: 0.7 },
-  { width: 1.4, alpha: 0.55 },
-  { width: 1, alpha: 0.45 },
-]
+/**
+ * ヒルベルト曲線の壁。上位レベルほど太く描いて再帰構造を読み取れるようにする。
+ * 下地が多色なので、暗い縁取りの上に白を重ねてどの色の上でも視認できるようにする。
+ */
+const WALL_WIDTHS = [7, 5, 3.5, 2.5]
+
+const CASING_WIDTH = 3
+
+const strokeWalls = (
+  ctx: CanvasRenderingContext2D,
+  walls: Wall[],
+  width: number,
+  color: string
+) => {
+  ctx.strokeStyle = color
+  ctx.lineWidth = width
+  ctx.beginPath()
+  for (const wall of walls) {
+    ctx.moveTo(wall.x1, wall.y1)
+    ctx.lineTo(wall.x2, wall.y2)
+  }
+  ctx.stroke()
+}
 
 const drawWalls = (
   ctx: CanvasRenderingContext2D,
@@ -72,17 +83,13 @@ const drawWalls = (
   const walls = buildWalls(wallLevel)
 
   ctx.lineCap = 'round'
-  for (let depth = 1; depth <= wallLevel; depth++) {
-    const style = WALL_STYLES[Math.min(depth, WALL_STYLES.length) - 1]
+  ctx.lineJoin = 'round'
+  for (let depth = wallLevel; depth >= 1; depth--) {
+    const width = WALL_WIDTHS[Math.min(depth, WALL_WIDTHS.length) - 1]
+    const levelWalls = walls.filter((w) => w.depth === depth)
 
-    ctx.strokeStyle = `rgba(255,255,255,${style.alpha})`
-    ctx.lineWidth = style.width
-    ctx.beginPath()
-    for (const wall of walls.filter((w) => w.depth === depth)) {
-      ctx.moveTo(wall.x1, wall.y1)
-      ctx.lineTo(wall.x2, wall.y2)
-    }
-    ctx.stroke()
+    strokeWalls(ctx, levelWalls, width + CASING_WIDTH, 'rgba(17,17,17,0.85)')
+    strokeWalls(ctx, levelWalls, width, 'rgba(255,255,255,0.95)')
   }
 }
 
@@ -103,7 +110,7 @@ export const renderMap = (
   if (!bufferCtx) return
   const imageData = bufferCtx.createImageData(N, N)
 
-  paintPixels(imageData.data, positions, blockIndex, mode, buildPalette(mode))
+  paintPixels(imageData.data, positions, blockIndex, buildPalette(mode))
   bufferCtx.putImageData(imageData, 0, 0)
 
   ctx.imageSmoothingEnabled = false

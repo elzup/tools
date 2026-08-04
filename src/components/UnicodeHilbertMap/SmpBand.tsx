@@ -33,11 +33,7 @@ const SmpBand = ({ colorMode }: Props) => {
               p: 1,
               borderRadius: 1,
               color: '#111',
-              backgroundColor: blockColorOf(
-                block,
-                colorMode,
-                block.ranges[0][0]
-              ),
+              backgroundColor: blockColorOf(block, colorMode),
             }}
           >
             <Box sx={{ fontSize: 12, fontWeight: 'bold' }}>{block.name}</Box>

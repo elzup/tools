@@ -1,13 +1,8 @@
 import { type Family, familyHueOf, familyOf, hashOf } from './family'
+import { blockCount, spectrumIndexOf } from './mapData'
+import type { Block, Rarity, Rgb } from './types'
 
-export type Block = {
-  id: string
-  name: string
-  rarity: Rarity
-  ranges: [number, number][]
-}
-
-export type Rarity = 'N' | 'R' | 'SR' | 'SSR'
+export type { Block, Rarity, Rgb } from './types'
 
 export type ColorMode = 'family' | 'hash' | 'rarity' | 'spectrum'
 
@@ -54,14 +49,27 @@ export const specialOf = (cp: number): Special | null => {
 
 export const specialColorOf = (special: Special) => SPECIAL_COLORS[special]
 
-export type Rgb = [number, number, number]
+/**
+ * スペクトラム: codepoint 順のブロック通し番号で色相を一周させる。
+ * codepoint ごとの連続グラデにするとブロックの塊が消えてしまうので、
+ * 1 ブロック = 1 色に固定し、隣り合うブロックは明度を振って境界を出す。
+ */
+const spectrumRgb = (blockId: string): Rgb => {
+  const order = spectrumIndexOf(blockId)
 
-/** ブロック 1 つの代表色。cp を渡すとスペクトラムだけ codepoint 依存になる。 */
-export const blockRgbOf = (block: Block, mode: ColorMode, cp: number): Rgb => {
+  return hslToRgb(
+    (order / blockCount) * 360,
+    0.8,
+    order % 2 === 0 ? 0.68 : 0.48
+  )
+}
+
+/** ブロック 1 つの代表色 */
+export const blockRgbOf = (block: Block, mode: ColorMode): Rgb => {
   if (mode === 'rarity') {
     return hexToRgb(RARITY_COLORS[block.rarity] ?? RARITY_COLORS.N)
   }
-  if (mode === 'spectrum') return hslToRgb((cp / 0x10000) * 360)
+  if (mode === 'spectrum') return spectrumRgb(block.id)
   if (mode === 'family') {
     return hslToRgb(familyHueOf(block.id, familyOf(block.id)))
   }
@@ -70,8 +78,8 @@ export const blockRgbOf = (block: Block, mode: ColorMode, cp: number): Rgb => {
 
 export const cssRgb = ([r, g, b]: Rgb) => `rgb(${r} ${g} ${b})`
 
-export const blockColorOf = (block: Block, mode: ColorMode, cp: number) =>
-  cssRgb(blockRgbOf(block, mode, cp))
+export const blockColorOf = (block: Block, mode: ColorMode) =>
+  cssRgb(blockRgbOf(block, mode))
 
 export const familyColorOf = (family: Family) => cssRgb(hslToRgb(family.hue))
 

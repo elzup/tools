@@ -42,13 +42,12 @@ const blockItems = (mode: ColorMode): Item[] =>
   bmpBlocks.map((block) => ({
     key: block.id,
     label: block.name,
-    color: blockColorOf(block, mode, block.ranges[0][0]),
+    color: blockColorOf(block, mode),
   }))
 
 const itemsOf = (mode: ColorMode): Item[] => {
   if (mode === 'family') return familyItems()
   if (mode === 'rarity') return rarityItems
-  if (mode === 'spectrum') return []
   return blockItems(mode)
 }
 
