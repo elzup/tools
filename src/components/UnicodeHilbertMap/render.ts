@@ -9,7 +9,7 @@ import {
 } from './colors'
 import { N, SIZE, TOTAL, blocks } from './mapData'
 import type { MapLayout } from './positions'
-import { type Wall, buildWalls } from './walls'
+import { type Wall, buildCellBlocks, buildWalls } from './walls'
 
 export type Positions = { xs: Uint8Array; ys: Uint8Array; cpAt: Int32Array }
 
@@ -55,7 +55,7 @@ const paintPixels = (
  * 下地が多色なので、暗い縁取りの上に白を重ねてどの色の上でも視認できるようにする。
  */
 const wallWidthAt = (level: number) =>
-  Math.max(1.2, Math.min(4, SIZE / 2 ** level / 6))
+  Math.max(1, Math.min(2.5, SIZE / 2 ** level / 16))
 
 const strokeWalls = (
   ctx: CanvasRenderingContext2D,
@@ -73,30 +73,36 @@ const strokeWalls = (
   ctx.stroke()
 }
 
-const drawWalls = (
-  ctx: CanvasRenderingContext2D,
-  wallLevel: number,
+export type RenderOptions = {
+  positions: Positions
+  blockIndex: Int16Array
+  mode: ColorMode
+  wallLevel: number
   layout: MapLayout
-) => {
-  // 壁はヒルベルト曲線の通り方で決まるので、行優先では意味を持たない
-  if (layout !== 'hilbert') return
-  const walls = buildWalls(wallLevel)
+  /** 両脇が同じブロックに収まる壁を隠す (= ブロックの境目だけ残す) */
+  blockEdgeOnly: boolean
+}
 
+const drawWalls = (ctx: CanvasRenderingContext2D, options: RenderOptions) => {
+  const { wallLevel, layout, blockIndex, blockEdgeOnly } = options
+
+  // 壁はヒルベルト曲線の通り方で決まるので、行優先では意味を持たない
+  if (layout !== 'hilbert' || wallLevel <= 0) return
+  const cellBlocks = blockEdgeOnly
+    ? buildCellBlocks(wallLevel, blockIndex)
+    : null
+  const walls = buildWalls(wallLevel, cellBlocks)
   const width = wallWidthAt(wallLevel)
 
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
-  strokeWalls(ctx, walls, width * 1.8, 'rgba(17,17,17,0.85)')
+  strokeWalls(ctx, walls, width + 1.5, 'rgba(17,17,17,0.8)')
   strokeWalls(ctx, walls, width, 'rgba(255,255,255,0.95)')
 }
 
 export const renderMap = (
   ctx: CanvasRenderingContext2D,
-  positions: Positions,
-  blockIndex: Int16Array,
-  mode: ColorMode,
-  wallLevel: number,
-  layout: MapLayout
+  options: RenderOptions
 ) => {
   const buffer = document.createElement('canvas')
 
@@ -107,11 +113,16 @@ export const renderMap = (
   if (!bufferCtx) return
   const imageData = bufferCtx.createImageData(N, N)
 
-  paintPixels(imageData.data, positions, blockIndex, buildPalette(mode))
+  paintPixels(
+    imageData.data,
+    options.positions,
+    options.blockIndex,
+    buildPalette(options.mode)
+  )
   bufferCtx.putImageData(imageData, 0, 0)
 
   ctx.imageSmoothingEnabled = false
   ctx.clearRect(0, 0, SIZE, SIZE)
   ctx.drawImage(buffer, 0, 0, SIZE, SIZE)
-  drawWalls(ctx, wallLevel, layout)
+  drawWalls(ctx, options)
 }

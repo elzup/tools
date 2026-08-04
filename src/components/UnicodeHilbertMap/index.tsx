@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Checkbox,
   FormControlLabel,
   Radio,
   RadioGroup,
@@ -46,6 +47,7 @@ const UnicodeHilbertMap = () => {
   const [layout, setLayout] = useState<MapLayout>('hilbert')
   const [colorMode, setColorMode] = useState<ColorMode>('family')
   const [wallLevel, setWallLevel] = useState(2)
+  const [blockEdgeOnly, setBlockEdgeOnly] = useState(false)
   const [hover, setHover] = useState<Hover | null>(null)
 
   const blockIndex = useMemo(buildBlockIndex, [])
@@ -55,8 +57,15 @@ const UnicodeHilbertMap = () => {
     const ctx = canvasRef.current?.getContext('2d')
 
     if (!ctx) return
-    renderMap(ctx, positions, blockIndex, colorMode, wallLevel, layout)
-  }, [positions, blockIndex, colorMode, wallLevel, layout])
+    renderMap(ctx, {
+      positions,
+      blockIndex,
+      mode: colorMode,
+      wallLevel,
+      layout,
+      blockEdgeOnly,
+    })
+  }, [positions, blockIndex, colorMode, wallLevel, layout, blockEdgeOnly])
 
   const handleMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -127,6 +136,17 @@ const UnicodeHilbertMap = () => {
               : `1 区画 ${cellCodepointsAt(wallLevel)} cp`}
           </Box>
         </Box>
+        <FormControlLabel
+          control={
+            <Checkbox
+              size="small"
+              checked={blockEdgeOnly}
+              disabled={layout !== 'hilbert'}
+              onChange={(e) => setBlockEdgeOnly(e.target.checked)}
+            />
+          }
+          label="ブロックの境目だけ"
+        />
       </Box>
       <Box sx={{ fontFamily: 'monospace', minHeight: 28, mb: 1 }}>
         {hover ? (

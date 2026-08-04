@@ -21,7 +21,11 @@ import {
   toHex,
 } from '../../components/UnicodeHilbertMap/mapData'
 import { buildPositions } from '../../components/UnicodeHilbertMap/positions'
-import { buildWalls } from '../../components/UnicodeHilbertMap/walls'
+import {
+  MIXED_BLOCK,
+  buildCellBlocks,
+  buildWalls,
+} from '../../components/UnicodeHilbertMap/walls'
 
 describe('d2xy (ヒルベルト曲線)', () => {
   it('BMP 全体で座標が一意 (全単射)', () => {
@@ -169,6 +173,32 @@ describe('buildWalls (ヒルベルト曲線の壁)', () => {
     for (let i = 1; i < counts.length; i++) {
       expect(counts[i]).toBeGreaterThan(counts[i - 1])
     }
+  })
+
+  it('ブロックの境目だけにすると同一ブロック内の壁が消える', () => {
+    const blockIndex = buildBlockIndex()
+    const level = MAX_WALL_LEVEL
+    const cellBlocks = buildCellBlocks(level, blockIndex)
+    const all = buildWalls(level)
+    const edgeOnly = buildWalls(level, cellBlocks)
+
+    expect(edgeOnly.length).toBeLessThan(all.length)
+    expect(edgeOnly.length).toBeGreaterThan(0)
+  })
+
+  it('区画は codepoint 範囲をちょうど覆う (単一ブロックなら index が入る)', () => {
+    const blockIndex = buildBlockIndex()
+    const cellBlocks = buildCellBlocks(MAX_WALL_LEVEL, blockIndex)
+    const cellCp = cellCodepointsAt(MAX_WALL_LEVEL)
+
+    // U+0040 台の 16 文字はすべて basic_latin なので単一ブロック扱い
+    const d = 0x40 / cellCp
+
+    expect(blocks[cellBlocks[d]].id).toBe('basic_latin')
+    // ブロック境界をまたぐ区画は MIXED_BLOCK
+    const mixed = cellBlocks.filter((v) => v === MIXED_BLOCK)
+
+    expect(mixed.length).toBeGreaterThan(0)
   })
 
   it('壁は曲線が通り抜ける境界を含まない', () => {
