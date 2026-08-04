@@ -47,8 +47,8 @@ const UnicodeHilbertMap = () => {
     const ctx = canvasRef.current?.getContext('2d')
 
     if (!ctx) return
-    renderMap(ctx, positions, blockIndex, colorMode, wallLevel)
-  }, [positions, blockIndex, colorMode, wallLevel])
+    renderMap(ctx, positions, blockIndex, colorMode, wallLevel, layout)
+  }, [positions, blockIndex, colorMode, wallLevel, layout])
 
   const handleMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -93,6 +93,7 @@ const UnicodeHilbertMap = () => {
         <Button
           variant="outlined"
           size="small"
+          disabled={layout !== 'hilbert'}
           onClick={() => setWallLevel((v) => (v + 1) % (MAX_WALL_LEVEL + 1))}
         >
           ヒルベルト曲線の壁 Lv.{wallLevel}

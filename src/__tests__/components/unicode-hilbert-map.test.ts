@@ -3,6 +3,7 @@ import { familyOf } from '../../components/UnicodeHilbertMap/family'
 import { d2xy } from '../../components/UnicodeHilbertMap/hilbert'
 import {
   N,
+  SIZE,
   TOTAL,
   blocks,
   bmpBlocks,
@@ -11,6 +12,7 @@ import {
   toHex,
 } from '../../components/UnicodeHilbertMap/mapData'
 import { buildPositions } from '../../components/UnicodeHilbertMap/positions'
+import { buildWalls } from '../../components/UnicodeHilbertMap/walls'
 
 describe('d2xy (ヒルベルト曲線)', () => {
   it('BMP 全体で座標が一意 (全単射)', () => {
@@ -115,6 +117,50 @@ describe('familyOf', () => {
     ['mahjong', 'symbols'],
   ])('%s -> %s', (blockId, familyId) => {
     expect(familyOf(blockId).id).toBe(familyId)
+  })
+})
+
+describe('buildWalls (ヒルベルト曲線の壁)', () => {
+  it('Lv.0 では壁がない', () => {
+    expect(buildWalls(0)).toEqual([])
+  })
+
+  it('Lv.1 は中央から上に伸びる 1 本だけ', () => {
+    const walls = buildWalls(1)
+    const half = SIZE / 2
+
+    expect(walls).toEqual([{ x1: half, y1: 0, x2: half, y2: half, depth: 1 }])
+  })
+
+  it('Lv.2 では各象限に 1 本ずつ壁が増える', () => {
+    const walls = buildWalls(2)
+    const quarter = SIZE / 4
+    const depth2 = walls.filter((w) => w.depth === 2)
+
+    // 4 象限それぞれの内部に 1 本 (中央から辺の中点へ伸びる長さ SIZE/4 の線)
+    expect(depth2).toHaveLength(4)
+    for (const wall of depth2) {
+      const length = Math.abs(wall.x2 - wall.x1) + Math.abs(wall.y2 - wall.y1)
+
+      expect(length).toBe(quarter)
+    }
+    // Lv.1 の中央十字のうち曲線が渡らない分は壁として残る
+    expect(walls.filter((w) => w.depth === 1)).toHaveLength(5)
+  })
+
+  it('壁は曲線が通り抜ける境界を含まない', () => {
+    const order = 4
+    const cell = SIZE / order
+    const walls = buildWalls(2)
+    const isWall = (x1: number, y1: number, x2: number, y2: number) =>
+      walls.some(
+        (w) => w.x1 === x1 && w.y1 === y1 && w.x2 === x2 && w.y2 === y2
+      )
+
+    // d=0 (0,0) と d=1 (1,0) は連続して進むので境界に壁はない
+    expect(isWall(cell, 0, cell, cell)).toBe(false)
+    // d=1 (1,0) と (2,0) は曲線上で 1 と 14 なので壁になる
+    expect(isWall(cell * 2, 0, cell * 2, cell)).toBe(true)
   })
 })
 

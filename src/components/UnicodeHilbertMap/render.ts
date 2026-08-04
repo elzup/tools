@@ -9,6 +9,8 @@ import {
   specialOf,
 } from './colors'
 import { N, SIZE, TOTAL, blocks } from './mapData'
+import type { MapLayout } from './positions'
+import { buildWalls } from './walls'
 
 export type Positions = { xs: Uint8Array; ys: Uint8Array; cpAt: Int32Array }
 
@@ -52,20 +54,33 @@ const paintPixels = (
 }
 
 /** ヒルベルト曲線の再帰レベルに対応する補助線 (壁) */
-const drawWalls = (ctx: CanvasRenderingContext2D, wallLevel: number) => {
-  for (let level = 1; level <= wallLevel; level++) {
-    const div = 2 ** level
+// 上位レベルの壁ほど太く濃く描き、再帰構造を読み取れるようにする
+const WALL_STYLES = [
+  { width: 3, alpha: 0.85 },
+  { width: 2, alpha: 0.7 },
+  { width: 1.4, alpha: 0.55 },
+  { width: 1, alpha: 0.45 },
+]
 
-    ctx.strokeStyle = `rgba(255,255,255,${0.55 / level})`
-    ctx.lineWidth = 1
+const drawWalls = (
+  ctx: CanvasRenderingContext2D,
+  wallLevel: number,
+  layout: MapLayout
+) => {
+  // 壁はヒルベルト曲線の通り方で決まるので、行優先では意味を持たない
+  if (layout !== 'hilbert') return
+  const walls = buildWalls(wallLevel)
+
+  ctx.lineCap = 'round'
+  for (let depth = 1; depth <= wallLevel; depth++) {
+    const style = WALL_STYLES[Math.min(depth, WALL_STYLES.length) - 1]
+
+    ctx.strokeStyle = `rgba(255,255,255,${style.alpha})`
+    ctx.lineWidth = style.width
     ctx.beginPath()
-    for (let k = 1; k < div; k++) {
-      const p = Math.round((SIZE / div) * k) + 0.5
-
-      ctx.moveTo(p, 0)
-      ctx.lineTo(p, SIZE)
-      ctx.moveTo(0, p)
-      ctx.lineTo(SIZE, p)
+    for (const wall of walls.filter((w) => w.depth === depth)) {
+      ctx.moveTo(wall.x1, wall.y1)
+      ctx.lineTo(wall.x2, wall.y2)
     }
     ctx.stroke()
   }
@@ -76,7 +91,8 @@ export const renderMap = (
   positions: Positions,
   blockIndex: Int16Array,
   mode: ColorMode,
-  wallLevel: number
+  wallLevel: number,
+  layout: MapLayout
 ) => {
   const buffer = document.createElement('canvas')
 
@@ -93,5 +109,5 @@ export const renderMap = (
   ctx.imageSmoothingEnabled = false
   ctx.clearRect(0, 0, SIZE, SIZE)
   ctx.drawImage(buffer, 0, 0, SIZE, SIZE)
-  drawWalls(ctx, wallLevel)
+  drawWalls(ctx, wallLevel, layout)
 }
