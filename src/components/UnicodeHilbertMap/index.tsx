@@ -1,4 +1,11 @@
-import { Box, Button, FormControlLabel, Radio, RadioGroup } from '@mui/material'
+import {
+  Box,
+  Button,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  Slider,
+} from '@mui/material'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Legend from './Legend'
 import SmpBand from './SmpBand'
@@ -14,6 +21,7 @@ import {
   SIZE,
   blocks,
   buildBlockIndex,
+  cellCodepointsAt,
   toHex,
 } from './mapData'
 import { LAYOUTS, type MapLayout, buildPositions } from './positions'
@@ -90,14 +98,35 @@ const UnicodeHilbertMap = () => {
             />
           ))}
         </RadioGroup>
-        <Button
-          variant="outlined"
-          size="small"
-          disabled={layout !== 'hilbert'}
-          onClick={() => setWallLevel((v) => (v + 1) % (MAX_WALL_LEVEL + 1))}
-        >
-          ヒルベルト曲線の壁 Lv.{wallLevel}
-        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mx: 1 }}>
+          <Button
+            variant="outlined"
+            size="small"
+            disabled={layout !== 'hilbert'}
+            onClick={() => setWallLevel((v) => (v + 1) % (MAX_WALL_LEVEL + 1))}
+            sx={{ whiteSpace: 'nowrap' }}
+          >
+            壁 Lv.{wallLevel}
+          </Button>
+          <Slider
+            size="small"
+            min={0}
+            max={MAX_WALL_LEVEL}
+            step={1}
+            marks
+            value={wallLevel}
+            disabled={layout !== 'hilbert'}
+            onChange={(_, value) => setWallLevel(value as number)}
+            sx={{ width: 160 }}
+          />
+          <Box
+            sx={{ whiteSpace: 'nowrap', fontSize: 12, opacity: 0.7, width: 92 }}
+          >
+            {wallLevel === 0
+              ? '壁なし'
+              : `1 区画 ${cellCodepointsAt(wallLevel)} cp`}
+          </Box>
+        </Box>
       </Box>
       <Box sx={{ fontFamily: 'monospace', minHeight: 28, mb: 1 }}>
         {hover ? (

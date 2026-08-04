@@ -50,12 +50,12 @@ const paintPixels = (
 }
 
 /**
- * ヒルベルト曲線の壁。上位レベルほど太く描いて再帰構造を読み取れるようにする。
+ * ヒルベルト曲線の壁。1 枚の絵の中では太さを揃え、
+ * 細かいレベルでセルが白く潰れないようにセル幅から太さを決める。
  * 下地が多色なので、暗い縁取りの上に白を重ねてどの色の上でも視認できるようにする。
  */
-const WALL_WIDTHS = [7, 5, 3.5, 2.5]
-
-const CASING_WIDTH = 3
+const wallWidthAt = (level: number) =>
+  Math.max(1.2, Math.min(4, SIZE / 2 ** level / 6))
 
 const strokeWalls = (
   ctx: CanvasRenderingContext2D,
@@ -82,15 +82,12 @@ const drawWalls = (
   if (layout !== 'hilbert') return
   const walls = buildWalls(wallLevel)
 
+  const width = wallWidthAt(wallLevel)
+
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
-  for (let depth = wallLevel; depth >= 1; depth--) {
-    const width = WALL_WIDTHS[Math.min(depth, WALL_WIDTHS.length) - 1]
-    const levelWalls = walls.filter((w) => w.depth === depth)
-
-    strokeWalls(ctx, levelWalls, width + CASING_WIDTH, 'rgba(17,17,17,0.85)')
-    strokeWalls(ctx, levelWalls, width, 'rgba(255,255,255,0.95)')
-  }
+  strokeWalls(ctx, walls, width * 1.8, 'rgba(17,17,17,0.85)')
+  strokeWalls(ctx, walls, width, 'rgba(255,255,255,0.95)')
 }
 
 export const renderMap = (

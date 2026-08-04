@@ -5,7 +5,15 @@ export const N = 256
 export const TOTAL = N * N // BMP = 65,536 codepoints
 export const CELL = 4
 export const SIZE = N * CELL // 1024px
-export const MAX_WALL_LEVEL = 4
+/**
+ * 壁の最大レベル。Lv.L の 1 セルは 65536 / 4^L codepoint で、
+ * Lv.6 でちょうど 16 codepoint = Unicode ブロックのアドレス境界の単位になる。
+ * これより深くすると 16 codepoint の内側を割るだけで、ブロックの境目とは対応しない。
+ */
+export const MAX_WALL_LEVEL = 6
+
+/** Lv.L の 1 セルが何 codepoint 分か */
+export const cellCodepointsAt = (level: number) => TOTAL / 4 ** level
 
 export const blocks = blocksJson as Block[]
 

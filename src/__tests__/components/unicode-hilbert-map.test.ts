@@ -7,6 +7,7 @@ import {
 import { familyOf } from '../../components/UnicodeHilbertMap/family'
 import { d2xy } from '../../components/UnicodeHilbertMap/hilbert'
 import {
+  MAX_WALL_LEVEL,
   N,
   SIZE,
   TOTAL,
@@ -14,6 +15,7 @@ import {
   blocks,
   bmpBlocks,
   buildBlockIndex,
+  cellCodepointsAt,
   smpBlocks,
   spectrumIndexOf,
   toHex,
@@ -153,6 +155,20 @@ describe('buildWalls (ヒルベルト曲線の壁)', () => {
     }
     // Lv.1 の中央十字のうち曲線が渡らない分は壁として残る
     expect(walls.filter((w) => w.depth === 1)).toHaveLength(5)
+  })
+
+  it('最大レベルの 1 区画は Unicode ブロック境界の単位 (16 codepoint)', () => {
+    expect(cellCodepointsAt(MAX_WALL_LEVEL)).toBe(16)
+    // これより深いと 16 codepoint の内側を割ってしまう
+    expect(cellCodepointsAt(MAX_WALL_LEVEL + 1)).toBeLessThan(16)
+  })
+
+  it('レベルを上げると壁が増える', () => {
+    const counts = [1, 2, 3, MAX_WALL_LEVEL].map((l) => buildWalls(l).length)
+
+    for (let i = 1; i < counts.length; i++) {
+      expect(counts[i]).toBeGreaterThan(counts[i - 1])
+    }
   })
 
   it('壁は曲線が通り抜ける境界を含まない', () => {
