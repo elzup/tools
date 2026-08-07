@@ -322,6 +322,11 @@ export const routings: RoutingGroup[] = [
         label: '進撃プロット',
         path: '/shingeki',
       },
+      {
+        icon: faClock,
+        label: 'アナログ時計で作る数字',
+        path: '/clock-digits',
+      },
     ],
   },
   {
