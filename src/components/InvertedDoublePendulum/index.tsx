@@ -11,9 +11,16 @@ import styled from 'styled-components'
 import {
   PARAMS,
   type State,
+  UPRIGHT_ENERGY,
+  type Vec2,
   bodyPositions,
   computeLqrGain,
+  isCalm,
+  jointForces,
+  pendulumEnergy,
+  planRecoveryPrefix,
   rk4Step,
+  swingUpPump,
 } from './physics'
 
 const PHYS_DT = 1 / 240
@@ -26,9 +33,22 @@ const CANVAS_W = 860
 const CANVAS_H = 420
 const DRAG_SPRING = 30
 // 二重倒立振り子の回復限界は先端持続力 ~1N しかないため、ここまで絞る
-const DRAG_FORCE_MAX = 0.6
-const FALLEN_COS = 0.15
-const AUTO_RESET_SEC = 1.5
+const DRAG_FORCE_MAX = 0.8
+// リカバリ計画の再計画間隔 (物理ステップ数, 8 = 30Hz)
+const PLAN_HOLD_STEPS = 8
+// キャッチ可能スキャンの間隔 (4 = 60Hz)
+const SCAN_INTERVAL = 4
+// 非 LQR プレフィックスは計画どおり 0.2 秒コミットする (途中で再計画すると計画と乖離する)
+const CATCH_COMMIT_STEPS = 48
+// 振り上げ (swing-up) のパラメータ: Node シミュレーションで 11/12 成功を確認した値
+const SWING_KE = 300
+const SWING_KX = 4
+const SWING_KD = 3
+const PUMP_CAP = 45
+const CATCH_COST = 2500
+const GIVEUP_COST = 5e5
+// この時間キャッチ機会が無ければ一旦エネルギーを抜いて振り直す
+const DRAIN_AFTER_STEPS = 8 * 240
 
 const LQR_Q = [8, 300, 300, 2, 30, 30]
 const LQR_R = 0.2
@@ -55,26 +75,56 @@ const toWorld = (px: number, py: number) => ({
   y: (CANVAS_H - 80 - py) / PX_PER_M,
 })
 
-const isFallen = (s: State) =>
-  Math.cos(s[1]) < FALLEN_COS || Math.cos(s[2]) < FALLEN_COS
+/** 角度を [-π, π] の主値へ正規化 (一回転しても直立を直立として扱う) */
+const wrapAngle = (a: number) => Math.atan2(Math.sin(a), Math.cos(a))
+
+type ControlMode = 'lqr' | 'catch' | 'pump' | 'drain'
+
+type SwingUp = {
+  mode: 'pump' | 'catch'
+  phase: 'pump' | 'drain'
+  hold: number
+  held: number | null
+  jitter: number
+  lastProgress: number
+  fails: number
+  highSince: number
+}
+
+const initialSwingUp = (): SwingUp => ({
+  mode: 'pump',
+  phase: 'pump',
+  hold: 0,
+  held: null,
+  jitter: 1,
+  lastProgress: 0,
+  fails: 0,
+  highSince: -1,
+})
 
 const InvertedDoublePendulum = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const stateRef = useRef<State>(initialState())
-  const fallenAtRef = useRef<number | null>(null)
   const dragRef = useRef<Drag>({ active: false, mx: 0, my: 0 })
   const forceRef = useRef(0)
+  const extRef = useRef<Vec2>({ x: 0, y: 0 })
+  const suRef = useRef<SwingUp>(initialSwingUp())
+  const stepCountRef = useRef(0)
+  const modeRef = useRef<ControlMode>('lqr')
   const targetRef = useRef(0)
   const noiseRef = useRef(0)
   const controlRef = useRef(true)
+  const showForcesRef = useRef(true)
   const [isControlOn, setIsControlOn] = useState(true)
+  const [showForces, setShowForces] = useState(true)
   const [target, setTarget] = useState(0)
   const [noise, setNoise] = useState(0)
-  const [fallen, setFallen] = useState(false)
+  const [modeLabel, setModeLabel] = useState('LQR')
 
   const gain = useMemo(() => computeLqrGain(LQR_Q, LQR_R), [])
 
   controlRef.current = isControlOn
+  showForcesRef.current = showForces
   targetRef.current = target
   noiseRef.current = noise
 
@@ -107,14 +157,115 @@ const InvertedDoublePendulum = () => {
         fy = rawFy * scale
       }
       fx += (Math.random() - 0.5) * 2 * noiseRef.current * 1.5
+      extRef.current = { x: fx, y: fy }
 
       let u = 0
 
-      if (controlRef.current) {
-        const err = s.map((v, i) => (i === 0 ? v - targetRef.current : v))
+      stepCountRef.current++
+      const t = stepCountRef.current
 
-        u = -gain.reduce((sum, k, i) => sum + k * err[i], 0)
-        u = Math.max(-FORCE_MAX, Math.min(FORCE_MAX, u))
+      if (controlRef.current) {
+        const err = s.map((v, i) => {
+          if (i === 0) return v - targetRef.current
+          if (i === 1 || i === 2) return wrapAngle(v)
+          return v
+        })
+        const lqrOut = Math.max(
+          -FORCE_MAX,
+          Math.min(FORCE_MAX, -gain.reduce((sum, k, i) => sum + k * err[i], 0))
+        )
+        // プランナーは目標相対座標で回すので、レール境界も target 分ずらす
+        const planCtx = {
+          gain,
+          forceMax: FORCE_MAX,
+          trackLow: -TRACK_HALF - targetRef.current,
+          trackHigh: TRACK_HALF - targetRef.current,
+        }
+        const su = suRef.current
+
+        if (isCalm(err)) {
+          u = lqrOut
+          su.mode = 'pump'
+          su.phase = 'pump'
+          su.lastProgress = t
+          su.fails = 0
+          su.highSince = -1
+          modeRef.current = 'lqr'
+        } else {
+          if (su.mode === 'catch') {
+            // 安定域外: 数候補をロールアウトして最も直立へ戻る力を選ぶ
+            if (su.hold <= 0) {
+              const { prefix, cost } = planRecoveryPrefix(err, planCtx, fx, fy)
+
+              if (cost > GIVEUP_COST) {
+                su.mode = 'pump'
+                su.fails++
+                // キャッチ失敗が続いたら一旦エネルギーを抜いて振り直す
+                if (su.fails >= 5) su.phase = 'drain'
+              } else {
+                su.held = prefix
+                su.hold = prefix === null ? PLAN_HOLD_STEPS : CATCH_COMMIT_STEPS
+              }
+            }
+            if (su.mode === 'catch') {
+              u = su.held === null ? lqrOut : su.held
+              su.hold--
+              modeRef.current = 'catch'
+            }
+          }
+          if (su.mode === 'pump') {
+            // キャッチ可能な瞬間をスキャン (ドレイン中は振り直しに専念)
+            if (t % SCAN_INTERVAL === 0 && su.phase !== 'drain') {
+              const { cost } = planRecoveryPrefix(err, planCtx, fx, fy)
+
+              if (cost < CATCH_COST) {
+                su.mode = 'catch'
+                su.hold = 0
+              }
+            }
+            if (su.mode === 'pump') {
+              // 振り上げ: エネルギーポンピング + キャッチ機会が無ければ仕切り直し
+              const e = pendulumEnergy(err)
+
+              // エネルギーは足りているのにキャッチできない tumbling が続いたら振り直す
+              if (e > UPRIGHT_ENERGY * 0.8 && su.phase === 'pump') {
+                if (su.highSince < 0) su.highSince = t
+                else if (t - su.highSince > 3 * 240) su.phase = 'drain'
+              } else if (e < UPRIGHT_ENERGY * 0.8) {
+                su.highSince = -1
+              }
+              if (
+                su.phase === 'pump' &&
+                t - su.lastProgress > DRAIN_AFTER_STEPS
+              )
+                su.phase = 'drain'
+              if (su.phase === 'drain' && e < 1) {
+                su.phase = 'pump'
+                su.lastProgress = t
+                su.fails = 0
+                su.highSince = -1
+                // 決定論だと同じ失敗軌道をなぞるため、振り直しごとに力の上限を揺らす
+                su.jitter = 0.6 + Math.random() * 0.9
+              }
+              const targetEnergy = su.phase === 'drain' ? 0 : UPRIGHT_ENERGY
+              const cap = PUMP_CAP * su.jitter
+              let pump = swingUpPump(err, targetEnergy, SWING_KE)
+
+              pump = Math.max(-cap, Math.min(cap, pump))
+              // 完全静止からの起動キック
+              if (
+                su.phase === 'pump' &&
+                Math.abs(err[4]) < 0.05 &&
+                Math.abs(err[5]) < 0.05 &&
+                targetEnergy - e > 4
+              )
+                pump = cap
+              u = pump - SWING_KX * err[0] - SWING_KD * err[3]
+              u = Math.max(-FORCE_MAX, Math.min(FORCE_MAX, u))
+              modeRef.current = su.phase === 'drain' ? 'drain' : 'pump'
+            }
+          }
+        }
       }
       forceRef.current = u
 
@@ -230,6 +381,57 @@ const InvertedDoublePendulum = () => {
       ctx.arc(pp2.px, pp2.py, 11, 0, Math.PI * 2)
       ctx.fill()
 
+      // 関節の拘束力ベクトル
+      if (showForcesRef.current) {
+        const drawForceArrow = (
+          at: { x: number; y: number },
+          f: Vec2,
+          color: string
+        ) => {
+          const mag = Math.hypot(f.x, f.y)
+
+          if (mag < 0.1) return
+          const scale = Math.min(6, 90 / mag)
+          const o = toPx(at.x, at.y)
+          const ex = o.px + f.x * scale
+          const ey = o.py - f.y * scale
+          const ang = Math.atan2(ey - o.py, ex - o.px)
+
+          ctx.strokeStyle = color
+          ctx.fillStyle = color
+          ctx.lineWidth = 2.5
+          ctx.beginPath()
+          ctx.moveTo(o.px, o.py)
+          ctx.lineTo(ex, ey)
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.moveTo(ex + Math.cos(ang) * 8, ey + Math.sin(ang) * 8)
+          ctx.lineTo(ex + Math.cos(ang + 2.5) * 7, ey + Math.sin(ang + 2.5) * 7)
+          ctx.lineTo(ex + Math.cos(ang - 2.5) * 7, ey + Math.sin(ang - 2.5) * 7)
+          ctx.closePath()
+          ctx.fill()
+          ctx.font = '11px monospace'
+          ctx.fillText(`${mag.toFixed(1)}N`, ex + 6, ey - 4)
+        }
+        const { r1, r2, onCart } = jointForces(
+          s,
+          u,
+          extRef.current.x,
+          extRef.current.y
+        )
+
+        drawForceArrow(cart, onCart, '#4dd0a5')
+        drawForceArrow(p1, r1, '#64b5f6')
+        drawForceArrow(p2, r2, '#f48fb1')
+        ctx.font = '11px monospace'
+        ctx.fillStyle = '#4dd0a5'
+        ctx.fillText('リンク1→カート', 16, 44)
+        ctx.fillStyle = '#64b5f6'
+        ctx.fillText('リンク1→オモリ1', 16, 58)
+        ctx.fillStyle = '#f48fb1'
+        ctx.fillText('リンク2→オモリ2', 16, 72)
+      }
+
       // ドラッグ中の糸
       const drag = dragRef.current
 
@@ -250,8 +452,10 @@ const InvertedDoublePendulum = () => {
       ctx.font = '13px monospace'
       const deg = (v: number) => ((v * 180) / Math.PI).toFixed(1)
 
+      const energy = pendulumEnergy(s)
+
       ctx.fillText(
-        `θ1=${deg(s[1])}°  θ2=${deg(s[2])}°  u=${u.toFixed(1)}N`,
+        `θ1=${deg(s[1])}°  θ2=${deg(s[2])}°  u=${u.toFixed(1)}N  E=${energy.toFixed(1)}/${UPRIGHT_ENERGY.toFixed(1)}`,
         16,
         24
       )
@@ -266,29 +470,14 @@ const InvertedDoublePendulum = () => {
         step()
         acc -= PHYS_DT
       }
-      const s = stateRef.current
-      const fallenNow = isFallen(s)
-      // 振り回し中に瞬間的に直立向きを通過してもタイマーを解除しないよう、
-      // 「静かに直立へ戻った」ときだけ回復と判定する
-      const recovered =
-        Math.cos(s[1]) > 0.95 &&
-        Math.cos(s[2]) > 0.95 &&
-        Math.abs(s[4]) < 1 &&
-        Math.abs(s[5]) < 1
-
-      if (!controlRef.current) {
-        fallenAtRef.current = null
-      } else if (fallenNow && fallenAtRef.current === null) {
-        fallenAtRef.current = now
-      } else if (fallenAtRef.current !== null) {
-        if (recovered) {
-          fallenAtRef.current = null
-        } else if (now - fallenAtRef.current > AUTO_RESET_SEC * 1000) {
-          stateRef.current = initialState()
-          fallenAtRef.current = null
-        }
+      const labels: Record<ControlMode, string> = {
+        lqr: 'LQR',
+        catch: 'キャッチ',
+        pump: '振り上げ',
+        drain: '仕切り直し',
       }
-      setFallen(fallenNow || fallenAtRef.current !== null)
+
+      setModeLabel(controlRef.current ? labels[modeRef.current] : '制御OFF')
       draw()
       rafId = requestAnimationFrame(loop)
     }
@@ -325,11 +514,17 @@ const InvertedDoublePendulum = () => {
 
   const reset = () => {
     stateRef.current = initialState()
+    suRef.current = initialSwingUp()
+  }
+
+  const hangDown = () => {
+    stateRef.current = [0, Math.PI, Math.PI - 0.01, 0, 0, 0]
+    suRef.current = initialSwingUp()
   }
 
   const poke = () => {
     const s = stateRef.current
-    const kick = (Math.random() < 0.5 ? -1 : 1) * (0.7 + Math.random() * 0.2)
+    const kick = (Math.random() < 0.5 ? -1 : 1) * (1.1 + Math.random() * 0.4)
 
     stateRef.current = s.map((v, i) => (i === 5 ? v + kick : v))
   }
@@ -338,8 +533,9 @@ const InvertedDoublePendulum = () => {
     <Wrap>
       <Typography variant="body2" color="text.secondary">
         カート (支点) を左右に動かして二重振り子を直立に保つ LQR
-        制御のシミュレーション。先端のオモリはドラッグでそっと引っ張れます
-        (二重倒立振り子の回復限界はとても狭いので、外乱はごく弱くしてあります)。倒れたら少し待つと自動リセットします。
+        制御のシミュレーション。先端のオモリはドラッグでそっと引っ張れます。倒れても諦めません:
+        エネルギーポンピングで振り上げ、キャッチ可能な瞬間をロールアウト計画で見つけて直立へ復帰します
+        (ぶら下がり状態からの振り上げもできます)。
       </Typography>
       <canvas
         ref={canvasRef}
@@ -360,18 +556,30 @@ const InvertedDoublePendulum = () => {
           }
           label="制御 ON"
         />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={showForces}
+              onChange={(e) => setShowForces(e.target.checked)}
+            />
+          }
+          label="関節力を表示"
+        />
         <Button variant="outlined" size="small" onClick={reset}>
           リセット
         </Button>
         <Button variant="outlined" size="small" onClick={poke}>
           小突く
         </Button>
+        <Button variant="outlined" size="small" onClick={hangDown}>
+          ぶら下げから振り上げ
+        </Button>
         <Typography
           variant="body2"
-          color={fallen ? 'error' : 'success.main'}
-          sx={{ minWidth: 64 }}
+          color={modeLabel === 'LQR' ? 'success.main' : 'warning.main'}
+          sx={{ minWidth: 80 }}
         >
-          {fallen ? '転倒中' : '安定'}
+          {modeLabel}
         </Typography>
       </Stack>
       <Stack spacing={0}>
@@ -399,7 +607,9 @@ const InvertedDoublePendulum = () => {
       <Typography variant="caption" color="text.secondary">
         質量: カート {PARAMS.cartMass}kg / オモリ {PARAMS.mass1}kg ×2, リンク長{' '}
         {PARAMS.len1}m ×2。直立平衡点まわりで線形化し、Riccati
-        反復で求めた状態フィードバックゲインを使用。
+        反復で求めた状態フィードバックゲイン (LQR) を使用。安定域を外れると、
+        実モデルのロールアウトで数候補の力を試して最も直立へ戻る手を選ぶリカバリモードに切り替わります
+        (HUD の mode 表示)。
       </Typography>
     </Wrap>
   )

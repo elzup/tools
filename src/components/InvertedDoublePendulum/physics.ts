@@ -193,3 +193,178 @@ export const bodyPositions = (s: State) => {
 
   return { cart: { x, y: 0 }, p1, p2 }
 }
+
+export type Vec2 = { x: number; y: number }
+
+export type PlanContext = {
+  gain: number[]
+  forceMax: number
+  /** レール境界 (プランナー座標系での下限/上限。目標相対座標なら target 分ずらして渡す) */
+  trackLow: number
+  trackHigh: number
+}
+
+/** この内側なら計画不要で LQR に任せる */
+export const isCalm = (s: State): boolean =>
+  Math.abs(s[1]) < 0.15 &&
+  Math.abs(s[2]) < 0.15 &&
+  Math.abs(s[4]) < 1.0 &&
+  Math.abs(s[5]) < 1.2
+
+const lqrForce = (s: State, ctx: PlanContext): number => {
+  const u = -ctx.gain.reduce((sum, k, i) => sum + k * s[i], 0)
+
+  return Math.max(-ctx.forceMax, Math.min(ctx.forceMax, u))
+}
+
+const planStep = (
+  s: State,
+  u: number,
+  fx: number,
+  fy: number,
+  ctx: PlanContext
+): State => {
+  const n = rk4Step(s, u, 1 / 240, fx, fy)
+
+  if (n[0] < ctx.trackLow || n[0] > ctx.trackHigh) {
+    const clamped = Math.max(ctx.trackLow, Math.min(ctx.trackHigh, n[0]))
+
+    return n.map((v, i) => {
+      if (i === 0) return clamped
+      if (i === 3) return 0
+      return v
+    })
+  }
+  return n
+}
+
+const isFallenState = (s: State) =>
+  Math.cos(s[1]) < 0.15 || Math.cos(s[2]) < 0.15
+
+const rolloutCost = (s: State) =>
+  40 * s[1] * s[1] +
+  40 * s[2] * s[2] +
+  1.5 * s[4] * s[4] +
+  1.5 * s[5] * s[5] +
+  0.3 * s[0] * s[0] +
+  0.3 * s[3] * s[3]
+
+const PLAN_PREFIXES: (number | null)[] = [
+  null,
+  -1,
+  -2 / 3,
+  -1 / 3,
+  1 / 3,
+  2 / 3,
+  1,
+]
+const PREFIX_STEPS = 48 // 0.2 s
+const TAIL_STEPS = 120 // 0.5 s
+const FALL_PENALTY = 1e6
+
+export type PlanResult = { prefix: number | null; cost: number }
+
+/**
+ * 安定域外のリカバリ計画。先頭 0.2 秒の一定力 (null = 最初から LQR) を
+ * 7 候補ロールアウトし、0.7 秒後に最も直立へ近づく候補とそのコストを返す。
+ * LQR 継続も候補に含むため、LQR 単体より悪化しない。
+ */
+export const planRecoveryPrefix = (
+  s0: State,
+  ctx: PlanContext,
+  fx = 0,
+  fy = 0
+): PlanResult => {
+  let bestPrefix: number | null = null
+  let bestCost = Number.POSITIVE_INFINITY
+
+  for (const prefix of PLAN_PREFIXES) {
+    const prefixForce = prefix === null ? null : prefix * ctx.forceMax
+    let s = s0
+
+    for (let t = 0; t < PREFIX_STEPS; t++)
+      s = planStep(s, prefixForce ?? lqrForce(s, ctx), fx, fy, ctx)
+    for (let t = 0; t < TAIL_STEPS; t++)
+      s = planStep(s, lqrForce(s, ctx), fx, fy, ctx)
+    let cost = rolloutCost(s) + (isFallenState(s) ? FALL_PENALTY : 0)
+
+    // LQR 継続を同点時に優遇してチャタリングを防ぐ
+    if (prefix === null) cost *= 0.95
+    if (cost < bestCost) {
+      bestCost = cost
+      bestPrefix = prefixForce
+    }
+  }
+  return { prefix: bestPrefix, cost: bestCost }
+}
+
+/**
+ * 支点系での振り子の力学的エネルギー (カート速度の結合項は除外)。
+ * 直立静止 = UPRIGHT_ENERGY, ぶら下がり静止 ≈ -UPRIGHT_ENERGY。
+ * カート速度込みだと制御目標として暴れるため、swing-up はこちらを使う。
+ */
+export const pendulumEnergy = (s: State): number => {
+  const [, th1, th2, , dth1, dth2] = s
+  const { mass1, mass2, len1, len2, gravity } = PARAMS
+  const c1 = Math.cos(th1)
+  const c2 = Math.cos(th2)
+  const c12 = Math.cos(th1 - th2)
+  const v1sq = len1 * len1 * dth1 * dth1
+  const v2sq =
+    len1 * len1 * dth1 * dth1 +
+    len2 * len2 * dth2 * dth2 +
+    2 * len1 * len2 * c12 * dth1 * dth2
+
+  return (
+    0.5 * mass1 * v1sq +
+    0.5 * mass2 * v2sq +
+    mass1 * gravity * len1 * c1 +
+    mass2 * gravity * (len1 * c1 + len2 * c2)
+  )
+}
+
+export const UPRIGHT_ENERGY =
+  (PARAMS.mass1 + PARAMS.mass2) * PARAMS.gravity * PARAMS.len1 +
+  PARAMS.mass2 * PARAMS.gravity * PARAMS.len2
+
+/**
+ * エネルギーポンピング力。両リンクの結合項 σ を使うと dE/dt = k·deficit·σ² となり、
+ * 不足時は注入・過剰時は抽出が常に正しい符号で効く。
+ */
+export const swingUpPump = (s: State, targetEnergy: number, ke: number) => {
+  const { mass1, mass2, len1, len2 } = PARAMS
+  const deficit = targetEnergy - pendulumEnergy(s)
+  const sigma =
+    (mass1 + mass2) * len1 * s[4] * Math.cos(s[1]) +
+    mass2 * len2 * s[5] * Math.cos(s[2])
+
+  return -ke * deficit * sigma
+}
+
+/**
+ * 各ピン関節が伝えている拘束力 (N)。質点の加速度から反力を逆算する。
+ * r1: リンク1がオモリ1に及ぼす力, r2: リンク2がオモリ2に及ぼす力,
+ * onCart: リンク1がカートに及ぼす力 (= -r1 - リンク2の反作用経由分は r1 に含まれる)
+ */
+export const jointForces = (s: State, u: number, fx = 0, fy = 0) => {
+  const [, th1, th2, , dth1, dth2] = s
+  const { mass1, mass2, len1, len2, gravity } = PARAMS
+  const [, , , ddx, ddth1, ddth2] = deriv(s, u, fx, fy)
+  const c1 = Math.cos(th1)
+  const s1 = Math.sin(th1)
+  const c2 = Math.cos(th2)
+  const s2 = Math.sin(th2)
+  const a1x = ddx + len1 * (c1 * ddth1 - s1 * dth1 * dth1)
+  const a1y = -len1 * (s1 * ddth1 + c1 * dth1 * dth1)
+  const a2x = a1x + len2 * (c2 * ddth2 - s2 * dth2 * dth2)
+  const a2y = a1y - len2 * (s2 * ddth2 + c2 * dth2 * dth2)
+  // オモリ2: m2 a2 = m2 g + r2 + Fext → r2 = m2 (a2 - g) - Fext
+  const r2: Vec2 = { x: mass2 * a2x - fx, y: mass2 * (a2y + gravity) - fy }
+  // オモリ1: m1 a1 = m1 g + r1 - r2 → r1 = m1 (a1 - g) + r2
+  const r1: Vec2 = {
+    x: mass1 * a1x + r2.x,
+    y: mass1 * (a1y + gravity) + r2.y,
+  }
+
+  return { r1, r2, onCart: { x: -r1.x, y: -r1.y } }
+}
