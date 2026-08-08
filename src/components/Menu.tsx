@@ -4,7 +4,12 @@ import Link from 'next/link'
 import { useState } from 'react'
 import useKey from 'react-use/lib/useKey'
 import styled from 'styled-components'
-import { routings, secretRoutings, type Routing } from '../data/menu'
+import {
+  recentGroup,
+  routings,
+  secretRoutings,
+  type Routing,
+} from '../data/menu'
 
 function MenuItem({ routing, opened }: { routing: Routing; opened: boolean }) {
   return (
@@ -25,6 +30,8 @@ type Props = {
   currentPath: string
 }
 
+const FRAMED_LABELS = new Set(['Recent', 'Draft', 'Closed'])
+
 const Menu = ({ currentPath }: Props) => {
   const [showSecret, setShowSecret] = useState(false)
 
@@ -32,7 +39,9 @@ const Menu = ({ currentPath }: Props) => {
   const toggleSecret = () => setShowSecret((prev) => !prev)
   useKey('Alt', toggleSecret)
 
-  const allRoutings = showSecret ? [...routings, ...secretRoutings] : routings
+  const allRoutings = showSecret
+    ? [...routings, ...secretRoutings, recentGroup]
+    : [...routings, recentGroup]
 
   return (
     <nav>
@@ -41,7 +50,11 @@ const Menu = ({ currentPath }: Props) => {
           <div
             key={group.label}
             className={
-              showSecret && group.label === 'Secret Tools' ? 'secret-group' : ''
+              showSecret && group.label === 'Secret Tools'
+                ? 'secret-group'
+                : FRAMED_LABELS.has(group.label)
+                  ? 'framed-group'
+                  : ''
             }
           >
             <Typography>{group.label}</Typography>
@@ -116,6 +129,12 @@ const Style = styled.div`
 
   .secret-group {
     background: rgba(255, 100, 100, 0.1);
+    border-radius: 8px;
+    padding: 0.75rem;
+  }
+
+  .framed-group {
+    background: rgba(128, 128, 128, 0.1);
     border-radius: 8px;
     padding: 0.75rem;
   }

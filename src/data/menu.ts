@@ -22,7 +22,9 @@ import {
   faCode,
   faComment,
   faDna,
+  faArrowsLeftRight,
   faExchangeAlt,
+  faFan,
   faFeatherAlt,
   faFont,
   faGlobe,
@@ -252,6 +254,16 @@ export const routings: RoutingGroup[] = [
         path: '/dice-3d',
       },
       {
+        icon: faArrowsLeftRight,
+        label: '倒立二重振り子カート',
+        path: '/inverted-double-pendulum',
+      },
+      {
+        icon: faFan,
+        label: '砂ならしプロペラ',
+        path: '/sand-leveler',
+      },
+      {
         icon: faChartLine,
         label: 'Lissajous Curves Grid',
         path: '/lissajous',
@@ -464,3 +476,25 @@ export const secretRoutings: RoutingGroup[] = [
     ],
   },
 ]
+
+// 新規ページを追加したらここの先頭にも path を足す (Recent セクション用、カテゴリと重複表示可)
+const recentPaths = [
+  '/sand-leveler',
+  '/inverted-double-pendulum',
+  '/clock-digits',
+  '/unicode-map',
+  '/nail-loop-curve',
+  '/tusi-bowl',
+  '/cashew-fortune',
+]
+
+const flatRoutings = [...routings, ...secretRoutings].flatMap(
+  (group) => group.routings
+)
+
+export const recentGroup: RoutingGroup = {
+  label: 'Recent',
+  routings: recentPaths
+    .map((path) => flatRoutings.find((routing) => routing.path === path))
+    .filter((routing): routing is Routing => routing !== undefined),
+}
