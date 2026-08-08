@@ -1,4 +1,7 @@
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Button,
   FormControlLabel,
   Slider,
@@ -77,6 +80,21 @@ const toWorld = (px: number, py: number) => ({
 
 /** 角度を [-π, π] の主値へ正規化 (一回転しても直立を直立として扱う) */
 const wrapAngle = (a: number) => Math.atan2(Math.sin(a), Math.cos(a))
+
+const ExplainItem = ({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) => (
+  <div>
+    <Typography variant="subtitle2">{title}</Typography>
+    <Typography variant="body2" color="text.secondary">
+      {children}
+    </Typography>
+  </div>
+)
 
 type ControlMode = 'lqr' | 'catch' | 'pump' | 'drain'
 
@@ -532,10 +550,10 @@ const InvertedDoublePendulum = () => {
   return (
     <Wrap>
       <Typography variant="body2" color="text.secondary">
-        カート (支点) を左右に動かして二重振り子を直立に保つ LQR
-        制御のシミュレーション。先端のオモリはドラッグでそっと引っ張れます。倒れても諦めません:
-        エネルギーポンピングで振り上げ、キャッチ可能な瞬間をロールアウト計画で見つけて直立へ復帰します
-        (ぶら下がり状態からの振り上げもできます)。
+        カート (支点)
+        の左右移動だけで二重振り子を直立に保つ制御シミュレーション。直立付近は
+        LQR
+        で維持し、転倒後はエネルギーポンピングで振り上げてから再び直立へ復帰する。先端のオモリはドラッグで引っ張って外乱を与えられる。
       </Typography>
       <canvas
         ref={canvasRef}
@@ -606,11 +624,61 @@ const InvertedDoublePendulum = () => {
       </Stack>
       <Typography variant="caption" color="text.secondary">
         質量: カート {PARAMS.cartMass}kg / オモリ {PARAMS.mass1}kg ×2, リンク長{' '}
-        {PARAMS.len1}m ×2。直立平衡点まわりで線形化し、Riccati
-        反復で求めた状態フィードバックゲイン (LQR) を使用。安定域を外れると、
-        実モデルのロールアウトで数候補の力を試して最も直立へ戻る手を選ぶリカバリモードに切り替わります
-        (HUD の mode 表示)。
+        {PARAMS.len1}m ×2。現在の制御モードは HUD と状態表示に出る (LQR /
+        キャッチ / 振り上げ / 仕切り直し)。
       </Typography>
+      <Accordion disableGutters>
+        <AccordionSummary expandIcon={<span>▾</span>}>
+          <Typography variant="subtitle2">仕組みの解説</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Stack spacing={1.5}>
+            <ExplainItem title="物理モデル">
+              ラグランジュ力学から導いた運動方程式を RK4 (240Hz)
+              で積分。入力はカートへの水平力 1 つだけで、関節は無駆動
+              (微小な軸摩擦のみ)。カートを加速すると支点の反力が振り子への実効トルクになる、という連成だけで姿勢を操る。
+            </ExplainItem>
+            <ExplainItem title="直立維持 (LQR)">
+              直立平衡点まわりで有限差分線形化し、Riccati
+              反復で状態フィードバックゲイン K を算出。u = -K(状態 - 目標)
+              でカート力を決める。二重倒立振り子の安定域は非常に狭く、先端への持続外乱
+              約 1N・角速度 約 2rad/s が回復限界。
+            </ExplainItem>
+            <ExplainItem title="リカバリ計画">
+              安定域を外れたら、実物理モデルで「最初の 0.2 秒に加える力」7 候補
+              (LQR 継続を含む) をそれぞれ 0.7
+              秒先までロールアウトし、最も直立に近づく候補を採用。LQR
+              継続が常に候補にあるため、LQR 単体より悪化しない。
+            </ExplainItem>
+            <ExplainItem title="振り上げ (swing-up)">
+              支点系の振り子エネルギー E を直立相当 E_up までポンピングする。σ =
+              (m1+m2)l1·θ̇1cosθ1 + m2l2·θ̇2cosθ2 として u ∝ -(E_up - E)·σ にすると
+              dE/dt ∝ (E_up - E)·σ²
+              となり、不足時は注入・過剰時は抽出が常に正しい向きに働く。
+            </ExplainItem>
+            <ExplainItem title="キャッチ">
+              振り上げ中は 60Hz
+              でロールアウトコストを監視し、閾値を下回った瞬間にリカバリ計画へ切り替える。計画した
+              0.2 秒の力は途中で再計画せずコミットして実行する
+              (細切れに再計画すると計画と実行が乖離するため)。
+            </ExplainItem>
+            <ExplainItem title="詰み回避">
+              キャッチ失敗が続く場合や、エネルギーは足りているのにキャッチ可能な姿勢を通らない回転
+              (tumbling)
+              が続く場合は、一旦エネルギーを抜いて振り直す。系は決定論なので、振り直しごとに力の上限を乱数で揺らし、毎回違う軌道を試す。
+            </ExplainItem>
+            <ExplainItem title="関節力の表示">
+              各ピン関節が伝える拘束力を質点の加速度から逆算して矢印表示。静止直立時は上のオモリの重量を支える鉛直ベクトルになり、リカバリ中はカートの急加速が斜めの大きな反力として現れる。
+            </ExplainItem>
+            <ExplainItem title="実装上の落とし穴">
+              振り上げでリンクが一回転すると角度が 2π
+              巻き込んだままになり、物理的には直立でも制御器には大誤差に見えて
+              LQR へ引き渡せない。角度を [-π, π]
+              へ正規化して解決した。これが入るまで復帰成功率が大きく落ちていた。
+            </ExplainItem>
+          </Stack>
+        </AccordionDetails>
+      </Accordion>
     </Wrap>
   )
 }
