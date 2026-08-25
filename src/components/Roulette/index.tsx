@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import styled, { createGlobalStyle, keyframes } from 'styled-components'
 import Confetti from './Confetti'
-import { drawWheel, indexAtPointer, rotationForIndex } from './wheel'
+import {
+  drawWheel,
+  indexAtPointer,
+  renderFace,
+  rotationForIndex,
+} from './wheel'
 
 const SPIN_MS = 5200
 // 最低これだけ余分に回してから止める (一瞬で止まると回した実感が無い)
@@ -9,11 +14,14 @@ const MIN_TURNS = 6
 const EXTRA_TURNS = 5
 const DEFAULT_ITEMS = ['たこ焼き', 'ラーメン', 'カレー', '寿司', '焼肉', 'そば']
 
+// 名簿を貼ると行番号が混ざるので、数字だけの行 (1 / 2. / 3、) は項目にしない
+const NUMBER_ONLY = /^[0-9]+[.、.)）:：]?$/
+
 const parseItems = (text: string) =>
   text
     .split('\n')
     .map((line) => line.trim())
-    .filter((line) => line.length > 0)
+    .filter((line) => line.length > 0 && !NUMBER_ONLY.test(line))
 
 // 終盤で急激に減速する easing。最後の 1 秒をじらすのが目的
 const easeOut = (t: number) => 1 - (1 - t) ** 4
@@ -52,6 +60,8 @@ const Roulette = ({ title, initialItems }: Props) => {
     null
   )
   const winnerIndexRef = useRef<number | null>(null)
+  const faceRef = useRef<HTMLCanvasElement | null>(null)
+  const faceKeyRef = useRef('')
 
   itemsRef.current = items
   winnerIndexRef.current = winnerIndex
@@ -63,15 +73,30 @@ const Roulette = ({ title, initialItems }: Props) => {
     if (!canvas || !ctx) return
     let raf = 0
 
+    if (!faceRef.current) faceRef.current = document.createElement('canvas')
+    const face = faceRef.current
+
     const render = (time: number) => {
       const dpr = window.devicePixelRatio || 1
       const size = canvas.clientWidth
 
+      if (size === 0) {
+        raf = requestAnimationFrame(render)
+
+        return
+      }
       if (canvas.width !== size * dpr) {
         canvas.width = size * dpr
         canvas.height = size * dpr
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+
+      const faceKey = `${size}|${itemsRef.current.join('\u0000')}`
+
+      if (faceKeyRef.current !== faceKey) {
+        faceKeyRef.current = faceKey
+        renderFace(face, size, itemsRef.current)
+      }
 
       const spin = spinRef.current
 
@@ -96,8 +121,9 @@ const Roulette = ({ title, initialItems }: Props) => {
 
       drawWheel({
         ctx,
+        face,
         size,
-        items: itemsRef.current,
+        count: itemsRef.current.length,
         rotation: rotationRef.current,
         winnerIndex: spinRef.current ? null : winnerIndexRef.current,
         time,
