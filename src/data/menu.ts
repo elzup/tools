@@ -118,6 +118,11 @@ export const routings: RoutingGroup[] = [
         label: 'SpanBox',
         path: '/spanbox',
       },
+      {
+        icon: faCircleNotch,
+        label: 'でるすルーレット',
+        path: '/roulette',
+      },
     ],
   },
   {
@@ -479,13 +484,13 @@ export const secretRoutings: RoutingGroup[] = [
 
 // 新規ページを追加したらここの先頭にも path を足す (Recent セクション用、カテゴリと重複表示可)
 const recentPaths = [
+  '/roulette',
   '/sand-leveler',
   '/inverted-double-pendulum',
   '/clock-digits',
   '/unicode-map',
   '/nail-loop-curve',
   '/tusi-bowl',
-  '/cashew-fortune',
 ]
 
 const flatRoutings = [...routings, ...secretRoutings].flatMap(

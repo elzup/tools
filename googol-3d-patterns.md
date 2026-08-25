@@ -55,7 +55,9 @@ function Gear3D({
           <meshBasicMaterial color="#444444" side={THREE.DoubleSide} />
         </mesh>
         <mesh rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[GEAR_BODY_RADIUS - 0.05, GEAR_BODY_RADIUS, 24]} />
+          <ringGeometry
+            args={[GEAR_BODY_RADIUS - 0.05, GEAR_BODY_RADIUS, 24]}
+          />
           <meshBasicMaterial color="#888888" side={THREE.DoubleSide} />
         </mesh>
         <mesh position={[0, 0.05, GEAR_BODY_RADIUS * 0.5]}>
@@ -131,7 +133,7 @@ const gearShape = (() => {
 
   for (let i = 0; i < teethCount; i++) {
     const baseAngle = (i / teethCount) * Math.PI * 2
-    const toothWidth = Math.PI / teethCount * 0.6
+    const toothWidth = (Math.PI / teethCount) * 0.6
 
     const outerR = GEAR_BODY_RADIUS + GEAR_TOOTH_HEIGHT
     const innerR = GEAR_BODY_RADIUS
@@ -161,11 +163,15 @@ const gearShape = (() => {
 const sharedGearGeometry = new THREE.ShapeGeometry(gearShape)
 const sharedGearMaterial = new THREE.MeshBasicMaterial({
   color: '#333333',
-  side: THREE.DoubleSide
+  side: THREE.DoubleSide,
 })
 const sharedEdgeMaterial = new THREE.LineBasicMaterial({ color: '#666666' })
 const sharedMarkerMaterial = new THREE.MeshBasicMaterial({ color: '#e53935' })
-const sharedMarkerGeometry = new THREE.BoxGeometry(0.15, 0.1, GEAR_BODY_RADIUS + GEAR_TOOTH_HEIGHT * 0.3)
+const sharedMarkerGeometry = new THREE.BoxGeometry(
+  0.15,
+  0.1,
+  GEAR_BODY_RADIUS + GEAR_TOOTH_HEIGHT * 0.3
+)
 
 function Gear3D({
   position,
@@ -193,7 +199,11 @@ function Gear3D({
     <group position={[posX, 0, posZ]}>
       <group ref={groupRef}>
         {/* 歯車本体 */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} geometry={sharedGearGeometry} material={sharedGearMaterial} />
+        <mesh
+          rotation={[-Math.PI / 2, 0, 0]}
+          geometry={sharedGearGeometry}
+          material={sharedGearMaterial}
+        />
         {/* 輪郭線 */}
         <lineSegments rotation={[-Math.PI / 2, 0, 0]}>
           <edgesGeometry args={[sharedGearGeometry]} />
@@ -322,7 +332,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 }
 
 // 使用
-<ErrorBoundary fallback={<Box>3D表示を読み込めませんでした</Box>}>
+;<ErrorBoundary fallback={<Box>3D表示を読み込めませんでした</Box>}>
   <GoogolGear3D positions={positions} />
 </ErrorBoundary>
 ```
@@ -335,8 +345,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
 ```tsx
 import { RoundedBox } from '@react-three/drei'
-
-<RoundedBox args={[1, 1, 1]} radius={0.1} smoothness={4}>
+;<RoundedBox args={[1, 1, 1]} radius={0.1} smoothness={4}>
   <meshStandardMaterial color="#f5f5f5" />
 </RoundedBox>
 ```

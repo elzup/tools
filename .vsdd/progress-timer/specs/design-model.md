@@ -19,8 +19,8 @@ coherence:
 
 ```ts
 type Step = {
-  id: string        // 安定 ID (並べ替え・React key 用)
-  name: string      // ステップ名 (空文字許容)
+  id: string // 安定 ID (並べ替え・React key 用)
+  name: string // ステップ名 (空文字許容)
   durationMin: number // 配分 (分, >= 0)
 }
 
@@ -31,7 +31,7 @@ type PlanState = {
 
 // 実績進行 (予定とは別レイヤ)
 type ActualState = {
-  startedAtMin: number | null   // 開始ボタンを押した時計時刻 (分)。null = 未開始
+  startedAtMin: number | null // 開始ボタンを押した時計時刻 (分)。null = 未開始
   // boundaryDeltas[i] = 「ステップ i の開始境界」を i 以降ごと前後にずらす分量 (符号付き)
   // i は 0..steps.length。i=0 は全体起点 (= startedAtMin の微調整)。
   boundaryDeltas: Record<number, number>
@@ -42,11 +42,11 @@ type ActualState = {
 
 正準状態は `startClockMin` + 各 `durationMin` のみ。以下は派生:
 
-| 表記 | 意味 | 計算 |
-|------|------|------|
-| 配分 (allocation) | 各ステップの所要 | `durationMin` |
-| 絶対 (absolute) | 各ステップ開始/終了の時計時刻 | `startClockMin + cumulative` |
-| 累積 (cumulative) | 起点からの経過 | `Σ durationMin` |
+| 表記              | 意味                          | 計算                         |
+| ----------------- | ----------------------------- | ---------------------------- |
+| 配分 (allocation) | 各ステップの所要              | `durationMin`                |
+| 絶対 (absolute)   | 各ステップ開始/終了の時計時刻 | `startClockMin + cumulative` |
+| 累積 (cumulative) | 起点からの経過                | `Σ durationMin`              |
 
 - `cumulativeStart[i] = Σ_{k<i} durationMin[k]`
 - `absoluteStart[i]  = startClockMin + cumulativeStart[i]`
