@@ -158,7 +158,7 @@ const Roulette = ({ title, initialItems }: Props) => {
 
       <Stage>
         <WheelBox $spinning={isSpinning}>
-          <canvas ref={canvasRef} style={{ width: '100%', display: 'block' }} />
+          <canvas ref={canvasRef} style={{ display: 'block' }} />
         </WheelBox>
 
         <SpinButton onClick={spin} disabled={isSpinning || items.length === 0}>
@@ -249,7 +249,8 @@ const Screen = styled.div`
 
 const Title = styled.h1`
   margin: 0.4rem 0 0;
-  font-size: clamp(1.6rem, 5vw, 3.4rem);
+  flex: none;
+  font-size: clamp(1.4rem, 4vw, 2.6rem);
   letter-spacing: 0.12em;
   background: linear-gradient(90deg, #ffd84d, #ff2fb3, #00e5ff, #ffd84d);
   background-size: 300% 100%;
@@ -268,13 +269,23 @@ const Stage = styled.div`
   justify-content: center;
   gap: 0.6rem;
   min-height: 0;
-  padding-bottom: 0.5rem;
+  width: 100%;
+  padding: 0.4rem 0 0.6rem;
+  overflow: hidden;
 `
 
 const WheelBox = styled.div<{ $spinning: boolean }>`
-  width: min(72vh, 92vw);
-  max-width: 640px;
+  /* 残り高さに収まる正方形。幅基準で決めるとボタンやタイトルに被る */
+  flex: 1;
+  min-height: 0;
+  aspect-ratio: 1;
+  max-width: min(92vw, 640px);
   animation: ${({ $spinning }) => ($spinning ? shake : 'none')} 0.18s infinite;
+
+  canvas {
+    width: 100%;
+    height: 100%;
+  }
 `
 
 const SpinButton = styled.button`

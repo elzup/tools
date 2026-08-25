@@ -16,7 +16,7 @@
 | scope-timer.tsx              | Tool/Game       | スコープタイマー - ミリ秒精度の実験用タイマー                        |                                                | 現在           |     | ミリ秒表示                          | 7    |
 | progress-timer.tsx           | Tool/Game       | 進行タイマー - 配分/絶対/累積の 3 表記同期・実績進行・境界ずらし     | @mui, styled-components                        | 現在           | \*  | localStorage+URL 共有, VCSDD        | 8    |
 | spanbox.tsx                  | Tool/Game       | 方眼上の矩形ブロックを移動・伸縮・色ラベル編集する SpanBox ツール    | styled-components, react-icons                 | 現在           |     | グリッドブロック UI                 | 6    |
-| roulette.tsx                 | Tool/Game       | でるすルーレット - 改行区切り入力の全画面ド派手ルーレット (100 件超対応)  | styled-components, canvas                      | 現在           | \*  | ヘッダーレス, ?title/?items で動的 | 8    |
+| roulette.tsx                 | Tool/Game       | ルーレット - 改行区切り入力の全画面ド派手ルーレット (100 件超対応)  | styled-components, canvas                      | 現在           | \*  | ヘッダーレス, ?title/?items で動的 | 8    |
 | mushikui-search.tsx          | Tool/Game       | 虫食いパターンで常用日本語辞書を検索するツール                       | @mui                                           | 現在           |     | 辞書検索                            | 5    |
 | stamina-calc.tsx             | Tool/Game       | スタミナ/聖遺物/ストック運用シミュレーター                           | @mui, styled-components                        | 現在           |     | ゲームリソース管理                  | 5    |
 | domino-3d.tsx                | Physics         | ドミノ倒し物理演算シミュレーター                                     | @react-three, @react-three/rapier, three, @mui | 現在           | \*  | 配置パターン切替                    | 7    |

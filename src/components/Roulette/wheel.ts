@@ -3,9 +3,9 @@ export const TAU = Math.PI * 2
 // 針は 12 時方向に固定。当選判定・回転量計算はすべてこの角度を基準にする
 export const POINTER_ANGLE = -Math.PI / 2
 
-// セクターが細すぎるとラベルが潰れて読めないので、円弧長がこの px を
-// 下回る場合はホイール上のラベル描画を諦める (100 件超の入力で発生する)
-const MIN_LABEL_ARC_PX = 13
+// これ以下だと字が潰れて読めないラベルの下限フォントサイズ (px)。
+// 100 件超でも「自分の名前が回っている」ことが見えるのを優先し、間引きはしない
+const MIN_LABEL_FONT_PX = 5
 
 export const sectorAngle = (count: number) => TAU / Math.max(count, 1)
 
@@ -70,7 +70,6 @@ export const drawWheel = ({
   const radius = center - size * 0.06
   const angle = sectorAngle(items.length)
   const arcPx = angle * radius * 0.9
-  const showLabels = arcPx >= MIN_LABEL_ARC_PX
 
   ctx.clearRect(0, 0, size, size)
   ctx.save()
@@ -109,17 +108,20 @@ export const drawWheel = ({
       ctx.stroke()
     }
 
-    if (!showLabels) return
-
     ctx.save()
     ctx.rotate(start + angle / 2)
     ctx.textAlign = 'right'
     ctx.textBaseline = 'middle'
-    const fontSize = Math.min(size * 0.042, Math.max(arcPx * 0.78, 9))
+    const fontSize = Math.min(
+      size * 0.042,
+      Math.max(arcPx * 0.82, MIN_LABEL_FONT_PX)
+    )
+    const weight = fontSize < 10 ? 500 : 700
 
-    ctx.font = `700 ${fontSize}px "Zen Kaku Gothic New", system-ui, sans-serif`
+    ctx.font = `${weight} ${fontSize}px "Zen Kaku Gothic New", system-ui, sans-serif`
     ctx.fillStyle = '#12021f'
-    ctx.shadowBlur = 4
+    // 細いセクターで縁取りを強くすると字が滲んで潰れる
+    ctx.shadowBlur = fontSize < 10 ? 0 : 4
     ctx.shadowColor = 'rgba(255,255,255,0.8)'
     ctx.fillText(truncate(ctx, item, radius * 0.72), radius * 0.92, 0)
     ctx.restore()

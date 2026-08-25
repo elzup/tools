@@ -4,7 +4,8 @@ import { useRouter } from 'next/router'
 
 const Roulette = dynamic(() => import('../components/Roulette'), { ssr: false })
 
-const DEFAULT_TITLE = 'でるすルーレット'
+// 既定タイトルは汎用のまま。固有名は ?title= で渡す (リポジトリに残さない)
+const DEFAULT_TITLE = 'ルーレット'
 
 const first = (value: string | string[] | undefined) =>
   Array.isArray(value) ? value[0] : value

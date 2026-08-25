@@ -120,7 +120,7 @@ export const routings: RoutingGroup[] = [
       },
       {
         icon: faCircleNotch,
-        label: 'でるすルーレット',
+        label: 'ルーレット',
         path: '/roulette',
       },
     ],
