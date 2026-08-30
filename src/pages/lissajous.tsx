@@ -333,7 +333,7 @@ const LissajousPage = () => {
     <Layout title={title}>
       <Title>{title}</Title>
       <Container>
-        <Paper elevation={1} sx={{ p: { xs: 1.5, sm: 3 }, mb: 3 }}>
+        <Paper elevation={1} sx={{ p: { xs: 0.5, sm: 3 }, mb: 3 }}>
           <Typography variant="h6" gutterBottom>
             Controls
           </Typography>
@@ -510,7 +510,7 @@ const LissajousPage = () => {
           </div>
         </Paper>
 
-        <Paper elevation={1} sx={{ p: 2 }}>
+        <Paper elevation={1} sx={{ p: { xs: 0.5, sm: 2 } }}>
           <Typography variant="h6" gutterBottom>
             About Lissajous Curves
           </Typography>

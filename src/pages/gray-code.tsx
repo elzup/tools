@@ -232,7 +232,7 @@ const Container = styled.div`
 
 // カードの内側はスマホで詰める (本文の左右余白は Layout 側で確保済み)
 const cardPadding = `
-  padding: 12px;
+  padding: 4px;
 
   @media (min-width: 600px) {
     padding: 20px;
