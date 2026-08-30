@@ -454,7 +454,7 @@ const LissajousPage = () => {
 
         <Paper
           elevation={1}
-          sx={{ p: { xs: 1, sm: 2 }, mb: 2, overflowX: 'auto' }}
+          sx={{ p: { xs: 0.5, sm: 2 }, mb: 2, overflowX: 'auto' }}
         >
           <div ref={gridAreaRef}>
             <GridContainer
@@ -521,7 +521,7 @@ const LissajousPage = () => {
 const Container = styled.div`
   max-width: 100%;
   margin: 0 auto;
-  padding: 8px;
+  padding: 2px;
 
   @media (min-width: ${MOBILE_BREAKPOINT}px) {
     padding: 20px;

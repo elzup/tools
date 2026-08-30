@@ -223,7 +223,11 @@ const GrayCodeVisualizer = () => {
 const Container = styled.div`
   max-width: 900px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 4px;
+
+  @media (min-width: 600px) {
+    padding: 20px;
+  }
 `
 
 const Description = styled.div`

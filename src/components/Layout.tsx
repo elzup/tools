@@ -42,7 +42,9 @@ const Layout = ({
           {fullWidth ? (
             contentsBody
           ) : (
-            <Container maxWidth="lg">{contentsBody}</Container>
+            <Container maxWidth="lg" sx={{ px: { xs: 0, sm: 2, md: 3 } }}>
+              {contentsBody}
+            </Container>
           )}
         </ConfigProvider>
       </Main>
@@ -58,16 +60,18 @@ const Wrap = styled.div`
   flex-direction: column;
 `
 
+// スマホでは横 padding を 2px まで削る。MUI Container の gutter と二重に
+// かかって片側 32px (画面の 8%) を食っており、キャンバス系ページが見切れていた
 const Main = styled.main<{ $flush?: boolean }>`
   flex: 1;
-  padding: ${({ $flush }) => ($flush ? '1rem 4px' : '2rem 1rem')};
+  padding: ${({ $flush }) => ($flush ? '1rem 2px' : '1.5rem 2px')};
 
   @media (min-width: 600px) {
-    padding: ${({ $flush }) => ($flush ? '1.25rem 6px' : '2.5rem 1.5rem')};
+    padding: ${({ $flush }) => ($flush ? '1.25rem 6px' : '2rem 12px')};
   }
 
   @media (min-width: 900px) {
-    padding: ${({ $flush }) => ($flush ? '1.5rem 8px' : '3rem 2rem')};
+    padding: ${({ $flush }) => ($flush ? '1.5rem 8px' : '2.5rem 24px')};
   }
 `
 
