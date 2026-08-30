@@ -266,6 +266,8 @@ const CurveEditor = ({ points, onChange }: CurveEditorProps) => {
 
 const LissajousPage = () => {
   const gridAreaRef = useRef<HTMLDivElement>(null)
+  const lastGridWidthRef = useRef(0)
+  const isManualCellSizeRef = useRef(false)
   const [gridSize, setGridSize] = useState(8)
   const [cellSize, setCellSize] = useState(80)
   const [headerWidth, setHeaderWidth] = useState(HEADER_WIDTH)
@@ -283,15 +285,27 @@ const LissajousPage = () => {
     const gridArea = gridAreaRef.current
     if (!gridArea) return
 
+    // 列数を変えたら自動フィットに戻す
+    isManualCellSizeRef.current = false
+
     const calculateCellSize = () => {
       const availableWidth = gridArea.clientWidth
       if (availableWidth === 0) return
+
+      // 幅が変わっていないなら何もしない。ResizeObserver は高さ変化でも発火し、
+      // セルサイズ変更 = 盤面の高さ変化なので、そのまま計算するとスライダーの
+      // 値を毎回自動計算値で上書きしてしまう (スマホでは URL バーの開閉でも発火)
+      if (availableWidth === lastGridWidthRef.current) return
+      lastGridWidthRef.current = availableWidth
 
       const nextHeaderWidth =
         window.innerWidth < MOBILE_BREAKPOINT
           ? HEADER_WIDTH_MOBILE
           : HEADER_WIDTH
       setHeaderWidth(nextHeaderWidth)
+
+      // 手動で決めた大きさは幅が変わっても維持する (はみ出す分は横スクロール)
+      if (isManualCellSizeRef.current) return
 
       const rawSize = Math.floor(
         (availableWidth - nextHeaderWidth - (gridSize + 1) * GRID_GAP) /
@@ -354,7 +368,10 @@ const LissajousPage = () => {
                 </Typography>
                 <Slider
                   value={cellSize}
-                  onChange={(_, v) => setCellSize(v as number)}
+                  onChange={(_, v) => {
+                    isManualCellSizeRef.current = true
+                    setCellSize(v as number)
+                  }}
                   min={MIN_CELL_SIZE}
                   max={MAX_CELL_SIZE}
                   step={8}
