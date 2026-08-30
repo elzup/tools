@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import {
   Box,
   FormControl,
@@ -16,6 +16,15 @@ import Layout from '../components/Layout'
 import { Title } from '../components/Title'
 
 const title = 'Lissajous Curves Grid'
+
+const GRID_GAP = 4
+// スマホ幅では 40px の行ヘッダが盤面を押し出すので縮める
+const HEADER_WIDTH_MOBILE = 24
+const HEADER_WIDTH = 40
+const MOBILE_BREAKPOINT = 600
+// 24px 未満はセル内の曲線が潰れて判別できないので、これ以上は縮めず横スクロールに任せる
+const MIN_CELL_SIZE = 24
+const MAX_CELL_SIZE = 120
 
 type WaveformType = 'sine' | 'triangle' | 'square' | 'sawtooth'
 
@@ -256,8 +265,10 @@ const CurveEditor = ({ points, onChange }: CurveEditorProps) => {
 }
 
 const LissajousPage = () => {
+  const gridAreaRef = useRef<HTMLDivElement>(null)
   const [gridSize, setGridSize] = useState(8)
   const [cellSize, setCellSize] = useState(80)
+  const [headerWidth, setHeaderWidth] = useState(HEADER_WIDTH)
   const [speed, setSpeed] = useState(1)
   const [waveform, setWaveform] = useState<WaveformType>('sine')
   const [phase, setPhase] = useState(0)
@@ -265,28 +276,34 @@ const LissajousPage = () => {
     Array.from({ length: 16 }, (_, i) => Math.sin((i / 16) * Math.PI * 2))
   )
 
-  // Auto-adjust cell size based on window size
+  // 盤面の実幅からセルサイズを決める。Layout / MUI Container / Paper と
+  // padding が多段に重なっており、window.innerWidth からの定数見積りでは
+  // 必ずずれてスマホで盤面がはみ出していた
   useEffect(() => {
+    const gridArea = gridAreaRef.current
+    if (!gridArea) return
+
     const calculateCellSize = () => {
-      const windowWidth = window.innerWidth
-      const padding = 80 // Account for page padding and scrollbar
-      const headerWidth = 40
-      const gapSize = 4
-      const availableWidth = windowWidth - padding
+      const availableWidth = gridArea.clientWidth
+      if (availableWidth === 0) return
 
-      // Calculate cell size: availableWidth = headerWidth + gridSize * cellSize + (gridSize + 1) * gapSize
-      const cellSize = Math.floor(
-        (availableWidth - headerWidth - (gridSize + 1) * gapSize) / gridSize
+      const nextHeaderWidth =
+        window.innerWidth < MOBILE_BREAKPOINT
+          ? HEADER_WIDTH_MOBILE
+          : HEADER_WIDTH
+      setHeaderWidth(nextHeaderWidth)
+
+      const rawSize = Math.floor(
+        (availableWidth - nextHeaderWidth - (gridSize + 1) * GRID_GAP) /
+          gridSize
       )
-
-      // Clamp between min and max values
-      const clampedSize = Math.max(40, Math.min(120, cellSize))
-      setCellSize(clampedSize)
+      setCellSize(Math.max(MIN_CELL_SIZE, Math.min(MAX_CELL_SIZE, rawSize)))
     }
 
     calculateCellSize()
-    window.addEventListener('resize', calculateCellSize)
-    return () => window.removeEventListener('resize', calculateCellSize)
+    const observer = new ResizeObserver(calculateCellSize)
+    observer.observe(gridArea)
+    return () => observer.disconnect()
   }, [gridSize])
 
   useEffect(() => {
@@ -302,7 +319,7 @@ const LissajousPage = () => {
     <Layout title={title}>
       <Title>{title}</Title>
       <Container>
-        <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={1} sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
           <Typography variant="h6" gutterBottom>
             Controls
           </Typography>
@@ -338,9 +355,9 @@ const LissajousPage = () => {
                 <Slider
                   value={cellSize}
                   onChange={(_, v) => setCellSize(v as number)}
-                  min={40}
-                  max={120}
-                  step={10}
+                  min={MIN_CELL_SIZE}
+                  max={MAX_CELL_SIZE}
+                  step={8}
                 />
               </Box>
             </Grid>
@@ -435,36 +452,45 @@ const LissajousPage = () => {
           </Grid>
         </Paper>
 
-        <Paper elevation={1} sx={{ p: 2, mb: 2, overflowX: 'auto' }}>
-          <GridContainer cellSize={cellSize} gridSize={gridSize}>
-            {/* Column headers */}
-            <HeaderCell />
-            {Array.from({ length: gridSize }).map((_, col) => (
-              <HeaderCell key={`col-${col}`}>{col + 1}</HeaderCell>
-            ))}
+        <Paper
+          elevation={1}
+          sx={{ p: { xs: 1, sm: 2 }, mb: 2, overflowX: 'auto' }}
+        >
+          <div ref={gridAreaRef}>
+            <GridContainer
+              cellSize={cellSize}
+              gridSize={gridSize}
+              headerWidth={headerWidth}
+            >
+              {/* Column headers */}
+              <HeaderCell />
+              {Array.from({ length: gridSize }).map((_, col) => (
+                <HeaderCell key={`col-${col}`}>{col + 1}</HeaderCell>
+              ))}
 
-            {Array.from({ length: gridSize }).map((_, row) => (
-              <>
-                {/* Row header */}
-                <HeaderCell key={`row-${row}`}>{row + 1}</HeaderCell>
+              {Array.from({ length: gridSize }).map((_, row) => (
+                <Fragment key={`row-${row}`}>
+                  {/* Row header */}
+                  <HeaderCell>{row + 1}</HeaderCell>
 
-                {/* Grid cells */}
-                {Array.from({ length: gridSize }).map((_, col) => (
-                  <GridCell key={`${row}-${col}`}>
-                    <LissajousCanvas
-                      freqA={row + 1}
-                      freqB={col + 1}
-                      size={cellSize}
-                      speed={speed}
-                      waveform={waveform}
-                      customWaveform={customWaveform}
-                      phase={phase}
-                    />
-                  </GridCell>
-                ))}
-              </>
-            ))}
-          </GridContainer>
+                  {/* Grid cells */}
+                  {Array.from({ length: gridSize }).map((_, col) => (
+                    <GridCell key={`${row}-${col}`}>
+                      <LissajousCanvas
+                        freqA={row + 1}
+                        freqB={col + 1}
+                        size={cellSize}
+                        speed={speed}
+                        waveform={waveform}
+                        customWaveform={customWaveform}
+                        phase={phase}
+                      />
+                    </GridCell>
+                  ))}
+                </Fragment>
+              ))}
+            </GridContainer>
+          </div>
         </Paper>
 
         <Paper elevation={1} sx={{ p: 2 }}>
@@ -495,16 +521,24 @@ const LissajousPage = () => {
 const Container = styled.div`
   max-width: 100%;
   margin: 0 auto;
-  padding: 20px;
+  padding: 8px;
+
+  @media (min-width: ${MOBILE_BREAKPOINT}px) {
+    padding: 20px;
+  }
 `
 
-const GridContainer = styled.div<{ cellSize: number; gridSize: number }>`
+const GridContainer = styled.div<{
+  cellSize: number
+  gridSize: number
+  headerWidth: number
+}>`
   display: grid;
-  grid-template-columns: 40px repeat(
+  grid-template-columns: ${(props) => props.headerWidth}px repeat(
       ${(props) => props.gridSize},
       ${(props) => props.cellSize}px
     );
-  gap: 4px;
+  gap: ${GRID_GAP}px;
   width: fit-content;
   margin: 0 auto;
 `
