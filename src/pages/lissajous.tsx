@@ -333,7 +333,7 @@ const LissajousPage = () => {
     <Layout title={title}>
       <Title>{title}</Title>
       <Container>
-        <Paper elevation={1} sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
+        <Paper elevation={1} sx={{ p: { xs: 1.5, sm: 3 }, mb: 3 }}>
           <Typography variant="h6" gutterBottom>
             Controls
           </Typography>
@@ -538,7 +538,7 @@ const LissajousPage = () => {
 const Container = styled.div`
   max-width: 100%;
   margin: 0 auto;
-  padding: 2px;
+  padding: 4px;
 
   @media (min-width: ${MOBILE_BREAKPOINT}px) {
     padding: 20px;

@@ -60,11 +60,11 @@ const Wrap = styled.div`
   flex-direction: column;
 `
 
-// スマホでは横 padding を 2px まで削る。MUI Container の gutter と二重に
-// かかって片側 32px (画面の 8%) を食っており、キャンバス系ページが見切れていた
+// 横 padding は MUI Container の gutter と二重にかかって片側 32px (画面の 8%)
+// を食っていた。gutter 側を 0 にして、こちらだけを本文の余白として残す
 const Main = styled.main<{ $flush?: boolean }>`
   flex: 1;
-  padding: ${({ $flush }) => ($flush ? '1rem 2px' : '1.5rem 2px')};
+  padding: ${({ $flush }) => ($flush ? '1rem 2px' : '1.5rem 1rem')};
 
   @media (min-width: 600px) {
     padding: ${({ $flush }) => ($flush ? '1.25rem 6px' : '2rem 12px')};

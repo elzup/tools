@@ -230,9 +230,18 @@ const Container = styled.div`
   }
 `
 
+// カードの内側はスマホで詰める (本文の左右余白は Layout 側で確保済み)
+const cardPadding = `
+  padding: 12px;
+
+  @media (min-width: 600px) {
+    padding: 20px;
+  }
+`
+
 const Description = styled.div`
   margin-bottom: 30px;
-  padding: 20px;
+  ${cardPadding}
   background: rgba(0, 122, 255, 0.1);
   border-radius: 8px;
 
@@ -437,7 +446,7 @@ const Table = styled.table`
 `
 
 const FormulaBox = styled.div`
-  padding: 20px;
+  ${cardPadding}
   background: rgba(255, 193, 7, 0.1);
   border-radius: 8px;
   margin-bottom: 20px;
@@ -469,7 +478,7 @@ const Explanation = styled.div`
 `
 
 const InfoBox = styled.div`
-  padding: 20px;
+  ${cardPadding}
   background: rgba(76, 175, 80, 0.1);
   border-radius: 8px;
 
