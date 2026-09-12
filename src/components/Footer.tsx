@@ -1,15 +1,10 @@
-import {
-  Box,
-  Collapse,
-  Container,
-  Divider,
-  IconButton,
-  Typography,
-} from '@mui/material'
-import { FaChevronDown, FaChevronUp, FaGithub, FaGlobe } from 'react-icons/fa'
+import { Box, Collapse, Container, Divider, IconButton } from '@mui/material'
+import { FaChevronDown, FaChevronUp, FaGithub } from 'react-icons/fa'
 import { useState } from 'react'
 import styled from 'styled-components'
+import { SITE_NAME, SITE_REPO, SITE_TAGLINE } from '../data/sites'
 import Menu from './Menu'
+import SiteSwitch from './SiteSwitch'
 import { colors } from './theme'
 
 export type FooterMode = 'full' | 'minimal' | 'hidden'
@@ -19,6 +14,7 @@ type Props = {
   mode?: FooterMode
 }
 
+// 構成は docs/site-chrome.md 4 章 (math-kb の SiteFooter と同じ mode 構成)
 const Footer = ({ currentPath, mode = 'full' }: Props) => {
   const [expanded, setExpanded] = useState(false)
 
@@ -28,34 +24,29 @@ const Footer = ({ currentPath, mode = 'full' }: Props) => {
     return (
       <StyledFooter $minimal>
         <Container maxWidth="lg">
-          <MinimalSection>
+          <MinimalRow>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant="body2" sx={{ opacity: 0.7 }}>
-                anozon/tools
-              </Typography>
+              <Tagline>{SITE_NAME}</Tagline>
+              <SiteSwitch alwaysLabel />
               <FooterLink
-                href="https://anozon.me"
+                href={SITE_REPO}
                 target="_blank"
                 rel="noopener noreferrer"
+                title="GitHub"
               >
-                <FaGlobe />
-              </FooterLink>
-              <FooterLink
-                href="https://github.com/elzup/tools"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <FaGithub />
+                <FaGithub aria-hidden="true" />
               </FooterLink>
             </Box>
             <IconButton
               size="small"
               onClick={() => setExpanded(!expanded)}
+              aria-expanded={expanded}
+              aria-label={expanded ? 'メニューを閉じる' : 'メニューを開く'}
               sx={{ color: 'inherit', opacity: 0.7, '&:hover': { opacity: 1 } }}
             >
               {expanded ? <FaChevronDown /> : <FaChevronUp />}
             </IconButton>
-          </MinimalSection>
+          </MinimalRow>
 
           <Collapse in={expanded}>
             <Box sx={{ pt: 2 }}>
@@ -74,30 +65,21 @@ const Footer = ({ currentPath, mode = 'full' }: Props) => {
 
         <Divider sx={{ my: 4, borderColor: 'rgba(255,255,255,0.1)' }} />
 
-        <BottomSection>
-          <Typography variant="body2" sx={{ opacity: 0.7 }}>
-            mini web tools by anozon
-          </Typography>
+        <BottomRow>
+          <Tagline>{SITE_TAGLINE}</Tagline>
 
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <SiteSwitch alwaysLabel />
             <FooterLink
-              href="https://anozon.me"
+              href={SITE_REPO}
               target="_blank"
               rel="noopener noreferrer"
             >
-              <FaGlobe />
-              <span>anozon.me</span>
-            </FooterLink>
-            <FooterLink
-              href="https://github.com/elzup/tools"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <FaGithub />
+              <FaGithub aria-hidden="true" />
               <span>GitHub</span>
             </FooterLink>
           </Box>
-        </BottomSection>
+        </BottomRow>
       </Container>
     </StyledFooter>
   )
@@ -114,13 +96,13 @@ const StyledFooter = styled.footer<{ $minimal?: boolean }>`
   margin-top: auto;
 `
 
-const MinimalSection = styled.div`
+const MinimalRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
 `
 
-const BottomSection = styled.div`
+const BottomRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -131,6 +113,11 @@ const BottomSection = styled.div`
     flex-direction: column;
     text-align: center;
   }
+`
+
+const Tagline = styled.span`
+  font-size: 0.875rem;
+  opacity: 0.7;
 `
 
 const FooterLink = styled.a`

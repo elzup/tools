@@ -1,9 +1,11 @@
 import { faSatellite } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { AppBar, Box, IconButton, Toolbar, Typography } from '@mui/material'
-import { FaGithub, FaHome } from 'react-icons/fa'
+import { FaGithub } from 'react-icons/fa'
 import Link from 'next/link'
 import styled from 'styled-components'
+import { SITE_REPO } from '../data/sites'
+import SiteSwitch from './SiteSwitch'
 import { Clock } from './Clock'
 import { colors } from './theme'
 
@@ -15,7 +17,7 @@ const Header = ({ currentPath }: Props) => {
   const isHome = currentPath === '/'
 
   return (
-    <StyledAppBar position="static" elevation={0} $compact={!isHome}>
+    <StyledAppBar position="sticky" elevation={0}>
       <StyledToolbar $compact={!isHome}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
           <StyledLogoLink href="/" $compact={!isHome}>
@@ -37,25 +39,13 @@ const Header = ({ currentPath }: Props) => {
           </StyledLogoLink>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        {/* 並びは docs/site-chrome.md 2 章: サイト固有ウィジェット → switcher → GitHub → theme */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Clock compact={!isHome} />
-          {!isHome && (
-            <IconButton
-              component={Link}
-              href="/"
-              size="small"
-              sx={{
-                color: 'inherit',
-                opacity: 0.8,
-                '&:hover': { opacity: 1 },
-              }}
-            >
-              <FaHome />
-            </IconButton>
-          )}
+          <SiteSwitch />
           <IconButton
             component="a"
-            href="https://github.com/elzup/tools"
+            href={SITE_REPO}
             target="_blank"
             rel="noopener noreferrer"
             size="small"
@@ -69,7 +59,7 @@ const Header = ({ currentPath }: Props) => {
   )
 }
 
-const StyledAppBar = styled(AppBar)<{ $compact: boolean }>`
+const StyledAppBar = styled(AppBar)`
   background: linear-gradient(
     135deg,
     ${colors.surface.darker} 0%,
@@ -78,7 +68,7 @@ const StyledAppBar = styled(AppBar)<{ $compact: boolean }>`
 `
 
 const StyledToolbar = styled(Toolbar)<{ $compact: boolean }>`
-  min-height: ${({ $compact }) => ($compact ? '40px' : '64px')} !important;
+  min-height: ${({ $compact }) => ($compact ? '48px' : '64px')} !important;
   padding: ${({ $compact }) => ($compact ? '0 16px' : '0 24px')} !important;
 `
 
@@ -91,7 +81,7 @@ const StyledLogoLink = styled(Link)<{ $compact: boolean }>`
   transition: opacity 0.2s;
 
   svg {
-    font-size: ${({ $compact }) => ($compact ? '1rem' : '1.25rem')};
+    font-size: ${({ $compact }) => ($compact ? '20px' : '24px')};
   }
 
   &:hover {

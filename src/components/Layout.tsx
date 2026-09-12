@@ -2,6 +2,7 @@ import { Container } from '@mui/material'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
+import { SITE_TAGLINE } from '../data/sites'
 import { ConfigProvider } from '../store'
 import type { WithChild } from '../types'
 import Footer, { type FooterMode } from './Footer'
@@ -19,13 +20,16 @@ type Props = {
 const Layout = ({
   children,
   currentPath,
-  title = 'mini web tools by anozon',
+  title = SITE_TAGLINE,
   fullWidth = false,
   top = false,
-  footer = 'full',
+  footer,
   flush = false,
 }: WithChild<Props & { currentPath: string }>) => {
   const contentsBody = <>{children}</>
+  // docs/site-chrome.md 4 章: トップは full、その他は minimal
+  const footerMode: FooterMode =
+    footer ?? (currentPath === '/' ? 'full' : 'minimal')
 
   return (
     <Wrap data-test={`page-${currentPath.replace(/\//g, '')}`}>
@@ -49,7 +53,7 @@ const Layout = ({
         </ConfigProvider>
       </Main>
 
-      <Footer currentPath={currentPath} mode={footer} />
+      <Footer currentPath={currentPath} mode={footerMode} />
     </Wrap>
   )
 }
