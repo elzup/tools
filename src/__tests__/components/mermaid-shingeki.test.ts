@@ -1,3 +1,6 @@
+// @vitest-environment happy-dom
+// mermaid が内部で DOMPurify.sanitize を呼び、window が無いと関数が生えないため DOM 環境で動かす
+
 import { buildShingekiBlocks } from '../../components/ShingekiPlots'
 import { parseMarmaid } from '../../components/MermaidUi/useMermaid'
 
@@ -14,11 +17,11 @@ WALL -.-o OUTSIDE[外の世界]
 
 describe('mermaid shingeki graph parsing', () => {
   beforeEach(() => {
-    jest.spyOn(console, 'log').mockImplementation(() => {})
+    vi.spyOn(console, 'log').mockImplementation(() => {})
   })
 
   afterEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   it('parses the edge forms used by the Shingeki story graph', () => {

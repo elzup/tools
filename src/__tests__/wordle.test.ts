@@ -83,28 +83,28 @@ const game = createGame('abcde')
 describe('answer', () => {
   it('continue', () => {
     expect(answer(game, 'fghij')).toMatchInlineSnapshot(`
-      Object {
-        "answerResults": Array [
-          Object {
+      {
+        "answerResults": [
+          {
             "allOk": false,
-            "chars": Array [
-              Object {
+            "chars": [
+              {
                 "char": "f",
                 "judge": "non",
               },
-              Object {
+              {
                 "char": "g",
                 "judge": "non",
               },
-              Object {
+              {
                 "char": "h",
                 "judge": "non",
               },
-              Object {
+              {
                 "char": "i",
                 "judge": "non",
               },
-              Object {
+              {
                 "char": "j",
                 "judge": "non",
               },
@@ -113,7 +113,7 @@ describe('answer', () => {
         ],
         "step": "start",
         "target": "abcde",
-        "used": Object {},
+        "used": {},
       }
     `)
   })
@@ -160,37 +160,37 @@ const wordLib = {
 
 test('createTargetWord', () => {
   expect(createTargetWord('20220101', wordLib)).toMatchInlineSnapshot(`
-    Object {
+    {
       "reading": "てと,かきく",
       "text": "てとかきく",
     }
   `)
   expect(createTargetWord('20220102', wordLib)).toMatchInlineSnapshot(`
-    Object {
+    {
       "reading": "さしす,てと",
       "text": "さしすてと",
     }
   `)
   expect(createTargetWord('20220103', wordLib)).toMatchInlineSnapshot(`
-    Object {
+    {
       "reading": "てと,かきく",
       "text": "てとかきく",
     }
   `)
   expect(createTargetWord('20220104', wordLib)).toMatchInlineSnapshot(`
-    Object {
+    {
       "reading": "なにぬねの",
       "text": "なにぬねの",
     }
   `)
   expect(createTargetWord('20220105', wordLib)).toMatchInlineSnapshot(`
-    Object {
+    {
       "reading": "かきく,せそ",
       "text": "かきくせそ",
     }
   `)
   expect(createTargetWord('20220106', wordLib)).toMatchInlineSnapshot(`
-    Object {
+    {
       "reading": "あいうえお",
       "text": "あいうえお",
     }
