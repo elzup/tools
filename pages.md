@@ -17,12 +17,14 @@
 | progress-timer.tsx           | Tool/Game       | 進行タイマー - 配分/絶対/累積の 3 表記同期・実績進行・境界ずらし     | @mui, styled-components                        | 現在           | \*  | localStorage+URL 共有, VCSDD        | 8    |
 | spanbox.tsx                  | Tool/Game       | 方眼上の矩形ブロックを移動・伸縮・色ラベル編集する SpanBox ツール    | styled-components, react-icons                 | 現在           |     | グリッドブロック UI                 | 6    |
 | roulette.tsx                 | Tool/Game       | ルーレット - 改行区切り入力の全画面ド派手ルーレット (100 件超対応)  | styled-components, canvas                      | 現在           | \*  | ヘッダーレス, ?title/?items で動的 | 8    |
+| pi-carpet.tsx                | Tool/Game       | 上に伸びる数字の絨毯を円周率順に踏んで登るタイムアタック              | @mui, styled-components                        | 現在           | \*  | ミス +1s 加算, ベストは localStorage | 8    |
 | mushikui-search.tsx          | Tool/Game       | 虫食いパターンで常用日本語辞書を検索するツール                       | @mui                                           | 現在           |     | 辞書検索                            | 5    |
 | stamina-calc.tsx             | Tool/Game       | スタミナ/聖遺物/ストック運用シミュレーター                           | @mui, styled-components                        | 現在           |     | ゲームリソース管理                  | 5    |
 | domino-3d.tsx                | Physics         | ドミノ倒し物理演算シミュレーター                                     | @react-three, @react-three/rapier, three, @mui | 現在           | \*  | 配置パターン切替                    | 7    |
 | tusi-bowl.tsx                | Physics         | ボウルにタイミングよく球を置くと円運動に見える Tusi couple 体験      | @react-three, @react-three/rapier, three, @mui | 現在           | \*  | 球同士の衝突判定・タイミング判定    | 6    |
 | inverted-double-pendulum.tsx | Physics         | カート移動で二重倒立振り子を直立維持する LQR 制御シミュレーション    | @mui, styled-components                        | 現在           | \*  | RK4 + 有限差分線形化 + Riccati 反復 | 7    |
 | sand-leveler.tsx             | Physics         | 円形皿の砂を回転ブレードが少しずつ整地するシミュレーション           | @mui, styled-components                        | 現在           | \*  | 高さ場 + 安息角 + 運搬ブレード      | 7    |
+| tesla-valve.tsx              | Physics         | Tesla の弁状導管を格子ボルツマン法で解き順逆の流量比 (整流比) を出す | @mui, styled-components, canvas                | 現在           | \*  | D2Q9 LBM, 順逆 2 本を同時に計算     | 8    |
 | unicode-map.tsx              | Graphical       | Unicode BMP をヒルベルト曲線/行優先で色分け表示するマップ            | @mui                                           | 現在           | \*  | Canvas 描画, 壁 Lv.0-4              | 6    |
 | 1px.tsx                      | DevTool         | 1px の画像データ URL 生成ツール                                      | react-color, @mui                              | 現在           |     | カラーピッカー使用                  | 4    |
 | 4kpx.tsx                     | DevTool         | 4K 解像度向けパターン SVG 生成ツール                                 | react-color, @mui, styled-components           | 現在           |     | SVG パターン生成                    | 4    |
@@ -50,6 +52,7 @@
 | key-event-master.tsx         | ComputerScience | キーイベントデモ                                                     |                                                | 現在           | \*  | キーボードイベント                  | 4    |
 | mermaid-ui.tsx               | ComputerScience | Mermaid UI - ダイアグラム生成                                        | mermaid                                        | **レガシー**   | \*  | 図表生成                            | 6    |
 | float-precision.tsx          | Math            | 浮動小数点の有効桁数を体験的に学べるデモ                             | @mui, styled-components                        | 現在           |     | 教育・体験型                        | 6    |
+| wasm-calc-bench.tsx          | ComputerScience | 入力した四則演算式を JS / Wasm で 10^n 回実行して速度を比較          | @mui, WebAssembly                              | 現在           | \*  | 動的 Wasm 生成・交互順中央値計測    | 7    |
 | strobe.tsx                   | Physics         | ストロボ効果(回転が止まって見える)体験                               | @mui, styled-components                        | 現在           | \*  | 教育・体験型/canvas                 | 6    |
 | seatbelt.tsx                 | Physics         | シートベルト慣性ロック(ELR ウェビング感応)のドラッグ体験             | @mui, styled-components                        | 現在           | \*  | 教育・体験型/canvas                 | 6    |
 | dice-3d.tsx                  | Physics         | 3D サイコロの物理挙動と出目を試せるシミュレーター                    | @react-three, @react-three/rapier, three, @mui | 現在           |     | 3D 物理シミュレーション             | 5    |

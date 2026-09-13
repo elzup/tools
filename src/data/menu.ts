@@ -46,8 +46,10 @@ import {
   faSkull,
   faSortNumericAsc,
   faSpider,
+  faStairs,
   faStroopwafel,
   faWandSparkles,
+  faWater,
   faWindowMinimize,
   faWindowRestore,
 } from '@fortawesome/free-solid-svg-icons'
@@ -122,6 +124,11 @@ export const routings: RoutingGroup[] = [
         icon: faCircleNotch,
         label: 'ルーレット',
         path: '/roulette',
+      },
+      {
+        icon: faStairs,
+        label: '円周率カーペット',
+        path: '/pi-carpet',
       },
     ],
   },
@@ -278,12 +285,22 @@ export const routings: RoutingGroup[] = [
         label: 'Googol 歯車',
         path: '/googol',
       },
+      {
+        icon: faWater,
+        label: 'テスラ弁',
+        path: '/tesla-valve',
+      },
     ],
   },
 
   {
     label: 'ComputerScience',
     routings: [
+      {
+        icon: faCalculator,
+        label: 'JS / Wasm 計算ベンチ',
+        path: '/wasm-calc-bench',
+      },
       {
         icon: faWindowRestore,
         label: 'SubWindowDump',
@@ -484,13 +501,13 @@ export const secretRoutings: RoutingGroup[] = [
 
 // 新規ページを追加したらここの先頭にも path を足す (Recent セクション用、カテゴリと重複表示可)
 const recentPaths = [
+  '/wasm-calc-bench',
+  '/tesla-valve',
+  '/pi-carpet',
   '/roulette',
   '/sand-leveler',
   '/inverted-double-pendulum',
   '/clock-digits',
-  '/unicode-map',
-  '/nail-loop-curve',
-  '/tusi-bowl',
 ]
 
 const flatRoutings = [...routings, ...secretRoutings].flatMap(
