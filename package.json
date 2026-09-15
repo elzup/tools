@@ -8,7 +8,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "export": "pnpm build && next export",
+    "deploy": "pnpm build && wrangler pages deploy",
     "start": "next start",
     "lint": "biome lint src",
     "format": "biome format --write src && prettier --write \"**/*.md\"",
@@ -122,7 +122,8 @@
     "typescript": "^5.7.0",
     "url-loader": "4.1.1",
     "vitest": "^5.0.0",
-    "webpack": "5.74.0"
+    "webpack": "5.74.0",
+    "wrangler": "^4.131.1"
   },
   "engines": {
     "node": "22.x"
