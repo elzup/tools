@@ -290,6 +290,11 @@ export const routings: RoutingGroup[] = [
         label: 'テスラ弁',
         path: '/tesla-valve',
       },
+      {
+        icon: faCircleNotch,
+        label: '円形プールの波形成形',
+        path: '/wave-pool',
+      },
     ],
   },
 
