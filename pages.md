@@ -44,6 +44,7 @@
 | googol.tsx                   | Physics         | Googol 可視化 - 10^100 歯車装置シミュレーション                      | @react-three, three, @mui                      | 現在           | \*  | 2D/3D 表示対応                      | 6    |
 | upset-viewer.tsx             | Math            | Venn 図・UpSet プロットによる集合可視化ツール                        | @upsetjs/react, @mui                           | 現在           | \*  | 集合演算・可視化                    | 5    |
 | weekday-calc.tsx             | Math            | 曜日計算アルゴリズムのステップ可視化・説明ツール                     | @mui, styled-components                        | 現在           |     | 教育・学習用                        | 6    |
+| auth-flows.tsx               | Math            | パスワード / TOTP / パスキーの流れを step ごとの保持情報で可視化     | @mui                                           | 現在           | \*  | Web Crypto で実計算する演習付き     | 6    |
 | infinite-chocolate.tsx       | Physics         | 無限チョコパズル(Curry/missing-square)欠片が一つ余る幾何パラドックス | @mui, styled-components                        | 現在           | \*  | 教育・体験型/canvas                 | 6    |
 | noopener.tsx                 | ComputerScience | noopener デモ - セキュリティ実演                                     | @mui                                           | 現在           |     | セキュリティ教育                    | 3    |
 | xss.tsx                      | ComputerScience | XSS デモ - クロスサイトスクリプティング実演                          | prettier                                       | **レガシー**   |     | セキュリティ教育                    | 3    |

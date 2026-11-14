@@ -31,6 +31,7 @@ import {
   faGraduationCap,
   faHome,
   faHourglassHalf,
+  faFingerprint,
   faKeyboard,
   faLeaf,
   faListOl,
@@ -214,6 +215,11 @@ export const routings: RoutingGroup[] = [
         icon: faCalendarDay,
         label: '曜日計算 Explainer',
         path: '/weekday-calc',
+      },
+      {
+        icon: faFingerprint,
+        label: '認証の仕組み (パスワード / OTP / パスキー)',
+        path: '/auth-flows',
       },
       {
         icon: faCalculator,
