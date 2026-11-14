@@ -31,6 +31,7 @@ import {
   faGraduationCap,
   faHome,
   faHourglassHalf,
+  faFingerprint,
   faKeyboard,
   faLeaf,
   faLock,
@@ -220,6 +221,11 @@ export const routings: RoutingGroup[] = [
         icon: faLock,
         label: 'パスワード空間',
         path: '/password-space',
+      },
+      {
+        icon: faFingerprint,
+        label: '認証の仕組み (パスワード / OTP / パスキー)',
+        path: '/auth-flows',
       },
       {
         icon: faCalculator,
