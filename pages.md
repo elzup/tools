@@ -52,6 +52,7 @@
 | key-event-master.tsx         | ComputerScience | キーイベントデモ                                                     |                                                | 現在           | \*  | キーボードイベント                  | 4    |
 | mermaid-ui.tsx               | ComputerScience | Mermaid UI - ダイアグラム生成                                        | mermaid                                        | **レガシー**   | \*  | 図表生成                            | 6    |
 | float-precision.tsx          | Math            | 浮動小数点の有効桁数を体験的に学べるデモ                             | @mui, styled-components                        | 現在           |     | 教育・体験型                        | 6    |
+| nail-loop-curve.tsx          | Math            | 3 本の釘に掛けた糸の輪を鉛筆で張って描く曲線の可視化                 | @mui, styled-components, canvas                | 現在           | \*  | 凸包 + 周長一定の二分探索           | 5    |
 | wasm-calc-bench.tsx          | ComputerScience | 入力した四則演算式を JS / Wasm で 10^n 回実行して速度を比較          | @mui, WebAssembly                              | 現在           | \*  | 動的 Wasm 生成・交互順中央値計測    | 7    |
 | strobe.tsx                   | Physics         | ストロボ効果(回転が止まって見える)体験                               | @mui, styled-components                        | 現在           | \*  | 教育・体験型/canvas                 | 6    |
 | seatbelt.tsx                 | Physics         | シートベルト慣性ロック(ELR ウェビング感応)のドラッグ体験             | @mui, styled-components                        | 現在           | \*  | 教育・体験型/canvas                 | 6    |
@@ -81,9 +82,6 @@
 | splatoonament-cost.tsx       | Secret Tools    | スプラトゥーンメント費用計算                                         | @mui, styled-components                        | 現在           |     | ゲーム関連計算                      | 3    |
 | cryptowat-chart.tsx          | Secret Tools    | 暗号通貨チャート表示                                                 |                                                | 現在           | \*  | チャート表示                        | 5    |
 | million-learn-tech.tsx       | Secret Tools    | ミリオン学習技術デモ                                                 |                                                | 現在           | \*  | 教育技術                            | 5    |
-| ehou.tsx                     | メニューなし    | 恵方表示ツール                                                       |                                                | 現在           |     | 季節ツール                          | 2    |
-| continus-scan.tsx            | メニューなし    | 連続スキャンツール                                                   | html5-qrcode                                   | **要更新**     |     | QR コードスキャン                   | 3    |
-| flow2chat.tsx                | メニューなし    | フロー to チャット変換                                               | react-flow-renderer, elkjs                     | 現在           |     | フローチャート                      | 4    |
 | noopener-attacker.tsx        | メニューなし    | noopener 攻撃者ページ                                                | @mui                                           | 現在           |     | セキュリティ実験                    | 2    |
 
 ## 依存関係の状態について
