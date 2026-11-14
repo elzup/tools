@@ -25,6 +25,7 @@
 | inverted-double-pendulum.tsx | Physics         | カート移動で二重倒立振り子を直立維持する LQR 制御シミュレーション    | @mui, styled-components                        | 現在           | \*  | RK4 + 有限差分線形化 + Riccati 反復 | 7    |
 | sand-leveler.tsx             | Physics         | 円形皿の砂を回転ブレードが少しずつ整地するシミュレーション           | @mui, styled-components                        | 現在           | \*  | 高さ場 + 安息角 + 運搬ブレード      | 7    |
 | tesla-valve.tsx              | Physics         | Tesla の弁状導管を格子ボルツマン法で解き順逆の流量比 (整流比) を出す | @mui, styled-components, canvas                | 現在           | \*  | D2Q9 LBM, 順逆 2 本を同時に計算     | 8    |
+| wave-pool.tsx                | Physics         | 円形プール縁の造波機群の位相を時間反転で決め、水面波で狙った形を作る | @mui, styled-components, canvas                | 現在           | \*  | 2D 波動方程式 FDM, 壁 3 種, 集中度  | 8    |
 | unicode-map.tsx              | Graphical       | Unicode BMP をヒルベルト曲線/行優先で色分け表示するマップ            | @mui                                           | 現在           | \*  | Canvas 描画, 壁 Lv.0-4              | 6    |
 | 1px.tsx                      | DevTool         | 1px の画像データ URL 生成ツール                                      | react-color, @mui                              | 現在           |     | カラーピッカー使用                  | 4    |
 | 4kpx.tsx                     | DevTool         | 4K 解像度向けパターン SVG 生成ツール                                 | react-color, @mui, styled-components           | 現在           |     | SVG パターン生成                    | 4    |
@@ -38,6 +39,7 @@
 | mandelbulb.tsx               | Math            | マンデルブロ集合可視化ツール                                         | @mui                                           | 現在           |     | 数学的可視化                        | 5    |
 | collatz-graph.tsx            | Math            | コラッツ予想グラフ可視化                                             |                                                | 現在           |     | 数学的グラフ                        | 4    |
 | frag-problab.tsx             | Math            | フラグメント確率実験                                                 | @mui                                           | 現在           |     | 確率シミュレーション                | 4    |
+| password-space.tsx           | Math            | 1 文字増やす vs 記号を 1 つ入れる のパターン数を λ スケールで比較    | @mui, styled-components                        | 現在           | \*  | Box-Cox で線形〜対数を連続切替      | 6    |
 | custom-ratio-graph.tsx       | Math            | カスタム比率グラフ作成                                               | @mui                                           | 現在           |     | グラフ作成                          | 4    |
 | norm-viewer.tsx              | Math            | 正規分布の値・範囲・保存セットを可視化する分布推定ツール             | @mui, styled-components                        | 現在           |     | 統計可視化                          | 5    |
 | gray-code.tsx                | Math            | グレイコードの生成式とビット変化を段階表示する可視化ツール           | styled-components                              | 現在           |     | ビット列可視化                      | 4    |
@@ -53,6 +55,7 @@
 | key-event-master.tsx         | ComputerScience | キーイベントデモ                                                     |                                                | 現在           | \*  | キーボードイベント                  | 4    |
 | mermaid-ui.tsx               | ComputerScience | Mermaid UI - ダイアグラム生成                                        | mermaid                                        | **レガシー**   | \*  | 図表生成                            | 6    |
 | float-precision.tsx          | Math            | 浮動小数点の有効桁数を体験的に学べるデモ                             | @mui, styled-components                        | 現在           |     | 教育・体験型                        | 6    |
+| nail-loop-curve.tsx          | Math            | 3 本の釘に掛けた糸の輪を鉛筆で張って描く曲線の可視化                 | @mui, styled-components, canvas                | 現在           | \*  | 凸包 + 周長一定の二分探索           | 5    |
 | wasm-calc-bench.tsx          | ComputerScience | 入力した四則演算式を JS / Wasm で 10^n 回実行して速度を比較          | @mui, WebAssembly                              | 現在           | \*  | 動的 Wasm 生成・交互順中央値計測    | 7    |
 | strobe.tsx                   | Physics         | ストロボ効果(回転が止まって見える)体験                               | @mui, styled-components                        | 現在           | \*  | 教育・体験型/canvas                 | 6    |
 | seatbelt.tsx                 | Physics         | シートベルト慣性ロック(ELR ウェビング感応)のドラッグ体験             | @mui, styled-components                        | 現在           | \*  | 教育・体験型/canvas                 | 6    |
@@ -82,9 +85,6 @@
 | splatoonament-cost.tsx       | Secret Tools    | スプラトゥーンメント費用計算                                         | @mui, styled-components                        | 現在           |     | ゲーム関連計算                      | 3    |
 | cryptowat-chart.tsx          | Secret Tools    | 暗号通貨チャート表示                                                 |                                                | 現在           | \*  | チャート表示                        | 5    |
 | million-learn-tech.tsx       | Secret Tools    | ミリオン学習技術デモ                                                 |                                                | 現在           | \*  | 教育技術                            | 5    |
-| ehou.tsx                     | メニューなし    | 恵方表示ツール                                                       |                                                | 現在           |     | 季節ツール                          | 2    |
-| continus-scan.tsx            | メニューなし    | 連続スキャンツール                                                   | html5-qrcode                                   | **要更新**     |     | QR コードスキャン                   | 3    |
-| flow2chat.tsx                | メニューなし    | フロー to チャット変換                                               | react-flow-renderer, elkjs                     | 現在           |     | フローチャート                      | 4    |
 | noopener-attacker.tsx        | メニューなし    | noopener 攻撃者ページ                                                | @mui                                           | 現在           |     | セキュリティ実験                    | 2    |
 
 ## 依存関係の状態について

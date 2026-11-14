@@ -34,6 +34,7 @@ import {
   faFingerprint,
   faKeyboard,
   faLeaf,
+  faLock,
   faListOl,
   faMobileButton,
   faPaintBrush,
@@ -217,6 +218,11 @@ export const routings: RoutingGroup[] = [
         path: '/weekday-calc',
       },
       {
+        icon: faLock,
+        label: 'パスワード空間',
+        path: '/password-space',
+      },
+      {
         icon: faFingerprint,
         label: '認証の仕組み (パスワード / OTP / パスキー)',
         path: '/auth-flows',
@@ -295,6 +301,11 @@ export const routings: RoutingGroup[] = [
         icon: faWater,
         label: 'テスラ弁',
         path: '/tesla-valve',
+      },
+      {
+        icon: faCircleNotch,
+        label: '円形プールの波形成形',
+        path: '/wave-pool',
       },
     ],
   },
