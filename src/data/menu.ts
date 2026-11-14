@@ -33,6 +33,7 @@ import {
   faHourglassHalf,
   faKeyboard,
   faLeaf,
+  faLock,
   faListOl,
   faMobileButton,
   faPaintBrush,
@@ -214,6 +215,11 @@ export const routings: RoutingGroup[] = [
         icon: faCalendarDay,
         label: '曜日計算 Explainer',
         path: '/weekday-calc',
+      },
+      {
+        icon: faLock,
+        label: 'パスワード空間',
+        path: '/password-space',
       },
       {
         icon: faCalculator,
