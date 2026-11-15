@@ -10,7 +10,9 @@ import {
 } from '@mui/material'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import styled from 'styled-components'
-import { type Drive, type Vec, timeReversalDrive, uniformDrive } from './drive'
+import { type Drive, type Vec, uniformDrive } from './drive'
+import { hologramDrive } from './hologram'
+import { iconTargets } from './icons'
 import { type ViewMode, createImage, drawOverlay, paintField } from './render'
 import {
   type Pool,
@@ -22,14 +24,19 @@ import {
   isBroken,
   omegaOf,
   placeSources,
+  poolRadiusOf,
   toCell,
   toUnit,
 } from './sim'
 import {
   CUSTOM_MAX,
-  TARGET_LABELS,
+  ICON_LABELS,
+  type IconKind,
+  SHAPE_LABELS,
+  type ShapeKind,
   type TargetKind,
   buildTargets,
+  isIconKind,
   clampToPool,
 } from './targets'
 import {
@@ -80,6 +87,9 @@ const WALL_LABELS: Record<Wall, string> = {
   fixed: '固定端',
 }
 
+/** 輪郭を刻む間隔 (プール半径 = 1)。焦点 1 個の幅 λ/2 に合わせる */
+const spacingOf = (wavelength: number) => wavelength / 2 / poolRadiusOf(GRID)
+
 type Sim = {
   pool: Pool
   sources: Source[]
@@ -106,7 +116,7 @@ const buildSim = (config: Config): Sim => {
 
 const drivesOf = (sim: Sim, targetCells: Vec[], config: Config): Drive[] =>
   config.phaseControl
-    ? timeReversalDrive(
+    ? hologramDrive(
         sim.sources.map((s) => s.pos),
         targetCells,
         omegaOf(config.wavelength)
@@ -190,8 +200,16 @@ const WavePool = () => {
     setConfig((prev) => ({ ...prev, [key]: value }))
 
   const targetsUnit = useMemo(
-    () => buildTargets(config.target, pointer, custom),
-    [config.target, pointer, custom]
+    () =>
+      isIconKind(config.target)
+        ? iconTargets(config.target, spacingOf(config.wavelength))
+        : buildTargets(
+            config.target,
+            pointer,
+            custom,
+            spacingOf(config.wavelength)
+          ),
+    [config.target, pointer, custom, config.wavelength]
   )
 
   // 波源数・壁・減衰は格子の作り直しが要る。波長と位相は毎フレーム反映できるので含めない
@@ -281,10 +299,14 @@ const WavePool = () => {
     <Stack spacing={2}>
       <Typography variant="body2" color="text.secondary">
         円形プールの縁に造波機を等間隔に並べ、それぞれの振幅と位相を調整して
-        水面の狙った場所に波を集める。位相は時間反転
-        (位相共役)で決める。ターゲットから各造波機までの距離 r
-        に対して、届いたとき山が揃うように φ = k·r を選び、複数ターゲットは
-        e^(ikr)/√r の和の偏角と大きさを使う。
+        水面の狙った場所に波を集める。1 点なら時間反転
+        (位相共役)で、ターゲットから各造波機までの距離 r
+        に対して届いたとき山が揃うように φ = k·r を選ぶ。線や形は λ/2
+        間隔の点群にし、各点の位相を自由に選べることを使って 重み付き
+        Gerchberg–Saxton 法 (逆伝搬 → 順伝搬 → 位相だけ残して振幅を揃える、を 60
+        回反復) で駆動を求める。単純に和を取ると点同士の干渉で形が崩れる。
+        円周の造波機で独立に作れる焦点はおよそ 2kR 個 (λ = 16 で約 75)
+        なので、輪郭の単純な形ほどくっきり出る。
       </Typography>
 
       <PoolWrap>
@@ -310,9 +332,21 @@ const WavePool = () => {
           value={config.target}
           onChange={(_, v: TargetKind | null) => v && update('target', v)}
         >
-          {(Object.keys(TARGET_LABELS) as TargetKind[]).map((kind) => (
+          {(Object.keys(SHAPE_LABELS) as ShapeKind[]).map((kind) => (
             <ToggleButton key={kind} value={kind}>
-              {TARGET_LABELS[kind]}
+              {SHAPE_LABELS[kind]}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+        <ToggleButtonGroup
+          size="small"
+          exclusive
+          value={config.target}
+          onChange={(_, v: TargetKind | null) => v && update('target', v)}
+        >
+          {(Object.keys(ICON_LABELS) as IconKind[]).map((kind) => (
+            <ToggleButton key={kind} value={kind}>
+              {ICON_LABELS[kind]}
             </ToggleButton>
           ))}
         </ToggleButtonGroup>

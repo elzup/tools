@@ -36,13 +36,16 @@ export const SOURCE_INSET = 2
 // 点波源の強制振幅。表示は自動スケールなので値そのものに物理的な意味はない
 const SOURCE_GAIN = 1
 
+/** 格子 size のプール半径 (セル)。縁の 1 セルは壁の境界条件に使う */
+export const poolRadiusOf = (size: number) => size / 2 - 1
+
 export const createPool = (
   size: number,
   wall: Wall,
   baseDamping: number
 ): Pool => {
   const center = { x: (size - 1) / 2, y: (size - 1) / 2 }
-  const radius = size / 2 - 1
+  const radius = poolRadiusOf(size)
   const cells = size * size
   const mask = new Uint8Array(cells)
   const damping = new Float32Array(cells)
