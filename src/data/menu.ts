@@ -518,13 +518,13 @@ export const secretRoutings: RoutingGroup[] = [
 
 // 新規ページを追加したらここの先頭にも path を足す (Recent セクション用、カテゴリと重複表示可)
 const recentPaths = [
+  '/auth-flows',
+  '/wave-pool',
+  '/password-space',
   '/wasm-calc-bench',
   '/tesla-valve',
   '/pi-carpet',
   '/roulette',
-  '/sand-leveler',
-  '/inverted-double-pendulum',
-  '/clock-digits',
 ]
 
 const flatRoutings = [...routings, ...secretRoutings].flatMap(
