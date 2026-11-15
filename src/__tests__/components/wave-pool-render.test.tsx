@@ -32,6 +32,7 @@ describe('WavePool render', () => {
       fireEvent.click(screen.getByRole('button', { name }))
     }
     fireEvent.click(screen.getByRole('button', { name: '時間平均エネルギー' }))
+    fireEvent.click(screen.getByRole('button', { name: 'ターゲット到着時' }))
     fireEvent.click(screen.getByLabelText('位相制御'))
     await runFor(RUN_MS)
     expect(elapsedT()).toBeGreaterThan(0)

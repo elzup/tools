@@ -32,6 +32,11 @@ import {
   buildTargets,
   clampToPool,
 } from './targets'
+import {
+  type WaveformAlign,
+  drawSideWaveforms,
+  drawWaveforms,
+} from './waveform'
 
 type Config = {
   sources: number
@@ -48,7 +53,7 @@ const DEFAULT_CONFIG: Config = {
   sources: 64,
   wavelength: 16,
   damping: 0.004,
-  substeps: 6,
+  substeps: 1,
   wall: 'absorb',
   view: 'height',
   target: 'point',
@@ -58,9 +63,16 @@ const DEFAULT_CONFIG: Config = {
 // 200 だと 1 フレーム 6 ステップで 24 万セル更新になり、ノート PC でも 60fps を保てる
 const GRID = 200
 const CANVAS_TARGET_WIDTH = 640
+// 格子 1 セルを何 px で描くか。整数倍にして拡大のにじみを均一にする
+const SCALE = Math.max(2, Math.round(CANVAS_TARGET_WIDTH / GRID))
 // 焦点の評価半径。波長 16 セルの焦点幅 (≈ λ/2) に収まる大きさ
 const FOCUS_REACH = 3
 const STAT_INTERVAL_MS = 250
+// 波形パネルの描画解像度 (CSS 幅は親に合わせて縮む)。行数 128 でも 1 行 2px 以上を確保する高さ
+const WAVE_WIDTH = CANVAS_TARGET_WIDTH
+const WAVE_HEIGHT = 300
+// プール図の右に足す、右半分の造波機の波形欄 (描画 px)。プール 600px に対して 3 周期が読める幅
+const SIDE_WIDTH = 300
 
 const WALL_LABELS: Record<Wall, string> = {
   absorb: '吸収',
@@ -87,7 +99,7 @@ const buildSim = (config: Config): Sim => {
     sources: placeSources(pool, config.sources),
     image: createImage(GRID),
     buffer,
-    scale: Math.max(2, Math.round(CANVAS_TARGET_WIDTH / GRID)),
+    scale: SCALE,
     peak: 0,
   }
 }
@@ -101,22 +113,53 @@ const drivesOf = (sim: Sim, targetCells: Vec[], config: Config): Drive[] =>
       )
     : uniformDrive(sim.sources.length)
 
+type WavePanelInput = {
+  drives: Drive[]
+  omega: number
+  reference: Vec | null
+  align: WaveformAlign
+}
+
 const draw = (
   sim: Sim,
   canvas: HTMLCanvasElement | null,
-  drives: Drive[],
   targetCells: Vec[],
-  view: ViewMode
+  view: ViewMode,
+  wave: WavePanelInput
 ) => {
   const ctx = canvas?.getContext('2d')
   const bufferCtx = sim.buffer.getContext('2d')
   if (!ctx || !bufferCtx) return
 
+  const poolPx = GRID * sim.scale
   sim.peak = paintField(sim.pool, view, sim.image, sim.peak)
   bufferCtx.putImageData(sim.image, 0, 0)
   ctx.imageSmoothingEnabled = true
-  ctx.drawImage(sim.buffer, 0, 0, GRID * sim.scale, GRID * sim.scale)
-  drawOverlay(ctx, sim.pool, sim.sources, drives, targetCells, sim.scale)
+  ctx.drawImage(sim.buffer, 0, 0, poolPx, poolPx)
+  ctx.clearRect(poolPx, 0, SIDE_WIDTH, poolPx)
+  // 引き出し線がプールの上を通るので、造波機のドットより先に描いて下に敷く
+  drawSideWaveforms(ctx, poolPx, SIDE_WIDTH, {
+    ...wave,
+    sources: sim.sources,
+    time: sim.pool.time,
+    centerX: sim.pool.center.x,
+    scale: sim.scale,
+  })
+  drawOverlay(ctx, sim.pool, sim.sources, wave.drives, targetCells, sim.scale)
+}
+
+const drawWavePanel = (
+  canvas: HTMLCanvasElement | null,
+  sim: Sim,
+  input: WavePanelInput
+) => {
+  const ctx = canvas?.getContext('2d')
+  if (!ctx) return
+  drawWaveforms(ctx, WAVE_WIDTH, WAVE_HEIGHT, {
+    ...input,
+    sources: sim.sources,
+    time: sim.pool.time,
+  })
 }
 
 type Stats = { focus: number; time: number }
@@ -128,6 +171,8 @@ const WavePool = () => {
   const runningRef = useRef(true)
   const targetsRef = useRef<Vec[]>([])
   const drivesRef = useRef<Drive[]>([])
+  const waveRef = useRef<HTMLCanvasElement>(null)
+  const alignRef = useRef<WaveformAlign>('emit')
 
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG)
   const [running, setRunning] = useState(true)
@@ -135,9 +180,11 @@ const WavePool = () => {
   const [pointer, setPointer] = useState<Vec>({ x: 0.3, y: -0.2 })
   const [custom, setCustom] = useState<Vec[]>([])
   const [stats, setStats] = useState<Stats>({ focus: 0, time: 0 })
+  const [align, setAlign] = useState<WaveformAlign>('emit')
 
   configRef.current = config
   runningRef.current = running
+  alignRef.current = align
 
   const update = <K extends keyof Config>(key: K, value: Config[K]) =>
     setConfig((prev) => ({ ...prev, [key]: value }))
@@ -153,7 +200,7 @@ const WavePool = () => {
     simRef.current = sim
     const canvas = canvasRef.current
     if (!canvas) return
-    canvas.width = GRID * sim.scale
+    canvas.width = GRID * sim.scale + SIDE_WIDTH
     canvas.height = GRID * sim.scale
   }, [config.sources, config.wall, config.damping, resetKey])
 
@@ -184,13 +231,14 @@ const WavePool = () => {
           cfg.substeps
         )
       }
-      draw(
-        sim,
-        canvasRef.current,
-        drivesRef.current,
-        targetsRef.current,
-        cfg.view
-      )
+      const wave: WavePanelInput = {
+        drives: drivesRef.current,
+        omega: omegaOf(cfg.wavelength),
+        reference: targetsRef.current[0] ?? null,
+        align: alignRef.current,
+      }
+      draw(sim, canvasRef.current, targetsRef.current, cfg.view, wave)
+      drawWavePanel(waveRef.current, sim, wave)
 
       const now = performance.now()
       if (now - lastStatAt < STAT_INTERVAL_MS) return
@@ -213,10 +261,13 @@ const WavePool = () => {
     const sim = simRef.current
     if (!sim) return
     const rect = e.currentTarget.getBoundingClientRect()
+    // canvas はプール + 右の波形欄なので、横方向は全幅を格子セル換算してからプール部分だけ受け付ける
+    const totalCells = GRID + SIDE_WIDTH / sim.scale
     const cell = {
-      x: ((e.clientX - rect.left) / rect.width) * GRID,
+      x: ((e.clientX - rect.left) / rect.width) * totalCells,
       y: ((e.clientY - rect.top) / rect.height) * GRID,
     }
+    if (cell.x > GRID) return
     const p = clampToPool(toUnit(sim.pool, cell))
     if (config.target === 'custom') {
       setCustom((prev) => [...prev, p].slice(-CUSTOM_MAX))
@@ -236,9 +287,9 @@ const WavePool = () => {
         e^(ikr)/√r の和の偏角と大きさを使う。
       </Typography>
 
-      <CanvasWrap>
+      <PoolWrap>
         <Canvas ref={canvasRef} onClick={onCanvasClick} />
-      </CanvasWrap>
+      </PoolWrap>
 
       <Typography variant="body2">
         集中度 (ターゲット周辺 / プール平均のエネルギー比):{' '}
@@ -382,11 +433,43 @@ const WavePool = () => {
       <Typography variant="caption" color="text.secondary">
         水面をクリックすると 1 点ターゲットをそこへ動かす
         (自由配置モードでは点を足す)。
-        縁のドットが造波機で、色が位相、大きさが振幅。白い輪がターゲット。
+        縁のドットが造波機で、色が位相、大きさが振幅。白い輪がターゲット。右半分の造波機は、同じ高さの右側にその駆動波形を出す
+        (左端が今、右へ流れて過去)。
         位相制御を切ると全台同位相になり、中心にしか集まらないことと比べられる。
         造波機の間隔が λ/2 より広いと、狙っていない場所にも焦点
         (グレーティングローブ) が出る。単位は格子単位 (c = 1)。
       </Typography>
+
+      <Stack spacing={1}>
+        <Stack
+          direction="row"
+          spacing={1}
+          flexWrap="wrap"
+          useFlexGap
+          alignItems="center"
+        >
+          <Typography variant="subtitle2">造波機ごとの駆動波形</Typography>
+          <ToggleButtonGroup
+            size="small"
+            exclusive
+            value={align}
+            onChange={(_, v: WaveformAlign | null) => v && setAlign(v)}
+          >
+            <ToggleButton value="emit">送出時</ToggleButton>
+            <ToggleButton value="arrival">ターゲット到着時</ToggleButton>
+          </ToggleButtonGroup>
+        </Stack>
+        <CanvasWrap>
+          <WaveCanvas ref={waveRef} width={WAVE_WIDTH} height={WAVE_HEIGHT} />
+        </CanvasWrap>
+        <Typography variant="caption" color="text.secondary">
+          1 行が造波機 1 台 (縦軸は縁の角度、0° が右で画面上は時計回り)、
+          横軸は時間で右端が今。線の色は位相、振れ幅は振幅。
+          「ターゲット到着時」は各波形をターゲットまでの距離 r
+          ぶん遅らせて並べ替えたもの。位相制御が効いていれば全行の山が縦一列に揃う
+          (ターゲットが複数のときは最初の 1 点を基準にする)。
+        </Typography>
+      </Stack>
     </Stack>
   )
 }
@@ -402,6 +485,19 @@ const Canvas = styled.canvas`
   border-radius: 4px;
   background: #1c202a;
   cursor: crosshair;
+`
+
+// プール (GRID × SCALE px) + 波形欄。描画 px と CSS px を 1:1 にして線を滲ませない
+const PoolWrap = styled.div`
+  max-width: ${GRID * SCALE + SIDE_WIDTH}px;
+`
+
+const WaveCanvas = styled.canvas`
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 4px;
+  background: #1c202a;
 `
 
 const Muted = styled.span`
