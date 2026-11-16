@@ -14,56 +14,143 @@ export const PI_DIGITS =
 
 export const MAX_GOAL = PI_DIGITS.length - 1
 
+const ALL_DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+// 袋小路に入った探索を深追いせず即座に別シードでやり直すための上限。
+// 800 手で打ち切ると 100 桁盤面でも数ミリ秒以内に収束する
+const SEARCH_STEP_BUDGET = 800
+
+export type Pos = {
+  row: number
+  col: number
+}
+
 export type Carpet = {
-  // rows[i][col] = i 桁目の行に敷かれた数字。rows[0] がスタート行 (下端)
+  size: number
   rows: string[][]
-  // path[i] = i 桁目の正解セルの列
-  path: number[]
+  path: Pos[]
 }
 
-const randomDigitExcept = (exclude: string) => {
-  // 除外分を詰めた 9 通りから引く。引き直しループにしないのは、
-  // 最悪ケースの回数が読めない乱数ループを盤面生成に持ち込まないため
-  const digit = Math.floor(Math.random() * 9)
-  return String(digit >= Number(exclude) ? digit + 1 : digit)
+export const isSamePos = (a: Pos, b: Pos) => a.row === b.row && a.col === b.col
+
+export const gridSizeForGoal = (goal: number) => {
+  if (goal <= 10) return 5
+  if (goal <= 20) return 7
+  if (goal <= 50) return 10
+  return Math.max(13, Math.ceil(Math.sqrt((goal + 1) * 1.6)))
 }
 
-const randomDigit = () => String(Math.floor(Math.random() * 10))
+export const neighborPositions = ({ row, col }: Pos, size: number): Pos[] =>
+  [
+    { row: row - 1, col },
+    { row: row + 1, col },
+    { row, col: col - 1 },
+    { row, col: col + 1 },
+  ].filter(
+    (pos) => pos.row >= 0 && pos.row < size && pos.col >= 0 && pos.col < size
+  )
 
-// 進める先は真上と斜め上の 3 マス。生成側と操作側で同じ定義を使う
-export const neighborCols = (col: number, cols: number) =>
-  [col - 1, col, col + 1].filter((c) => c >= 0 && c < cols)
+const shuffle = <T>(items: readonly T[]): T[] =>
+  items
+    .map((item) => ({ item, sortKey: Math.random() }))
+    .sort((a, b) => a.sortKey - b.sortKey)
+    .map(({ item }) => item)
+
+const randomDigitExcept = (excluded: ReadonlySet<string>) => {
+  const allowed = ALL_DIGITS.filter((d) => !excluded.has(d))
+  return allowed[Math.floor(Math.random() * allowed.length)]
+}
+
+// 経路が自分自身の近くをかすめるとき、隣り合う別ステップのセルが「次の一手」と
+// 同じ数字を持っていると正解方向が二通りに見えてしまうため、その配置を禁止する
+const canPlaceStep = (
+  pos: Pos,
+  path: readonly Pos[],
+  goal: number,
+  size: number
+) => {
+  const step = path.length
+  return neighborPositions(pos, size).every((nb) => {
+    const visitedStep = path.findIndex((p) => isSamePos(p, nb))
+    if (visitedStep === -1 || visitedStep === step - 1) return true
+    if (PI_DIGITS[step] === PI_DIGITS[visitedStep + 1]) return false
+    if (step < goal && PI_DIGITS[visitedStep] === PI_DIGITS[step + 1])
+      return false
+    return true
+  })
+}
+
+type SearchState = {
+  result: Pos[] | null
+  budget: number
+}
+
+const searchPath = (
+  path: Pos[],
+  goal: number,
+  size: number,
+  budget: number
+): SearchState => {
+  if (path.length > goal) return { result: path, budget }
+  if (budget <= 0) return { result: null, budget: 0 }
+
+  const prev = path[path.length - 1]
+  const candidates = shuffle(
+    neighborPositions(prev, size).filter(
+      (nb) =>
+        !path.some((p) => isSamePos(p, nb)) &&
+        canPlaceStep(nb, path, goal, size)
+    )
+  )
+
+  return candidates.reduce<SearchState>(
+    (acc, candidate) => {
+      if (acc.result !== null || acc.budget <= 0) return acc
+      return searchPath([...path, candidate], goal, size, acc.budget - 1)
+    },
+    { result: null, budget: budget - 1 }
+  )
+}
+
+const generatePath = (goal: number, size: number): Pos[] => {
+  const center: Pos = {
+    row: Math.floor(size / 2),
+    col: Math.floor(size / 2),
+  }
+  while (true) {
+    const { result } = searchPath([center], goal, size, SEARCH_STEP_BUDGET)
+    if (result !== null) return result
+  }
+}
 
 /**
- * 上方向に伸びる数字の絨毯を作る。各行で「直前の正解セルの真上・斜め上」の
- * 3 セルのうち、次の桁と一致するのはちょうど 1 つになるよう埋めるので、
- * 正解は常に一意で、goal 桁まで必ず登り切れる。
+ * 2 次元グリッドの中央から一筆書きの経路を先に生成し、経路上に円周率の各桁を配置した上で、
+ * 残りのマスには「隣接する経路マスの次の一手」と衝突しない数字を埋める。
+ * これにより各ステップで上下左右の未踏マスのうち正解の数字は常に 1 マスだけに定まる。
  */
-export const buildCarpet = (goal: number, cols: number): Carpet => {
-  const startCol = Math.floor(cols / 2)
-  const rows: string[][] = [
-    // スタート行にもう一つ 3 があるとルートの起点が二通りに見えるので除外する
-    Array.from({ length: cols }, (_, col) =>
-      col === startCol ? PI_DIGITS[0] : randomDigitExcept(PI_DIGITS[0])
-    ),
-  ]
-  const path: number[] = [startCol]
+export const buildCarpet = (
+  goal: number,
+  size = gridSizeForGoal(goal)
+): Carpet => {
+  const path = generatePath(goal, size)
+  const rows = Array.from({ length: size }, (_, row) =>
+    Array.from({ length: size }, (_, col) => {
+      const pos = { row, col }
+      const stepIndex = path.findIndex((p) => isSamePos(p, pos))
+      if (stepIndex !== -1) return PI_DIGITS[stepIndex]
 
-  for (let step = 1; step <= goal; step++) {
-    const digit = PI_DIGITS[step]
-    const candidates = neighborCols(path[step - 1], cols)
-    const nextCol = candidates[Math.floor(Math.random() * candidates.length)]
-    const row = Array.from({ length: cols }, (_, col) => {
-      if (col === nextCol) return digit
-      // 候補セルに同じ数字を置くと正解が二つになるので、そこだけ除外する
-      return candidates.includes(col) ? randomDigitExcept(digit) : randomDigit()
+      // 隣接する経路セルが step 番目なら、そこから見た次の一手 (step + 1 桁目) と
+      // 同じ数字を置くと分岐に見えてしまうため除外する (最大 4 個なので必ず 6 個以上残る)
+      const forbidden = new Set(
+        neighborPositions(pos, size).flatMap((nb) => {
+          const nbStep = path.findIndex((p) => isSamePos(p, nb))
+          return nbStep !== -1 && nbStep < goal ? [PI_DIGITS[nbStep + 1]] : []
+        })
+      )
+      return randomDigitExcept(forbidden)
     })
+  )
 
-    rows.push(row)
-    path.push(nextCol)
-  }
-
-  return { rows, path }
+  return { size, rows, path }
 }
 
 export const formatTime = (ms: number) => {

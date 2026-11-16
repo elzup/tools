@@ -1,34 +1,40 @@
 import {
   type Carpet,
   PI_DIGITS,
+  type Pos,
   buildCarpet,
   formatTime,
-  neighborCols,
+  gridSizeForGoal,
+  isSamePos,
+  neighborPositions,
 } from '../../components/PiCarpet/pi'
 
-// 盤面をスタート行から辿って「円周率の並びになるルート」の総数を数える。
-// 正解ルートが一つだけであることは、この数が 1 であることと同値
-const countPiRoutes = ({ rows }: Carpet) => {
-  const cols = rows[0].length
-  const routes: number[] = rows[0].map((digit) =>
-    digit === PI_DIGITS[0] ? 1 : 0
-  )
+// 盤面のスタート地点 (path[0]) から上下左右の未踏マスを辿って
+// 「円周率の並びになる一筆書きルート」の総数を数える。
+const countPiRoutes = ({ size, rows, path }: Carpet) => {
+  const goal = path.length - 1
+  const start = path[0]
+  if (rows[start.row][start.col] !== PI_DIGITS[0]) return 0
 
-  return rows
-    .slice(1)
-    .reduce((prev, row, index) => {
-      const digit = PI_DIGITS[index + 1]
-      const next = Array.from({ length: cols }, () => 0)
+  const dfs = (visited: readonly Pos[]): number => {
+    const step = visited.length - 1
+    if (step === goal) return 1
 
-      prev.forEach((count, col) => {
-        if (count === 0) return
-        neighborCols(col, cols).forEach((to) => {
-          if (row[to] === digit) next[to] += count
-        })
-      })
-      return next
-    }, routes)
-    .reduce((sum, count) => sum + count, 0)
+    const current = visited[step]
+    const nextDigit = PI_DIGITS[step + 1]
+    const nextCandidates = neighborPositions(current, size).filter(
+      (nb) =>
+        !visited.some((p) => isSamePos(p, nb)) &&
+        rows[nb.row][nb.col] === nextDigit
+    )
+
+    return nextCandidates.reduce(
+      (sum, next) => sum + dfs([...visited, next]),
+      0
+    )
+  }
+
+  return dfs([start])
 }
 
 // Machin の公式を整数演算で回して円周率を求める (ハードコードした桁の検算用)
@@ -51,35 +57,64 @@ const machinPi = (length: number) => {
   return (16n * atanInv(5n) - 4n * atanInv(239n)).toString().slice(0, length)
 }
 
-describe('PiCarpet の盤面', () => {
-  const cases = [10, 20, 50, 100].flatMap((goal) =>
-    [5, 7, 9].map((cols) => ({ goal, cols }))
-  )
+describe('PiCarpet の 2D 盤面', () => {
+  const goals = [10, 20, 50, 100]
 
-  test.each(cases)('goal=$goal cols=$cols で正解ルートが一つだけ', ({
-    goal,
-    cols,
-  }) => {
-    for (let trial = 0; trial < 20; trial++) {
-      expect(countPiRoutes(buildCarpet(goal, cols))).toBe(1)
+  test.each(
+    goals
+  )('goal=%i で各ステップの未踏隣接候補のうち正解数字が常に 1 マスだけ & ルート総数が 1', (goal) => {
+    for (let trial = 0; trial < 15; trial++) {
+      const carpet = buildCarpet(goal)
+      expect(countPiRoutes(carpet)).toBe(1)
+
+      carpet.path.slice(0, goal).forEach((current, step) => {
+        const visited = carpet.path.slice(0, step + 1)
+        const matchingNeighbors = neighborPositions(
+          current,
+          carpet.size
+        ).filter(
+          (nb) =>
+            !visited.some((p) => isSamePos(p, nb)) &&
+            carpet.rows[nb.row][nb.col] === PI_DIGITS[step + 1]
+        )
+        expect(matchingNeighbors).toEqual([carpet.path[step + 1]])
+      })
     }
   })
 
-  test.each(cases)('goal=$goal cols=$cols の正解セルが円周率と一致', ({
-    goal,
-    cols,
-  }) => {
-    const { rows, path } = buildCarpet(goal, cols)
+  test.each(
+    goals
+  )('goal=%i の経路が一筆書きで上下左右に隣接し円周率と一致する', (goal) => {
+    const { size, rows, path } = buildCarpet(goal)
+    const expectedSize = gridSizeForGoal(goal)
 
-    expect(rows).toHaveLength(goal + 1)
-    path.forEach((col, step) => {
-      expect(rows[step]).toHaveLength(cols)
-      expect(rows[step][col]).toBe(PI_DIGITS[step])
-      expect(col).toBeGreaterThanOrEqual(0)
-      expect(col).toBeLessThan(cols)
-      // 一手で動けるのは隣の列まで。飛び地があるとルートが繋がらない
-      if (step > 0)
-        expect(Math.abs(col - path[step - 1])).toBeLessThanOrEqual(1)
+    expect(size).toBe(expectedSize)
+    expect(rows).toHaveLength(size)
+    rows.forEach((row) => {
+      expect(row).toHaveLength(size)
+    })
+    expect(path).toHaveLength(goal + 1)
+    expect(path[0]).toEqual({
+      row: Math.floor(size / 2),
+      col: Math.floor(size / 2),
+    })
+
+    const uniqueKeys = new Set(path.map((p) => `${p.row},${p.col}`))
+    expect(uniqueKeys.size).toBe(goal + 1)
+
+    path.forEach((pos, step) => {
+      expect(pos.row).toBeGreaterThanOrEqual(0)
+      expect(pos.row).toBeLessThan(size)
+      expect(pos.col).toBeGreaterThanOrEqual(0)
+      expect(pos.col).toBeLessThan(size)
+      expect(rows[pos.row][pos.col]).toBe(PI_DIGITS[step])
+
+      if (step > 0) {
+        const prev = path[step - 1]
+        const manhattan =
+          Math.abs(pos.row - prev.row) + Math.abs(pos.col - prev.col)
+        expect(manhattan).toBe(1)
+      }
     })
   })
 })
@@ -102,17 +137,31 @@ describe('formatTime', () => {
 })
 
 describe('countPiRoutes 自体の妥当性', () => {
-  test('候補セルに同じ数字を足すとルートが増えることを検出できる', () => {
-    const carpet = buildCarpet(20, 7)
-    const forked = carpet.rows.map((row, step) => {
-      if (step !== 1) return row
-      // 1 桁目の正解セルの隣に同じ数字を置く = 分岐した盤面を作る
-      const twin = neighborCols(carpet.path[0], row.length).find(
-        (col) => col !== carpet.path[1]
-      ) as number
-      return row.map((digit, col) => (col === twin ? PI_DIGITS[1] : digit))
-    })
+  test('最終ステップの別候補セルに同じ数字を置くとルートが増えることを検出できる', () => {
+    const goal = 10
+    const findForkable = () => {
+      for (let i = 0; i < 20; i++) {
+        const carpet = buildCarpet(goal)
+        const lastPrev = carpet.path[goal - 1]
+        const lastTarget = carpet.path[goal]
+        const visitedBeforeLast = carpet.path.slice(0, goal)
+        const altNeighbor = neighborPositions(lastPrev, carpet.size).find(
+          (nb) =>
+            !visitedBeforeLast.some((p) => isSamePos(p, nb)) &&
+            !isSamePos(nb, lastTarget)
+        )
+        if (altNeighbor) return { carpet, altNeighbor }
+      }
+      throw new Error('分岐可能な盤面が見つからない')
+    }
 
-    expect(countPiRoutes({ ...carpet, rows: forked })).toBeGreaterThan(1)
+    const { carpet, altNeighbor } = findForkable()
+    const forkedRows = carpet.rows.map((row, r) =>
+      row.map((digit, c) =>
+        r === altNeighbor.row && c === altNeighbor.col ? PI_DIGITS[goal] : digit
+      )
+    )
+
+    expect(countPiRoutes({ ...carpet, rows: forkedRows })).toBeGreaterThan(1)
   })
 })

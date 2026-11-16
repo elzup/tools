@@ -14,30 +14,29 @@ import styled, { keyframes } from 'styled-components'
 import {
   type Carpet,
   PI_DIGITS,
+  type Pos,
   buildCarpet,
   formatTime,
-  neighborCols,
+  isSamePos,
+  neighborPositions,
 } from './pi'
 
 type Status = 'ready' | 'playing' | 'clear'
 
 const GOALS = [10, 20, 50, 100]
-const WIDTHS = [5, 7, 9]
-// ミスは止めずに加算で払わせる。手が止まる方式だと「速く登る」以外の
+// ミスは止めずに加算で払わせる。手が止まる方式だと「速く辿る」以外の
 // 駆け引きが増えてタイムの意味が濁る
 const MISS_PENALTY_MS = 1000
-const ROWS_AHEAD = 7
-const ROWS_BEHIND = 2
 const GAP = 4
-const MIN_CELL = 30
-const MAX_CELL = 56
+const MIN_CELL = 24
+const MAX_CELL = 52
 const TIMER_INTERVAL_MS = 31
 
-const bestKey = (goal: number, cols: number) => `pi-carpet-best-${goal}-${cols}`
+const bestKey = (goal: number) => `pi-carpet-best-${goal}`
 
-const loadBest = (goal: number, cols: number) => {
+const loadBest = (goal: number) => {
   try {
-    const raw = window.localStorage.getItem(bestKey(goal, cols))
+    const raw = window.localStorage.getItem(bestKey(goal))
     return raw === null ? null : Number(raw)
   } catch {
     // Safari のプライベートモード等で localStorage が投げる。
@@ -46,15 +45,15 @@ const loadBest = (goal: number, cols: number) => {
   }
 }
 
-const saveBest = (goal: number, cols: number, ms: number) => {
+const saveBest = (goal: number, ms: number) => {
   try {
-    window.localStorage.setItem(bestKey(goal, cols), String(ms))
+    window.localStorage.setItem(bestKey(goal), String(ms))
   } catch {
     // 同上
   }
 }
 
-const useCellSize = (cols: number) => {
+const useCellSize = (size: number) => {
   const ref = useRef<HTMLDivElement>(null)
   const [cell, setCell] = useState(MAX_CELL)
 
@@ -64,7 +63,7 @@ const useCellSize = (cols: number) => {
 
     const applyCellSize = () => {
       const width = el.clientWidth
-      const raw = Math.floor((width - GAP * (cols - 1)) / cols)
+      const raw = Math.floor((width - GAP * (size - 1)) / size)
       setCell(Math.max(MIN_CELL, Math.min(MAX_CELL, raw)))
     }
 
@@ -72,31 +71,41 @@ const useCellSize = (cols: number) => {
     const observer = new ResizeObserver(applyCellSize)
     observer.observe(el)
     return () => observer.disconnect()
-  }, [cols])
+  }, [size])
 
   return { ref, cell }
 }
 
+const deltaFromKey = (key: string): Pos | null => {
+  if (key === 'ArrowUp' || key === 'w' || key === 'k')
+    return { row: -1, col: 0 }
+  if (key === 'ArrowDown' || key === 's' || key === 'j')
+    return { row: 1, col: 0 }
+  if (key === 'ArrowLeft' || key === 'a' || key === 'h')
+    return { row: 0, col: -1 }
+  if (key === 'ArrowRight' || key === 'd' || key === 'l')
+    return { row: 0, col: 1 }
+  return null
+}
+
 const PiCarpet = () => {
   const [goal, setGoal] = useState(20)
-  const [cols, setCols] = useState(7)
   const [hint, setHint] = useState(false)
-  const [carpet, setCarpet] = useState<Carpet>(() => buildCarpet(20, 7))
+  const [carpet, setCarpet] = useState<Carpet>(() => buildCarpet(20))
   const [step, setStep] = useState(0)
   const [misses, setMisses] = useState(0)
   const [status, setStatus] = useState<Status>('ready')
   const [startedAt, setStartedAt] = useState(0)
   const [elapsed, setElapsed] = useState(0)
   const [finishedMs, setFinishedMs] = useState(0)
-  const [wrongCol, setWrongCol] = useState<number | null>(null)
+  const [wrongPos, setWrongPos] = useState<Pos | null>(null)
   const [best, setBest] = useState<number | null>(null)
 
-  const { ref: boardRef, cell } = useCellSize(cols)
-  const pitch = cell + GAP
+  const { ref: boardRef, cell } = useCellSize(carpet.size)
 
   useEffect(() => {
-    setBest(loadBest(goal, cols))
-  }, [goal, cols])
+    setBest(loadBest(goal))
+  }, [goal])
 
   useEffect(() => {
     if (status !== 'playing') return
@@ -106,25 +115,33 @@ const PiCarpet = () => {
     return () => window.clearInterval(id)
   }, [status, startedAt])
 
-  const reset = useCallback((nextGoal: number, nextCols: number) => {
-    setCarpet(buildCarpet(nextGoal, nextCols))
+  const reset = useCallback((nextGoal: number) => {
+    setCarpet(buildCarpet(nextGoal))
     setStep(0)
     setMisses(0)
     setStatus('ready')
     setElapsed(0)
     setFinishedMs(0)
-    setWrongCol(null)
+    setWrongPos(null)
   }, [])
 
-  const candidates = useMemo(
-    () => neighborCols(carpet.path[step], cols),
-    [carpet, step, cols]
+  const passedSteps = useMemo(
+    () => carpet.path.slice(0, step + 1),
+    [carpet.path, step]
   )
 
+  const candidates = useMemo(() => {
+    if (step >= goal) return []
+    const current = carpet.path[step]
+    return neighborPositions(current, carpet.size).filter(
+      (nb) => !passedSteps.some((p) => isSamePos(p, nb))
+    )
+  }, [carpet, step, goal, passedSteps])
+
   const tryStep = useCallback(
-    (col: number) => {
+    (target: Pos) => {
       if (status === 'clear' || step >= goal) return
-      if (!candidates.includes(col)) return
+      if (!candidates.some((c) => isSamePos(c, target))) return
 
       const startMs = status === 'ready' ? Date.now() : startedAt
       if (status === 'ready') {
@@ -132,16 +149,17 @@ const PiCarpet = () => {
         setStatus('playing')
       }
 
-      if (col !== carpet.path[step + 1]) {
+      const answer = carpet.path[step + 1]
+      if (!isSamePos(target, answer)) {
         setMisses((prev) => prev + 1)
-        setWrongCol(col)
-        window.setTimeout(() => setWrongCol(null), 220)
+        setWrongPos(target)
+        window.setTimeout(() => setWrongPos(null), 220)
         return
       }
 
       const nextStep = step + 1
       setStep(nextStep)
-      setWrongCol(null)
+      setWrongPos(null)
       if (nextStep < goal) return
 
       const total = Date.now() - startMs + misses * MISS_PENALTY_MS
@@ -149,27 +167,20 @@ const PiCarpet = () => {
       setElapsed(Date.now() - startMs)
       setStatus('clear')
       if (best === null || total < best) {
-        saveBest(goal, cols, total)
+        saveBest(goal, total)
         setBest(total)
       }
     },
-    [status, step, goal, candidates, carpet, startedAt, misses, best, cols]
+    [status, step, goal, candidates, carpet, startedAt, misses, best]
   )
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const from = carpet.path[step]
-      const delta =
-        e.key === 'ArrowLeft'
-          ? -1
-          : e.key === 'ArrowRight'
-            ? 1
-            : e.key === 'ArrowUp'
-              ? 0
-              : null
+      const delta = deltaFromKey(e.key)
       if (delta === null) return
       e.preventDefault()
-      tryStep(from + delta)
+      const current = carpet.path[step]
+      tryStep({ row: current.row + delta.row, col: current.col + delta.col })
     }
 
     window.addEventListener('keydown', onKey)
@@ -178,9 +189,8 @@ const PiCarpet = () => {
 
   const runningMs =
     status === 'clear' ? finishedMs : elapsed + misses * MISS_PENALTY_MS
-  const answerCol = step < goal ? carpet.path[step + 1] : null
-  const offset = (ROWS_AHEAD - goal + step) * pitch
-  const viewportHeight = (ROWS_AHEAD + ROWS_BEHIND + 1) * pitch
+  const currentPos = carpet.path[step]
+  const answerPos = step < goal ? carpet.path[step + 1] : null
 
   return (
     <Stack spacing={2}>
@@ -194,6 +204,12 @@ const PiCarpet = () => {
           <Value>
             {step}
             <Sub> / {goal}</Sub>
+          </Value>
+        </div>
+        <div>
+          <Label>GRID</Label>
+          <Value>
+            {carpet.size}×{carpet.size}
           </Value>
         </div>
         <div>
@@ -218,63 +234,50 @@ const PiCarpet = () => {
             <span key={i}>{digit}</span>
           ))}
         <Cursor>
-          {hint && answerCol !== null ? PI_DIGITS[step + 1] : '_'}
+          {hint && answerPos !== null ? PI_DIGITS[step + 1] : '_'}
         </Cursor>
       </Trail>
 
-      <Stage>
-        <Viewport style={{ height: viewportHeight }}>
-          <Field
-            ref={boardRef}
-            style={{
-              height: (goal + 1) * pitch,
-              transform: `translateY(${offset}px)`,
-            }}
-          >
-            {carpet.rows
-              .map((row, index) => ({ row, index }))
-              .reverse()
-              .map(({ row, index }) => (
-                <Row
-                  key={index}
-                  style={{
-                    top: (goal - index) * pitch,
-                    height: cell,
-                    gap: GAP,
-                  }}
-                >
-                  {row.map((digit, col) => {
-                    const isPassed = index <= step && carpet.path[index] === col
-                    const isCurrent =
-                      index === step && carpet.path[index] === col
-                    const isCandidate =
-                      index === step + 1 && candidates.includes(col)
-                    return (
-                      <Cell
-                        key={col}
-                        type="button"
-                        onClick={() => index === step + 1 && tryStep(col)}
-                        style={{
-                          width: cell,
-                          height: cell,
-                          fontSize: cell * 0.5,
-                        }}
-                        $passed={isPassed}
-                        $current={isCurrent}
-                        $candidate={isCandidate}
-                        $hinted={hint && isCandidate && col === answerCol}
-                        $wrong={index === step + 1 && col === wrongCol}
-                      >
-                        {digit}
-                      </Cell>
-                    )
-                  })}
-                </Row>
-              ))}
-          </Field>
-          <Fade />
-        </Viewport>
-      </Stage>
+      <Board ref={boardRef}>
+        <Grid style={{ gap: GAP }}>
+          {carpet.rows.map((row, rowIndex) => (
+            <Row key={rowIndex} style={{ gap: GAP }}>
+              {row.map((digit, colIndex) => {
+                const pos = { row: rowIndex, col: colIndex }
+                const isPassed = passedSteps.some((p) => isSamePos(p, pos))
+                const isCurrent = isSamePos(currentPos, pos)
+                const isCandidate = candidates.some((c) => isSamePos(c, pos))
+                const isHinted =
+                  hint &&
+                  answerPos !== null &&
+                  isCandidate &&
+                  isSamePos(answerPos, pos)
+                const isWrong = wrongPos !== null && isSamePos(wrongPos, pos)
+
+                return (
+                  <Cell
+                    key={colIndex}
+                    type="button"
+                    onClick={() => isCandidate && tryStep(pos)}
+                    style={{
+                      width: cell,
+                      height: cell,
+                      fontSize: Math.max(13, Math.round(cell * 0.48)),
+                    }}
+                    $passed={isPassed}
+                    $current={isCurrent}
+                    $candidate={isCandidate}
+                    $hinted={isHinted}
+                    $wrong={isWrong}
+                  >
+                    {digit}
+                  </Cell>
+                )
+              })}
+            </Row>
+          ))}
+        </Grid>
+      </Board>
 
       <Stack
         direction="row"
@@ -283,12 +286,33 @@ const PiCarpet = () => {
         flexWrap="wrap"
         useFlexGap
       >
-        <ArrowButton onClick={() => tryStep(carpet.path[step] - 1)}>
-          ↖
+        <ArrowButton
+          onClick={() =>
+            tryStep({ row: currentPos.row, col: currentPos.col - 1 })
+          }
+        >
+          ←
         </ArrowButton>
-        <ArrowButton onClick={() => tryStep(carpet.path[step])}>↑</ArrowButton>
-        <ArrowButton onClick={() => tryStep(carpet.path[step] + 1)}>
-          ↗
+        <ArrowButton
+          onClick={() =>
+            tryStep({ row: currentPos.row - 1, col: currentPos.col })
+          }
+        >
+          ↑
+        </ArrowButton>
+        <ArrowButton
+          onClick={() =>
+            tryStep({ row: currentPos.row + 1, col: currentPos.col })
+          }
+        >
+          ↓
+        </ArrowButton>
+        <ArrowButton
+          onClick={() =>
+            tryStep({ row: currentPos.row, col: currentPos.col + 1 })
+          }
+        >
+          →
         </ArrowButton>
       </Stack>
 
@@ -301,7 +325,7 @@ const PiCarpet = () => {
             {formatTime(MISS_PENALTY_MS)}
             {best !== null && finishedMs <= best ? ' — ベスト更新!' : ''}
           </Typography>
-          <Button onClick={() => reset(goal, cols)} sx={{ mt: 1 }}>
+          <Button onClick={() => reset(goal)} sx={{ mt: 1 }}>
             もう一度
           </Button>
         </Result>
@@ -322,31 +346,13 @@ const PiCarpet = () => {
           onChange={(e) => {
             const next = Number(e.target.value)
             setGoal(next)
-            reset(next, cols)
+            reset(next)
           }}
           sx={{ width: 110 }}
         >
           {GOALS.map((value) => (
             <MenuItem key={value} value={value}>
               {value} 桁
-            </MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          select
-          size="small"
-          label="幅"
-          value={cols}
-          onChange={(e) => {
-            const next = Number(e.target.value)
-            setCols(next)
-            reset(goal, next)
-          }}
-          sx={{ width: 100 }}
-        >
-          {WIDTHS.map((value) => (
-            <MenuItem key={value} value={value}>
-              {value} 列
             </MenuItem>
           ))}
         </TextField>
@@ -359,17 +365,17 @@ const PiCarpet = () => {
           }
           label="ヒント (練習)"
         />
-        <Button variant="outlined" onClick={() => reset(goal, cols)}>
+        <Button variant="outlined" onClick={() => reset(goal)}>
           リセット
         </Button>
       </Stack>
 
       <Box>
         <Typography variant="body2" color="text.secondary">
-          上に伸びる数字の絨毯を、円周率 3.14159…
-          の順に一桁ずつ踏んで登る。進めるのは真上と斜め上の 3
-          マスで、次の桁と一致するのは必ずそのうち 1 マスだけ。← ↑ →
-          キーかタップで選ぶ。計測は最初の 一歩から始まり、ミス 1 回につき{' '}
+          2 次元に敷き詰められた数字の絨毯を俯瞰し、中央の 3 から円周率 3.14159…
+          の順に上下左右へ一筆書きで辿る。進めるのは現在地の上下左右のうち未踏のマスで、次の桁と一致するのは必ずそのうち
+          1 マスだけ。矢印キー (または WASD / タップ)
+          で選ぶ。計測は最初の一歩から始まり、ミス 1 回につき{' '}
           {formatTime(MISS_PENALTY_MS)} 秒が加算される。
         </Typography>
       </Box>
@@ -427,39 +433,23 @@ const Cursor = styled.span`
   padding: 0 0.15em;
 `
 
-const Stage = styled.div`
-  perspective: 900px;
+const Board = styled.div`
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem;
+  background: #efebe9;
+  border-radius: 10px;
 `
 
-const Viewport = styled.div`
-  position: relative;
-  overflow: hidden;
-  transform: rotateX(28deg);
-  transform-origin: bottom center;
-`
-
-const Field = styled.div`
-  position: relative;
-  transition: transform 0.16s ease-out;
+const Grid = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `
 
 const Row = styled.div`
-  position: absolute;
-  left: 0;
-  right: 0;
   display: flex;
   justify-content: center;
-`
-
-const Fade = styled.div`
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    rgba(250, 250, 250, 0.95) 0%,
-    rgba(250, 250, 250, 0) 45%
-  );
 `
 
 const wrongFlash = keyframes`
@@ -478,7 +468,7 @@ type CellProps = {
 const cellBg = ({ $passed, $current, $candidate, $wrong }: CellProps) => {
   if ($wrong) return '#e57373'
   if ($current) return '#d4a017'
-  if ($passed) return '#d7ccc8'
+  if ($passed) return '#bcaaa4'
   if ($candidate) return '#fff'
   return '#f5f5f5'
 }
@@ -489,7 +479,8 @@ const Cell = styled.button<CellProps>`
       $hinted ? '#43a047' : $candidate ? '#795548' : 'transparent'};
   border-radius: 6px;
   background: ${cellBg};
-  color: ${({ $current, $wrong }) => ($current || $wrong ? '#1a1512' : '#5d4037')};
+  color: ${({ $current, $wrong }) =>
+    $current || $wrong ? '#1a1512' : '#5d4037'};
   font-family: monospace;
   font-weight: 700;
   padding: 0;
