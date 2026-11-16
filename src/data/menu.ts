@@ -13,6 +13,7 @@ import {
   faCalendarDay,
   faCog,
   faCalculator,
+  faUserTie,
   faCarSide,
   faChartLine,
   faCircleNotch,
@@ -201,6 +202,11 @@ export const routings: RoutingGroup[] = [
         icon: faChartLine,
         label: '分布推定ツール',
         path: '/norm-viewer',
+      },
+      {
+        icon: faUserTie,
+        label: 'Secretary Problem',
+        path: '/secretary-problem',
       },
       {
         icon: faCalculator,
@@ -523,13 +529,13 @@ export const secretRoutings: RoutingGroup[] = [
 
 // 新規ページを追加したらここの先頭にも path を足す (Recent セクション用、カテゴリと重複表示可)
 const recentPaths = [
+  '/secretary-problem',
   '/auth-flows',
   '/wave-pool',
   '/password-space',
   '/wasm-calc-bench',
   '/tesla-valve',
   '/pi-carpet',
-  '/roulette',
 ]
 
 const flatRoutings = [...routings, ...secretRoutings].flatMap(
