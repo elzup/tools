@@ -1,5 +1,14 @@
 export type Vec = { x: number; y: number }
 
+// ループ折れ線の接続位置。1 段の長さで正規化した比率 (0〜1)
+export type LoopRatios = {
+  j1: number // 噴射口 (ループ → 主流路)
+  p1: number // 噴射側の脚の折れ点
+  p2: number // 天井の起点
+  p3: number // 天井の終点
+  j2: number // 取り込み口 (主流路 → ループ)
+}
+
 export type ValveParams = {
   units: number // 段数 (valvular conduit の 1 段 = 主流路 + 戻しループ)。交互配置のため偶数
   unitLength: number // 1 段の長さ [格子]
@@ -10,6 +19,7 @@ export type ValveParams = {
   waveAmp: number // 主流路中心線の蛇行振幅 [格子]。0 で直線
   alternate: boolean // 段ごとにループを上下へ振る (Tesla の図と同じ見た目)
   loops: boolean // false で蛇行だけの流路。整流比の基準 (D≒1) を取る比較用
+  loopRatios?: LoopRatios // 省略時は TESLA_LOOP_RATIOS (特許再現)
 }
 
 export type Geometry = {
@@ -19,6 +29,15 @@ export type Geometry = {
   solid: Uint8Array // 1 = 壁。流体セルの補集合なので外周も自動的に壁になる
   fluidCount: number
   params: ValveParams
+}
+
+// Tesla の特許 (US1329559) の図から目分量で取った比率
+export const TESLA_LOOP_RATIOS: LoopRatios = {
+  j1: 0.37,
+  p1: 0.1,
+  p2: 0.07,
+  p3: 0.62,
+  j2: 0.95,
 }
 
 export const DEFAULT_PARAMS: ValveParams = {
@@ -31,6 +50,14 @@ export const DEFAULT_PARAMS: ValveParams = {
   waveAmp: 5,
   alternate: true,
   loops: true,
+}
+
+// この形状族のパラメータを格子探索して整流比を最大化したもの
+// (2026-11 計測: 4 段・Re~120 で D 1.34 → 1.80。順方向流量も 0.866 → 0.893 に微増)
+export const OPTIMIZED_PARAMS: ValveParams = {
+  ...DEFAULT_PARAMS,
+  loopHalf: 8,
+  loopRatios: { ...TESLA_LOOP_RATIOS, p1: 0.02, p3: 0.4 },
 }
 
 export type Capsule = { a: Vec; b: Vec; half: number }
@@ -72,8 +99,7 @@ const interpolateY = (points: Vec[], x: number): number => {
 //     主流路を逆走してくる流れに正面衝突して大きな損失を作る
 //   - 右端 J2 は主流路から見て鋭角に開く取り込み口。逆流 (-x) は 60° 程度の曲がりで
 //     ループへ入れるが、順流 (+x) は 120° 曲がらないと入れないのでほとんど入らない
-// 比率は Tesla の特許 (US1329559) の図から目分量で取った値。段長で正規化しているので
-// unitLength を変えても形は崩れない。
+// 比率は段長で正規化しているので unitLength を変えても形は崩れない。
 const loopCapsules = (
   unit: number,
   params: ValveParams,
@@ -81,6 +107,7 @@ const loopCapsules = (
   centerY: number
 ): Capsule[] => {
   const { unitLength: length, loopHeight: top, loopHalf: half } = params
+  const ratios = params.loopRatios ?? TESLA_LOOP_RATIOS
   const side = sideOf(unit, params.alternate)
   const x0 = unit * length
   const at = (ratio: number, offset: number): Vec => ({
@@ -91,11 +118,11 @@ const loopCapsules = (
         ? interpolateY(channel, x0 + length * ratio)
         : centerY + side * offset,
   })
-  const j1 = at(0.37, 0) // 噴射口
-  const p1 = at(0.1, top * 0.45)
-  const p2 = at(0.07, top)
-  const p3 = at(0.62, top)
-  const j2 = at(0.95, 0) // 取り込み口
+  const j1 = at(ratios.j1, 0) // 噴射口
+  const p1 = at(ratios.p1, top * 0.45)
+  const p2 = at(ratios.p2, top)
+  const p3 = at(ratios.p3, top)
+  const j2 = at(ratios.j2, 0) // 取り込み口
 
   return [
     { a: p1, b: j1, half },

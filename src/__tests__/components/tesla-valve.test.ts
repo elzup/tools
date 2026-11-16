@@ -1,5 +1,6 @@
 import {
   DEFAULT_PARAMS,
+  OPTIMIZED_PARAMS,
   type Geometry,
   type ValveParams,
   buildGeometry,
@@ -175,5 +176,17 @@ describe('整流 (diodicity)', () => {
 
     expect(qf).toBeGreaterThan(qr)
     expect(d).toBeGreaterThan(1.2)
+  }, 60000)
+
+  test('最適化形状は特許再現より整流比が高い', () => {
+    const base = diodicity(params, 0.008, 0.06, 3000)
+    const optimized = diodicity(
+      { ...OPTIMIZED_PARAMS, units: 2 },
+      0.008,
+      0.06,
+      3000
+    )
+
+    expect(optimized.d).toBeGreaterThan(base.d * 1.2)
   }, 60000)
 })

@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 import {
   DEFAULT_PARAMS,
+  OPTIMIZED_PARAMS,
   type Geometry,
   type ValveParams,
   buildGeometry,
@@ -42,6 +43,7 @@ type Config = {
   view: ViewMode
   tracers: boolean
   loops: boolean
+  optimized: boolean // true で格子探索で整流比を最大化した形状にする
 }
 
 const DEFAULT_CONFIG: Config = {
@@ -52,6 +54,7 @@ const DEFAULT_CONFIG: Config = {
   view: 'speed',
   tracers: true,
   loops: true,
+  optimized: false,
 }
 
 const TRACER_COUNT = 240
@@ -70,7 +73,7 @@ type Sim = {
 }
 
 const paramsOf = (config: Config): ValveParams => ({
-  ...DEFAULT_PARAMS,
+  ...(config.optimized ? OPTIMIZED_PARAMS : DEFAULT_PARAMS),
   units: config.units,
   loops: config.loops,
 })
@@ -148,7 +151,7 @@ const TeslaValve = () => {
   const update = <K extends keyof Config>(key: K, value: Config[K]) =>
     setConfig((prev) => ({ ...prev, [key]: value }))
 
-  // 形状 (段数・ループ有無) が変わったときだけ場を作り直す。
+  // 形状 (段数・ループ有無・最適化) が変わったときだけ場を作り直す。
   // 粘性と流速はアニメーションループ側で毎フレーム反映するので再構築しない
   useEffect(() => {
     const sim = buildSim(configRef.current)
@@ -159,7 +162,7 @@ const TeslaValve = () => {
       canvas.width = sim.geo.nx * sim.scale
       canvas.height = sim.geo.ny * sim.scale
     }
-  }, [config.units, config.loops, resetKey])
+  }, [config.units, config.loops, config.optimized, resetKey])
 
   useEffect(() => {
     let handle = 0
@@ -314,6 +317,16 @@ const TeslaValve = () => {
           }
           label="ループ無し (D≒1 の確認)"
         />
+        <FormControlLabel
+          control={
+            <Switch
+              size="small"
+              checked={config.optimized}
+              onChange={(e) => update('optimized', e.target.checked)}
+            />
+          }
+          label="最適化形状 (D≒1.8)"
+        />
       </Stack>
 
       <Stack direction="row" spacing={3} flexWrap="wrap" useFlexGap>
@@ -374,7 +387,9 @@ const TeslaValve = () => {
         速さ表示は暗青 (遅い) → 赤 (速い)、渦度と圧力は青 ↔ 赤 の発散配色。
         単位はすべて格子単位。Re
         を上げるほど整流比は伸びるが、粘性を下げすぎると解が発散するので
-        自動でリセットする。
+        自動でリセットする。「最適化形状」は特許図の比率
+        (ループ幅・噴射口と取り込み口の角度) を格子探索で整流比が最大になるよう
+        調整したもので、デフォルト条件で D≒1.34 → 1.80 に伸びる。
       </Typography>
     </Stack>
   )
