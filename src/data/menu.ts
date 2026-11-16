@@ -314,6 +314,11 @@ export const routings: RoutingGroup[] = [
     label: 'ComputerScience',
     routings: [
       {
+        icon: faCode,
+        label: 'React 再レンダー比較',
+        path: '/react-render-demo',
+      },
+      {
         icon: faCalculator,
         label: 'JS / Wasm 計算ベンチ',
         path: '/wasm-calc-bench',

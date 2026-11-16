@@ -57,6 +57,7 @@
 | float-precision.tsx          | Math            | 浮動小数点の有効桁数を体験的に学べるデモ                             | @mui, styled-components                        | 現在           |     | 教育・体験型                        | 6    |
 | nail-loop-curve.tsx          | Math            | 3 本の釘に掛けた糸の輪を鉛筆で張って描く曲線の可視化                 | @mui, styled-components, canvas                | 現在           | \*  | 凸包 + 周長一定の二分探索           | 5    |
 | wasm-calc-bench.tsx          | ComputerScience | 入力した四則演算式を JS / Wasm で 10^n 回実行して速度を比較          | @mui, WebAssembly                              | 現在           | \*  | 動的 Wasm 生成・交互順中央値計測    | 7    |
+| react-render-demo.tsx        | ComputerScience | memo・useCallback・useMemo・useEffect の再実行回数を実測して比較     | React Hooks, @mui                              | 現在           |     | 教育・体験型                        | 7    |
 | strobe.tsx                   | Physics         | ストロボ効果(回転が止まって見える)体験                               | @mui, styled-components                        | 現在           | \*  | 教育・体験型/canvas                 | 6    |
 | seatbelt.tsx                 | Physics         | シートベルト慣性ロック(ELR ウェビング感応)のドラッグ体験             | @mui, styled-components                        | 現在           | \*  | 教育・体験型/canvas                 | 6    |
 | dice-3d.tsx                  | Physics         | 3D サイコロの物理挙動と出目を試せるシミュレーター                    | @react-three, @react-three/rapier, three, @mui | 現在           |     | 3D 物理シミュレーション             | 5    |
