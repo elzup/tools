@@ -419,6 +419,11 @@ export const routings: RoutingGroup[] = [
         label: 'Filter Lens',
         path: '/filter-lens',
       },
+      {
+        icon: faDna,
+        label: 'パーティクルライフ',
+        path: '/particle-life',
+      },
     ],
   },
   {
@@ -529,13 +534,13 @@ export const secretRoutings: RoutingGroup[] = [
 
 // 新規ページを追加したらここの先頭にも path を足す (Recent セクション用、カテゴリと重複表示可)
 const recentPaths = [
+  '/particle-life',
   '/secretary-problem',
   '/auth-flows',
   '/wave-pool',
   '/password-space',
   '/wasm-calc-bench',
   '/tesla-valve',
-  '/pi-carpet',
 ]
 
 const flatRoutings = [...routings, ...secretRoutings].flatMap(
