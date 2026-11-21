@@ -1,109 +1,86 @@
 ---
-title: (草案) WASM を同梱した npm ライブラリで、.wasm ファイルはどこを通ってブラウザに届くか
+title: WASM を同梱した npm ライブラリで、.wasm ファイルはどこを通ってブラウザに届くか
 status: draft
 created: 2026-11-20
-context: particle-life-bg (https://github.com/elzup/particle-life-bg) に WASM の計算部分を足すかを検討したときの整理
+page: /wasm-library-distribution
 ---
 
 # WASM を同梱した npm ライブラリで、.wasm ファイルはどこを通ってブラウザに届くか
 
-> 草案。数値・バンドラーごとの挙動は記事にする前に実測・一次資料で確かめる (TODO 印)。
+JS だけのライブラリなら「npm に置けば、利用者のバンドラーが混ぜてくれる」で済む。
+WASM を同梱すると `.wasm` というバイナリファイルが関わるため、関わる場所が 5 つに分かれ、それぞれで壊れ方が違う。
 
-## きっかけ
+## 配布フロー図
 
-Canvas に Particle Life を描く背景ライブラリ [particle-life-bg](https://github.com/elzup/particle-life-bg) を作っている。
-計算部分 (粒子数 × 近傍数のループ) を WASM にすれば速くなるか、を考えたとき、
-速さより先に「`.wasm` という JS ではないファイルを、利用者のブラウザまでどう届けるか」の方が論点が多いと気づいた。
+ページ (`/wasm-library-distribution`) では 1 枚の SVG 図として描く。構成:
 
-JS だけのライブラリなら「npm に置けば、利用者のバンドラーが混ぜてくれる」で終わる。
-WASM を入れると、関わる場所が 5 つに分かれ、それぞれで壊れ方が違う。
-
-## 5 つの場所
+- **列 (環境)**: ① build 前 (ソース) | ① build 後 (生成物) | ② registry (npm publish) | ③ 利用者 dev (pnpm add) | ④ 公開 Web (bundle + deploy) | ⑤ browser (fetch + compile)
+- **責任ゾーン**: 作者 (①の 2 列) / npm (②) / 利用者 (③④) / 来訪者 (⑤)
+- **行 (ファイル)**: lib.rs / loader.ts→wasm.js / index.ts→\*.js / x.wasm / package.json→tgz
+- **カード**: 各行の初登場セルに「ファイル名・TXT/BIN・中身の例・持つ情報」のカード
+- **minify で変形するセル** (④ の JS 2 行) も中身の例を表示
+- **接続線**: 影響し合うセル同士を結ぶ (下記)
+- **列の注記**: 各列の下部に「情報構造」「壊れやすい所」
 
 ```
-① ライブラリの開発環境   particle-life-bg/
-   wasm/src/lib.rs               ← 計算部分の正本 (Rust)。git 管理
-   src/wasm.ts                   ← .wasm を探して読み込み、JS 版と同じ形の API で包む。git 管理
-   src/sim.ts                    ← JS 版 (比較の基準 + 失敗時の代わり)
-        │ pnpm build  (= cargo build --target wasm32 → wasm-opt → tsc)
-        ▼
-   lib/esm/wasm.js               ┐
-   lib/esm/sim.wasm   ★ここで生成 ├ 生成物。git 管理外 (.gitignore の lib/)
-   lib/cjs/… lib/types/…         ┘
-        │ npm publish  ("files": ["lib/"] で同梱)
-        ▼
-② 配布物   npm registry: particle-life-bg-x.y.z.tgz
-   package/lib/esm/wasm.js
-   package/lib/esm/sim.wasm      ← バイナリがそのまま入る。利用者側で再コンパイルはしない
-   package.json  "exports": { "./wasm": "./lib/esm/wasm.js", … }
-        │ 利用者が pnpm add particle-life-bg
-        ▼
-③ 利用者の開発環境   their-app/
-   node_modules/particle-life-bg/lib/esm/sim.wasm    ← ②が展開されるだけ。まだ誰も使っていない
-   src/App.tsx   import { wasmEngine } from 'particle-life-bg/wasm'
-        │ 利用者のバンドラー (Vite / webpack / Next) が
-        │ new URL('./sim.wasm', import.meta.url) を見つけ、
-        │ .wasm を「画像と同じ静的ファイル」として出力先にコピーし、名前にハッシュを付ける
-        ▼
-④ 利用者が配布する Web   their-app/dist/ → CDN・静的ホスティング
-   assets/index-3fa1.js          ← wasm.js はここに混ぜ込まれる (URL は書き換え済み)
-   assets/sim-9c2e.wasm          ← バイナリは別ファイルのまま
-   ※ サーバーは Content-Type: application/wasm で返す必要がある
-   ※ CSP を使うサイトなら script-src に 'wasm-unsafe-eval' が要る
-        │ 来訪者がページを開く
-        ▼
-⑤ その Web の来訪者のブラウザ
-   index-3fa1.js を実行
-     → mount() はまず JS 版で即座に動き始める
-     → fetch('/assets/sim-9c2e.wasm')
-     → WebAssembly.instantiateStreaming (ダウンロードしながらコンパイル)
-     → WASM のメモリ上に x / y / vx / vy を置く
-     → 描画側はそのメモリを Float32Array として直接読む (コピーなし)
-   失敗 (CSP 拒否・404・未対応) → console に原因を出し、JS 版のまま続ける
+         ① build 前   ① build 後    ② registry    ③ dev        ④ Web        ⑤ browser
+         │ 作者 ──────────────────────────────────────────────────│ 利用者 ─────│ 来訪者
+lib.rs   [カード]                                │              │              │              │
+            └─ build (cargo + wasm-opt) ──────────────────────→ x.wasm 生成     │              │
+loader.ts [カード] → wasm.js → tgz 内 → node_modules → minify 例               │              │
+            └ new URL('./x.wasm') 位置参照 ┐              └ URL 書き換え ↓      │              │
+index.ts  [カード] → index.js → tgz 内 → node_modules → minify 例               │              │
+x.wasm   (まだ無い)  [カード] → tgz 内 → 展開コピー → x-9c2e.wasm → 線形メモリ
+package.json [カード] ─ files:["lib"] ─→ [tgz カード] → tar 展開 (pnpm add)     │              │
+
+列の注記 (情報構造 / 壊れやすい所):
+  ①前: 人が読むテキストが正本 / ツールチェーン (CI も同じ版)
+  ①後: バイナリは派生物 (git 管理外・再生成可能)
+  ②:  immutable スナップショット。再コンパイルされない
+  ③:  まだ実行されない。バンドラー解析対象 / new URL を解決できるか (CJS 不可)
+  ④:  静的ファイル群。別リクエスト +1 / Content-Type wasm 必須、CSP wasm-unsafe-eval
+  ⑤:  ここで初めて実行状態 / 失敗は JS 版で吸収
 ```
 
-## 場所ごとの状態と壊れやすい所
+### カードの中身 (初登場セル)
 
-| 場所 | `.wasm` の状態 | 誰が作る・動かす | 壊れやすい所 |
-|---|---|---|---|
-| ① 開発環境 | ビルドで生成 (git 管理外) | ライブラリ作者 (cargo / tsc) | ツールチェーンの用意。CI にも同じものが要る |
-| ② npm | tgz の中のバイナリ。固定 | `npm publish` | `files` に入っていないと抜け落ちる |
-| ③ 利用者の開発環境 | node_modules にあるだけ | 利用者の `pnpm add` | バンドラーが `new URL(…, import.meta.url)` を解決できるか (TODO: Next.js / webpack 5 / Vite / esbuild で実際に確かめる) |
-| ④ 利用者の Web | ハッシュ付きの静的ファイル | 利用者のビルド | MIME type、CSP |
-| ⑤ ブラウザ | ダウンロード → コンパイル → 実行 | 来訪者のブラウザ | 初期化が非同期。失敗したら JS 版で続ける |
+| ファイル           | 種類 | 中身の例                                                        | 持つ情報                                                   |
+| ------------------ | ---- | --------------------------------------------------------------- | ---------------------------------------------------------- |
+| `wasm/src/lib.rs`  | TXT  | `#[wasm_bindgen] pub fn step(ptr: usize, n: usize, dt: f32) {`  | 計算ロジックの正本。配布管を流れる情報の源                 |
+| `src/loader.ts`    | TXT  | `await fetch(new URL('./x.wasm', import.meta.url))`             | .wasm の位置解決 + 初期化手順。配布後も wasm.js として残る |
+| `src/index.ts`     | TXT  | `export function createEngine(opts: Options): Engine { … }`     | JS 版実装と公開 API の形。フォールバック兼                 |
+| `package.json`     | TXT  | `"files": ["lib"], "exports": { … }`                            | 配布ルール。何を同梱しどの入口を公開するか                 |
+| `lib/esm/x.wasm`   | BIN  | `00 61 73 6d 01 00 00 00 …` (\0asm + バージョン + セクション列) | 機械語 (バイトコード)。人は読めないが実行に必要な全情報    |
+| `my-lib-x.y.z.tgz` | BIN  | `1f 8b 08 00 …` (gzip ヘッダ)                                   | 「バージョン x.y.z = この中身」の対応付け                  |
 
-## JS module での配布との違い
+### 変形を示すセル (minify / リネーム)
 
-| | JS module | WASM を同梱 |
-|---|---|---|
-| パッケージの中身 | `lib/esm` / `lib/cjs` / 型定義 | + `.wasm` バイナリ |
-| 読み込み | `import` した時点で使える | 取得 + コンパイルが**非同期** (大きい WASM は main thread で同期コンパイルできない) |
-| API | 同期で返せる | `await` が要る。または JS 版で先に動かし、後から差し替える |
-| ファイル位置の解決 | 不要 | `new URL('./x.wasm', import.meta.url)`。CJS では `import.meta.url` が使えない |
-| base64 で JS に埋め込む | — | 位置の問題は消えるがサイズ約 1.33 倍。非同期は残る |
-| CDN から 1 行 | そのまま動く | 同じ場所から配信されるので動く。リクエストは 1 回増える |
-| CSP | 制約なし | `'wasm-unsafe-eval'` が要る。**埋め込み用ライブラリでは一番の弱点** |
-| ビルドと CI | tsc だけ | Rust 等のツールチェーンが増える |
-| デバッグ | DevTools でそのまま | 追いにくい。テストは JS 版と結果が一致するかの比較が中心 |
+- ④ の JS セル: minify 後のコード例
+  - loader 行: `const e=await fetch("/assets/x-9c2e.wasm"),t=await WebAssembly.instantiateStreaming(e)` (URL が書き換わっている)
+  - index 行: `function createEngine(e){ return new Engine(e)}`
+- x.wasm 行: `x-9c2e.wasm` (hash リネーム・中身同一) → `線形メモリへ展開` (`0000  00 00 80 3f …`)
 
-## 結論 (いまの方針)
+### 接続線 (影響し合うもの)
 
-- WASM は**使う人だけが読み込む別の入り口** (`particle-life-bg/wasm`) に分ける。本体は依存ゼロ・同期のまま。
-  WASM を選ばない利用者には、③〜⑤の問題が一切及ばない。
-- `mount()` に計算部分を差し替える口を 1 つ設け、描画とオプションは共通にする。
-- 採否は、**計算だけの比較ベンチ (JS / WASM / WASM SIMD)** の数字で決める。
+| from → to                                | ラベル                           |
+| ---------------------------------------- | -------------------------------- |
+| lib.rs (①前) → x.wasm (①後)              | build (cargo + wasm-opt)         |
+| loader.ts (①前) → x.wasm (①後)           | `new URL('./x.wasm')` で位置参照 |
+| package.json (①前) → tgz (②)             | `files: ["lib"]` で同梱          |
+| tgz (②) → tar 展開セル (③)               | tar 展開 (pnpm add)              |
+| loader minify セル (④) → x-9c2e.wasm (④) | URL 書き換え                     |
+| x-9c2e.wasm (④) → 線形メモリ (⑤)         | fetch + instantiateStreaming     |
 
-## 速さの見込み (TODO: 実測で置き換える)
+## JS だけのライブラリとの違い
 
-- 素直な移植: JS 比 1〜1.5 倍程度 (V8 の JIT は型付き配列の単純なループを十分速く回すので差は小さい)
-- SIMD (4 粒子ずつ): 2〜4 倍程度。ただし粒子をセル順に並べ替えた写しが要る (並べ替えないと 4 粒子の座標がメモリ上で離れていて、集めるコストで得が消える)
-- マルチスレッド: 共有メモリにクロスオリジン分離 (COOP/COEP ヘッダー) が要るので、埋め込みライブラリでは前提にできない
-- 別解: Worker + OffscreenCanvas は速さは同じだが、ページのスクロールや操作を詰まらせない
-
-## 書く前に確かめること
-
-- [ ] ベンチの実測値 (1500 / 3000 / 5000 粒子、ms/step、端末別)
-- [ ] 主要バンドラーでの `new URL(…, import.meta.url)` の扱い (Next.js は設定が要るか)
-- [ ] `WebAssembly.compile` の同期制限の正確なサイズと出典
-- [ ] `'wasm-unsafe-eval'` の対応ブラウザと、古い `'unsafe-eval'` との関係
-- [ ] .wasm の実サイズ (いま: 素直な移植 26KB / SIMD 29KB、wasm-opt 前)
+| 項目                    | JS だけ                        | WASM を同梱                                                                   |
+| ----------------------- | ------------------------------ | ----------------------------------------------------------------------------- |
+| パッケージの中身        | `lib/esm` / `lib/cjs` / 型定義 | + `.wasm` バイナリ                                                            |
+| 読み込み                | `import` した時点で使える      | 取得 + コンパイルが非同期                                                     |
+| API                     | 同期で返せる                   | `await` が要る。または JS 版で先に動かし、後から差し替える                    |
+| ファイル位置の解決      | 不要                           | `new URL('./x.wasm', import.meta.url)`。CJS では `import.meta.url` が使えない |
+| base64 で JS に埋め込む | —                              | 位置の問題は消えるがサイズ約 1.33 倍。非同期は残る                            |
+| CDN から 1 行           | そのまま動く                   | 同じ場所から配信されるので動く。リクエストは 1 回増える                       |
+| CSP                     | 制約なし                       | `'wasm-unsafe-eval'` が要る                                                   |
+| ビルドと CI             | `tsc` だけ                     | Rust 等のツールチェーンが増える                                               |
+| デバッグ                | DevTools でそのまま            | 追いにくい。テストは JS 版と結果が一致するかの比較が中心                      |
