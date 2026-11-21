@@ -53,6 +53,7 @@ import {
   faStroopwafel,
   faWandSparkles,
   faWater,
+  faWeightHanging,
   faWindowMinimize,
   faWindowRestore,
 } from '@fortawesome/free-solid-svg-icons'
@@ -313,6 +314,11 @@ export const routings: RoutingGroup[] = [
         label: '円形プールの波形成形',
         path: '/wave-pool',
       },
+      {
+        icon: faWeightHanging,
+        label: 'キャベンディッシュ実験',
+        path: '/cavendish-experiment',
+      },
     ],
   },
 
@@ -535,12 +541,12 @@ export const secretRoutings: RoutingGroup[] = [
 // 新規ページを追加したらここの先頭にも path を足す (Recent セクション用、カテゴリと重複表示可)
 const recentPaths = [
   '/particle-life',
+  '/react-render-demo',
   '/secretary-problem',
   '/auth-flows',
   '/wave-pool',
   '/password-space',
   '/wasm-calc-bench',
-  '/tesla-valve',
 ]
 
 const flatRoutings = [...routings, ...secretRoutings].flatMap(
