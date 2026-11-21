@@ -10,6 +10,7 @@ import {
   type IconDefinition,
   faBowlingBall,
   faBoxes,
+  faBoxOpen,
   faCalendarDay,
   faCog,
   faCalculator,
@@ -336,6 +337,11 @@ export const routings: RoutingGroup[] = [
         path: '/wasm-calc-bench',
       },
       {
+        icon: faBoxOpen,
+        label: 'WASM ライブラリ配布ノート',
+        path: '/wasm-library-distribution',
+      },
+      {
         icon: faWindowRestore,
         label: 'SubWindowDump',
         path: '/sub-window-ex',
@@ -540,13 +546,13 @@ export const secretRoutings: RoutingGroup[] = [
 
 // 新規ページを追加したらここの先頭にも path を足す (Recent セクション用、カテゴリと重複表示可)
 const recentPaths = [
+  '/wasm-library-distribution',
   '/particle-life',
   '/react-render-demo',
   '/secretary-problem',
   '/auth-flows',
   '/wave-pool',
   '/password-space',
-  '/wasm-calc-bench',
 ]
 
 const flatRoutings = [...routings, ...secretRoutings].flatMap(
