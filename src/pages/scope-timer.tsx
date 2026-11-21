@@ -1,46 +1,27 @@
 import Head from 'next/head'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { MutableRefObject } from 'react'
-
-// カラーテーマ定義
-type Theme = {
-  BG_COLOR: string
-  TEXT_COLOR: string
-  BAR_COLOR: string
-  SCALE_COLOR: string
-}
-
-type ThemeKey = 'blackOnWhite' | 'whiteOnBlack' | 'greenMatrix'
-
-const THEMES: Record<ThemeKey, Theme> = {
-  blackOnWhite: {
-    BG_COLOR: '#fff',
-    TEXT_COLOR: '#000',
-    BAR_COLOR: '#4080ff',
-    SCALE_COLOR: '#4080ff',
-  },
-  whiteOnBlack: {
-    BG_COLOR: '#000',
-    TEXT_COLOR: '#fff',
-    BAR_COLOR: '#ff4040',
-    SCALE_COLOR: '#ff4040',
-  },
-  greenMatrix: {
-    BG_COLOR: '#000',
-    TEXT_COLOR: '#0f0',
-    BAR_COLOR: '#0f0',
-    SCALE_COLOR: '#0f0',
-  },
-}
+import {
+  GrayCodeStrip,
+  paintGrayCode,
+} from '../components/ScopeTimer/GrayCodeStrip'
+import { FpsModal } from '../components/ScopeTimer/FpsModal'
+import { DelayModal } from '../components/ScopeTimer/DelayModal'
+import { ThemeModal } from '../components/ScopeTimer/ThemeModal'
+import { THEMES } from '../components/ScopeTimer/themes'
+import type { Theme, ThemeKey } from '../components/ScopeTimer/themes'
+import { useDisplayRefreshRate } from '../components/ScopeTimer/useDisplayRefreshRate'
 
 // 設定定数
 const CONFIG = {
   MARGIN_PERCENT: 2,
-  BAR_THICKNESS: 4,
-  BAR_OFFSET: 2,
+  // 単位は vmin: 縦横どちらの向きでも短辺基準で同じ太さ・余白にするため
+  BAR_THICKNESS: 1,
+  // 画面端に貼り付くと撮影時にベゼルや画角の端で欠けるため内側に寄せる
+  BAR_OFFSET: 1.6,
   SCALE_DIVISIONS: 10,
-  SCALE_WIDTH: 2,
-  SCALE_LENGTH: 10,
+  SCALE_WIDTH: 0.3,
+  SCALE_LENGTH: 3,
   DATE_FONT_SIZE: 'clamp(0.8rem, 3vw, 3rem)',
   MAIN_TIME_FONT_SIZE: 'clamp(1.5rem, 6vw, 8rem)',
   MAIN_TIME_UNIT_FONT_SIZE: 'clamp(0.5rem, 2vw, 2.5rem)',
@@ -53,6 +34,9 @@ const CONFIG = {
   DEFAULT_THEME: 'blackOnWhite' as const,
   UPDATE_FPS: 15, // カメラ撮影時の残像を減らすため30FPSに制限
 } as const
+
+// 目盛りの中心をバーの中心線に合わせるための、枠からのずらし量 (vmin)
+const SCALE_CROSS_SHIFT = (CONFIG.BAR_THICKNESS - CONFIG.SCALE_LENGTH) / 2
 
 // 型定義
 type TimeData = {
@@ -84,7 +68,7 @@ function formatTimeData(timestamp: number): TimeData {
 }
 
 // カスタムフック: アニメーションループ管理（FPS制限付き）
-function useAnimationLoop(callback: () => void, fps: number) {
+function useAnimationLoop(callback: (frameTime: number) => void, fps: number) {
   const animationRef = useRef<number>()
   const callbackRef = useRef(callback)
   const lastTimeRef = useRef(0)
@@ -100,7 +84,7 @@ function useAnimationLoop(callback: () => void, fps: number) {
       const elapsed = currentTime - lastTimeRef.current
 
       if (elapsed >= frameInterval) {
-        callbackRef.current()
+        callbackRef.current(currentTime)
         lastTimeRef.current = currentTime - (elapsed % frameInterval)
       }
 
@@ -117,18 +101,22 @@ function useAnimationLoop(callback: () => void, fps: number) {
   }, [fps])
 }
 
-// カスタムフック: プログレスバーの更新（60fps固定）
+// カスタムフック: 毎描画フレームの更新 (プログレスバー・フレーム番号・グレイコード)
+// 時刻は rAF の引数 (そのフレームの描画開始時刻) を使う。performance.now() だと実際に画面に出る時刻から数 ms ずれる
 function useProgressBars(
   startTimeRef: MutableRefObject<number>,
   startPerfRef: MutableRefObject<number>
 ) {
   const topBarRef = useRef<HTMLDivElement>(null)
   const leftBarRef = useRef<HTMLDivElement>(null)
+  const grayStripRef = useRef<HTMLDivElement>(null)
+  const frameCountRef = useRef(0)
   const animationRef = useRef<number>()
 
   useEffect(() => {
-    const animate = () => {
-      const elapsed = performance.now() - startPerfRef.current
+    const animate = (frameTime: number) => {
+      frameCountRef.current += 1
+      const elapsed = frameTime - startPerfRef.current
       const now = startTimeRef.current + elapsed
       const progress = (now % 1000) / 1000
 
@@ -137,6 +125,9 @@ function useProgressBars(
       }
       if (leftBarRef.current) {
         leftBarRef.current.style.height = `${progress * 100}%`
+      }
+      if (grayStripRef.current) {
+        paintGrayCode(grayStripRef.current, frameCountRef.current)
       }
 
       animationRef.current = requestAnimationFrame(animate)
@@ -151,7 +142,7 @@ function useProgressBars(
     }
   }, [startTimeRef, startPerfRef])
 
-  return { topBarRef, leftBarRef }
+  return { topBarRef, leftBarRef, grayStripRef, frameCountRef }
 }
 
 // コンポーネント: スケールマーク
@@ -163,42 +154,29 @@ function ScaleMarks({
   theme: Theme
 }) {
   const marks = Array.from({ length: CONFIG.SCALE_DIVISIONS + 1 }, (_, i) => i)
+  const isHorizontal = orientation === 'horizontal'
 
-  if (orientation === 'horizontal') {
-    return (
-      <>
-        {marks.map((i) => (
+  // 線の中心を目盛り位置に置く (端基準だと 0% と 100% で線がバーの内外にずれる)
+  return (
+    <>
+      {marks.map((i) => {
+        const pos = `${(i / CONFIG.SCALE_DIVISIONS) * 100}%`
+
+        return (
           <div
             key={i}
             style={{
               position: 'absolute',
-              top: 0,
-              right: `${(i / CONFIG.SCALE_DIVISIONS) * 100}%`,
-              width: `${CONFIG.SCALE_WIDTH}px`,
-              height: `${CONFIG.SCALE_LENGTH}px`,
+              top: isHorizontal ? 0 : pos,
+              left: isHorizontal ? pos : 0,
+              width: `${isHorizontal ? CONFIG.SCALE_WIDTH : CONFIG.SCALE_LENGTH}vmin`,
+              height: `${isHorizontal ? CONFIG.SCALE_LENGTH : CONFIG.SCALE_WIDTH}vmin`,
+              transform: isHorizontal ? 'translateX(-50%)' : 'translateY(-50%)',
               backgroundColor: theme.SCALE_COLOR,
             }}
           />
-        ))}
-      </>
-    )
-  }
-
-  return (
-    <>
-      {marks.slice(1).map((i) => (
-        <div
-          key={i}
-          style={{
-            position: 'absolute',
-            top: `${(i / CONFIG.SCALE_DIVISIONS) * 100}%`,
-            left: 0,
-            width: `${CONFIG.SCALE_LENGTH}px`,
-            height: `${CONFIG.SCALE_WIDTH}px`,
-            backgroundColor: theme.SCALE_COLOR,
-          }}
-        />
-      ))}
+        )
+      })}
     </>
   )
 }
@@ -208,9 +186,15 @@ const ScopeTimer = () => {
   const [theme, setTheme] = useState<ThemeKey>(CONFIG.DEFAULT_THEME)
   const [fps, setFps] = useState<number>(CONFIG.UPDATE_FPS)
   const [mounted, setMounted] = useState(false)
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false)
+  const [isDelayModalOpen, setIsDelayModalOpen] = useState(false)
+  const [isFpsModalOpen, setIsFpsModalOpen] = useState(false)
+  const refreshHz = useDisplayRefreshRate()
   const startTimeRef = useRef(0)
   const startPerfRef = useRef(0)
-  const { topBarRef, leftBarRef } = useProgressBars(startTimeRef, startPerfRef)
+  const [frameNumber, setFrameNumber] = useState(0)
+  const { topBarRef, leftBarRef, grayStripRef, frameCountRef } =
+    useProgressBars(startTimeRef, startPerfRef)
 
   useEffect(() => {
     startTimeRef.current = Date.now()
@@ -219,47 +203,25 @@ const ScopeTimer = () => {
     setMounted(true)
   }, [])
 
-  useAnimationLoop(() => {
-    // performance.now() を使って高精度な経過時間を計算し、起点時刻に加算
-    const elapsed = performance.now() - startPerfRef.current
-    const now = startTimeRef.current + elapsed
+  useAnimationLoop((frameTime) => {
+    // そのフレームの描画開始時刻 (rAF の引数) を起点時刻に加算
+    const now = startTimeRef.current + (frameTime - startPerfRef.current)
 
     setCurrentTime(now)
+    setFrameNumber(frameCountRef.current)
   }, fps)
 
   const currentTheme = THEMES[theme]
   const { dateStr, hours, minutes, seconds, milliseconds, subMilliseconds } =
     formatTimeData(currentTime)
 
+  const closeThemeModal = useCallback(() => setIsThemeModalOpen(false), [])
+  const closeDelayModal = useCallback(() => setIsDelayModalOpen(false), [])
+  const closeFpsModal = useCallback(() => setIsFpsModalOpen(false), [])
+
   // SSRハイドレーションエラーを防ぐため、マウント前は表示しない
   if (!mounted) {
     return null
-  }
-
-  const cycleTheme = () => {
-    const themeKeys = Object.keys(THEMES) as ThemeKey[]
-    const currentIndex = themeKeys.indexOf(theme)
-    const nextIndex = (currentIndex + 1) % themeKeys.length
-
-    setTheme(themeKeys[nextIndex])
-  }
-
-  const cycleFps = () => {
-    const fpsOptions = [15, 24, 30, 60]
-    const currentIndex = fpsOptions.indexOf(fps)
-    const nextIndex = (currentIndex + 1) % fpsOptions.length
-
-    setFps(fpsOptions[nextIndex])
-  }
-
-  const getThemeName = () => {
-    const names: Record<ThemeKey, string> = {
-      whiteOnBlack: 'W/B',
-      blackOnWhite: 'B/W',
-      greenMatrix: 'GRN',
-    }
-
-    return names[theme]
   }
 
   return (
@@ -287,37 +249,63 @@ const ScopeTimer = () => {
           overflow: 'hidden',
         }}
       >
-        {/* 上端プログレスバー */}
+        {/* プログレスバーとスケール: BAR_OFFSET だけ内側の枠を基準に配置 */}
         <div
           style={{
             position: 'absolute',
-            top: `${CONFIG.BAR_OFFSET}px`,
-            left: `${CONFIG.BAR_OFFSET}px`,
-            height: `${CONFIG.BAR_THICKNESS}px`,
-            backgroundColor: currentTheme.BAR_COLOR,
-            borderRadius: `${CONFIG.BAR_THICKNESS / 2}px`,
+            inset: `${CONFIG.BAR_OFFSET}vmin`,
+            pointerEvents: 'none',
           }}
-          ref={topBarRef}
-        />
+        >
+          {/* 上端プログレスバー */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              height: `${CONFIG.BAR_THICKNESS}vmin`,
+              backgroundColor: currentTheme.BAR_COLOR,
+              borderRadius: `${CONFIG.BAR_THICKNESS / 2}vmin`,
+            }}
+            ref={topBarRef}
+          />
 
-        {/* 上端スケール */}
-        <ScaleMarks orientation="horizontal" theme={currentTheme} />
+          {/* 上端スケール */}
+          {/* 目盛りはバーの中心線で交差させる。進行方向は枠と同じなので 0〜100% の位置がバーと揃う */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              top: `${SCALE_CROSS_SHIFT}vmin`,
+            }}
+          >
+            <ScaleMarks orientation="horizontal" theme={currentTheme} />
+          </div>
 
-        {/* 左端プログレスバー */}
-        <div
-          style={{
-            position: 'absolute',
-            top: `${CONFIG.BAR_OFFSET}px`,
-            left: `${CONFIG.BAR_OFFSET}px`,
-            width: `${CONFIG.BAR_THICKNESS}px`,
-            backgroundColor: currentTheme.BAR_COLOR,
-            borderRadius: `${CONFIG.BAR_THICKNESS / 2}px`,
-          }}
-          ref={leftBarRef}
-        />
+          {/* 左端プログレスバー */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: `${CONFIG.BAR_THICKNESS}vmin`,
+              backgroundColor: currentTheme.BAR_COLOR,
+              borderRadius: `${CONFIG.BAR_THICKNESS / 2}vmin`,
+            }}
+            ref={leftBarRef}
+          />
 
-        {/* 左端スケール */}
-        <ScaleMarks orientation="vertical" theme={currentTheme} />
+          {/* 左端スケール */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              left: `${SCALE_CROSS_SHIFT}vmin`,
+            }}
+          >
+            <ScaleMarks orientation="vertical" theme={currentTheme} />
+          </div>
+        </div>
 
         {/* コンテンツエリア */}
         <div
@@ -326,7 +314,7 @@ const ScopeTimer = () => {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            padding: `${CONFIG.MARGIN_PERCENT}%`,
+            padding: `calc(${CONFIG.MARGIN_PERCENT}% + ${CONFIG.BAR_OFFSET + CONFIG.BAR_THICKNESS / 2 + CONFIG.SCALE_LENGTH / 2}vmin)`,
           }}
         >
           {/* 中央コンテンツ */}
@@ -524,10 +512,9 @@ const ScopeTimer = () => {
                   fontWeight: 'bold',
                   fontFamily: 'monospace',
                   fontVariantNumeric: 'tabular-nums',
-                  textShadow:
-                    currentTheme.TEXT_COLOR === '#0f0'
-                      ? '0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0, 2px 2px 4px #000'
-                      : 'none',
+                  textShadow: currentTheme.HAS_GLOW
+                    ? '0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0, 2px 2px 4px #000'
+                    : 'none',
                   letterSpacing: '0.1em',
                   lineHeight: 1,
                   display: 'flex',
@@ -584,6 +571,26 @@ const ScopeTimer = () => {
                 </div>
               </div>
             </div>
+
+            {/* 描画フレーム番号: グレイコードは毎フレーム、数字は UPDATE_FPS で更新 */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '1vmin',
+                fontFamily: 'monospace',
+                fontVariantNumeric: 'tabular-nums',
+                fontSize: CONFIG.DATE_FONT_SIZE,
+              }}
+            >
+              <GrayCodeStrip stripRef={grayStripRef} />
+              <span style={{ opacity: CONFIG.DATE_OPACITY }}>
+                F{String(frameNumber).padStart(6, '0')}
+                {refreshHz !== null &&
+                  ` · ${(1000 / refreshHz).toFixed(2)}ms/F`}
+              </span>
+            </div>
           </div>
 
           {/* Footer */}
@@ -618,48 +625,95 @@ const ScopeTimer = () => {
                 flexShrink: 0,
               }}
             >
-              {/* テーマ切り替えボタン */}
-              <div
-                onClick={cycleTheme}
+              {/* テーマ選択 */}
+              <button
+                type="button"
+                onClick={() => setIsThemeModalOpen(true)}
+                aria-haspopup="dialog"
                 style={{
                   padding:
                     'clamp(0.3rem, 2vw, 0.5rem) clamp(0.5rem, 3vw, 1rem)',
+                  background: 'transparent',
+                  color: currentTheme.TEXT_COLOR,
                   border: `2px solid ${currentTheme.TEXT_COLOR}`,
                   borderRadius: '4px',
-                  opacity: 0.7,
+                  font: 'inherit',
                   cursor: 'pointer',
-                  userSelect: 'none',
-                  transition: 'opacity 0.2s',
                   whiteSpace: 'nowrap',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
               >
-                {getThemeName()}
-              </div>
+                {currentTheme.LABEL}
+              </button>
 
-              {/* FPS切り替えボタン */}
-              <div
-                onClick={cycleFps}
+              {/* 遅延計算: 写真のブロック列 2 つを写し取ってフレーム差を出す */}
+              <button
+                type="button"
+                onClick={() => setIsDelayModalOpen(true)}
+                aria-haspopup="dialog"
                 style={{
                   padding:
                     'clamp(0.3rem, 2vw, 0.5rem) clamp(0.5rem, 3vw, 1rem)',
+                  background: 'transparent',
+                  color: currentTheme.TEXT_COLOR,
                   border: `2px solid ${currentTheme.TEXT_COLOR}`,
                   borderRadius: '4px',
-                  opacity: 0.7,
+                  font: 'inherit',
                   cursor: 'pointer',
-                  userSelect: 'none',
-                  transition: 'opacity 0.2s',
                   whiteSpace: 'nowrap',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
+              >
+                Delay
+              </button>
+
+              {/* FPS 選択: 表示環境のリフレッシュレートを超える値はモーダル内で disabled */}
+              <button
+                type="button"
+                onClick={() => setIsFpsModalOpen(true)}
+                aria-haspopup="dialog"
+                style={{
+                  padding:
+                    'clamp(0.3rem, 2vw, 0.5rem) clamp(0.5rem, 3vw, 1rem)',
+                  background: 'transparent',
+                  color: currentTheme.TEXT_COLOR,
+                  border: `2px solid ${currentTheme.TEXT_COLOR}`,
+                  borderRadius: '4px',
+                  font: 'inherit',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
               >
                 {fps}fps
-              </div>
+              </button>
             </div>
           </div>
         </div>
+        <ThemeModal
+          isOpen={isThemeModalOpen}
+          value={theme}
+          onSelect={(key) => {
+            setTheme(key)
+            setIsThemeModalOpen(false)
+          }}
+          onClose={closeThemeModal}
+          theme={currentTheme}
+        />
+        <FpsModal
+          isOpen={isFpsModalOpen}
+          value={fps}
+          onSelect={(option) => {
+            setFps(option)
+            setIsFpsModalOpen(false)
+          }}
+          onClose={closeFpsModal}
+          theme={currentTheme}
+          refreshHz={refreshHz}
+        />
+        <DelayModal
+          isOpen={isDelayModalOpen}
+          onClose={closeDelayModal}
+          theme={currentTheme}
+          frameMs={refreshHz === null ? null : 1000 / refreshHz}
+        />
       </div>
     </>
   )
