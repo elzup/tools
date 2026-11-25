@@ -93,7 +93,11 @@ button:disabled { opacity: .45; cursor: default; background: var(--panel-2); col
   <fieldset>
     <legend>この画像</legend>
     <div class="row"><span>ズーム</span><input id="zoom-r" type="range" min="-1.6" max="2.3" step="0.01"><input id="zoom" type="number" step="0.05"></div>
-    <div class="row"><span>回転°</span><input id="angle-r" type="range" min="-45" max="45" step="0.5"><input id="angle" type="number" step="0.5"></div>
+    <div class="row"><span>回転°</span><input id="angle-r" type="range" min="-180" max="180" step="0.5"><input id="angle" type="number" step="0.5"></div>
+    <div class="buttons">
+      <button id="rot-ccw" type="button">↺ 90°</button>
+      <button id="rot-cw" type="button">↻ 90°</button>
+    </div>
     <div class="row"><span>X</span><input id="cx-r" type="range" min="0" max="1" step="0.001"><input id="cx" type="number" step="0.005"></div>
     <div class="row"><span>Y</span><input id="cy-r" type="range" min="0" max="1" step="0.001"><input id="cy" type="number" step="0.005"></div>
     <div class="buttons">
@@ -110,8 +114,8 @@ button:disabled { opacity: .45; cursor: default; background: var(--panel-2); col
     <button id="clear-store">保存位置を消去</button>
   </div>
   <p class="help">
-    ドラッグ: 移動 / ホイール: ズーム / <kbd>Shift</kbd>+ホイール: 回転<br>
-    <kbd>←↑→↓</kbd> 移動 (<kbd>Shift</kbd> で大きく) / <kbd>[</kbd><kbd>]</kbd> 回転 / <kbd>-</kbd><kbd>=</kbd> ズーム<br>
+    ドラッグ: 移動 / ホイール: ズーム / <kbd>Shift</kbd>+ホイール: 回転 2° (<kbd>Alt</kbd> 併用で 0.5°)<br>
+    <kbd>←↑→↓</kbd> 移動 (<kbd>Shift</kbd> で大きく) / <kbd>[</kbd><kbd>]</kbd> 回転 1° (<kbd>Shift</kbd> で 15°) / <kbd>-</kbd><kbd>=</kbd> ズーム<br>
     <kbd>J</kbd><kbd>K</kbd> 前後の画像 / <kbd>R</kbd> リセット / <kbd>S</kbd> 保存
   </p>
 </aside>
@@ -128,6 +132,9 @@ const RATIOS = [
   { id: 'sq', label: '1 : 1', short: '1:1', r: 1 },
 ]
 const DEFAULT_CROP = { cx: 0.5, cy: 0.5, zoom: 1, angle: 0 }
+// 0.35 では繰り返し部分が本体と見分けにくかったので 0.6 に上げた
+const DIM_DEFAULT = 0.6
+const DIM_OLD_DEFAULT = 0.35
 
 // 汎用版: 画像はドロップで読み込む。作業特化版は PRESET = { imageBase, saveUrl, settings, images } を書いて serve 経由で開く
 const PRESET = null
@@ -142,7 +149,7 @@ const $ = (id) => document.getElementById(id)
 const editor = $('editor')
 const out = $('out')
 
-let settings = { ratioId: 'phi3', isLandscape: false, outLong: 720, shouldClamp: true, fill: 'mirror-y', bg: '#000000', dim: 0.35 }
+let settings = { ratioId: 'phi3', isLandscape: false, outLong: 720, shouldClamp: true, fill: 'mirror-y', bg: '#000000', dim: DIM_DEFAULT }
 let items = [] // { name, img, crop, thumb }
 let current = -1
 let view = { s: 1, ox: 0, oy: 0 }
@@ -165,7 +172,11 @@ function persist() {
 }
 // 優先順: 既定値 < PRESET < ブラウザに保存した前回の設定
 if (isPreset) settings = { ...settings, ...PRESET.settings }
-if (saved.settings) settings = { ...settings, ...saved.settings }
+if (saved.settings) {
+  // 旧初期値のまま保存されている暗転は、触っていないとみなして新初期値に上げる
+  const dim = saved.settings.dim === DIM_OLD_DEFAULT ? DIM_DEFAULT : saved.settings.dim
+  settings = { ...settings, ...saved.settings, ...(dim === undefined ? {} : { dim }) }
+}
 
 const aspect = () => {
   const r = (RATIOS.find((x) => x.id === settings.ratioId) ?? RATIOS[0]).r
@@ -312,7 +323,7 @@ function renderEditor() {
 function renderSide() {
   const item = items[current]
   const isEmpty = !item
-  for (const id of ['save-one', 'save-all', 'save-json', 'reset', 'apply-all']) $(id).disabled = isEmpty
+  for (const id of ['save-one', 'save-all', 'save-json', 'reset', 'apply-all', 'rot-ccw', 'rot-cw']) $(id).disabled = isEmpty
   if (isEmpty) return
   const { crop } = item
   $('zoom').value = crop.zoom.toFixed(2)
@@ -349,10 +360,13 @@ function select(i) {
   renderAll()
   $('list').children[current]?.scrollIntoView({ block: 'nearest' })
 }
+// -180 < angle <= 180 に正規化 (スライダーの範囲と合わせる)
+const normAngle = (a) => { const m = ((a % 360) + 360) % 360; return m > 180 ? m - 360 : m }
 function updateCrop(patch) {
   const item = items[current]
   if (!item) return
-  const crop = fitCrop(item.img, { ...item.crop, ...patch })
+  const merged = { ...item.crop, ...patch }
+  const crop = fitCrop(item.img, { ...merged, angle: normAngle(merged.angle) })
   items = items.map((it, i) => (i === current ? { ...it, crop } : it))
   renderAll()
   persist()
@@ -532,7 +546,9 @@ $('cx-r').oninput = (e) => updateCrop({ cx: Number(e.target.value) })
 $('cx').onchange = (e) => updateCrop({ cx: Number(e.target.value) })
 $('cy-r').oninput = (e) => updateCrop({ cy: Number(e.target.value) })
 $('cy').onchange = (e) => updateCrop({ cy: Number(e.target.value) })
-$('reset').onclick = () => updateCrop({ ...DEFAULT_CROP, ...hintFor(items[current].name) })
+$('rot-ccw').onclick = () => updateCrop({ angle: items[current].crop.angle - 90 })
+$('rot-cw').onclick = () => updateCrop({ angle: items[current].crop.angle + 90 })
+$('reset').onclick =() => updateCrop({ ...DEFAULT_CROP, ...hintFor(items[current].name) })
 $('apply-all').onclick = () => {
   const { zoom, angle } = items[current].crop
   items = items.map((it) => ({ ...it, crop: { ...it.crop, zoom, angle } }))
@@ -586,7 +602,8 @@ editor.addEventListener('wheel', (e) => {
   const { crop } = items[current]
   // macOS はマウスで Shift+ホイールすると deltaX 側に値が来る
   const delta = e.deltaY || e.deltaX
-  if (e.shiftKey) updateCrop({ angle: Math.round((crop.angle + Math.sign(delta) * 0.5) * 2) / 2 })
+  // 1 ノッチ 2°、Alt 併用で 0.5° の微調整
+  if (e.shiftKey) updateCrop({ angle: Math.round((crop.angle + Math.sign(delta) * (e.altKey ? 0.5 : 2)) * 2) / 2 })
   else updateCrop({ zoom: crop.zoom * Math.exp(-delta * 0.0015) })
 }, { passive: false })
 
@@ -602,6 +619,8 @@ document.addEventListener('keydown', (e) => {
     ArrowDown: () => updateCrop({ cy: crop.cy + step }),
     '[': () => updateCrop({ angle: crop.angle - 1 }),
     ']': () => updateCrop({ angle: crop.angle + 1 }),
+    '{': () => updateCrop({ angle: crop.angle - 15 }),
+    '}': () => updateCrop({ angle: crop.angle + 15 }),
     '-': () => updateCrop({ zoom: crop.zoom / 1.05 }),
     '=': () => updateCrop({ zoom: crop.zoom * 1.05 }),
     j: () => select(current + 1),
