@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ratio Cropper</title>
+<style>
+:root {
+  --bg: #14171c; --panel: #1d2128; --panel-2: #252a33; --line: #323944;
+  --text: #e6e9ee; --muted: #9aa3af; --accent: #7aa2f7; --accent-hover: #9bb8ff; --on-accent: #0d1117;
+}
+* { box-sizing: border-box }
+body {
+  margin: 0; height: 100vh; background: var(--bg); color: var(--text);
+  font: 13px/1.5 system-ui, -apple-system, sans-serif;
+  display: grid; grid-template-columns: 180px 1fr 280px;
+}
+aside, section { min-height: 0 }
+#list { overflow-y: auto; border-right: 1px solid var(--line); padding: 8px; display: flex; flex-direction: column; gap: 6px }
+.item { display: flex; gap: 6px; align-items: center; padding: 4px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; background: none; color: var(--text); text-align: left; font: inherit }
+.item:hover { background: var(--panel-2); color: var(--text) }
+.item.is-active { border-color: var(--accent); background: var(--panel) }
+.item canvas { height: 64px; width: auto; background: #000; flex: none }
+.item span { font-size: 11px; color: var(--muted); word-break: break-all }
+#stage { position: relative; background: #0b0d10 }
+#editor { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none }
+#editor.is-dragging { cursor: grabbing }
+#drop-hint { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); pointer-events: none; text-align: center }
+#side { border-left: 1px solid var(--line); padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: var(--panel) }
+fieldset { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin: 0; display: grid; gap: 6px }
+legend { color: var(--muted); padding: 0 4px }
+label { display: flex; align-items: center; gap: 6px }
+.row { display: grid; grid-template-columns: 44px 1fr 56px; gap: 6px; align-items: center }
+input[type=number], select { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 2px 4px; font: inherit; width: 100% }
+input[type=range] { width: 100% }
+button { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; font: inherit; cursor: pointer }
+button:hover { background: var(--line); color: var(--text) }
+button:focus-visible, .item:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px }
+button.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent) }
+button.primary:hover { background: var(--accent-hover); color: var(--on-accent) }
+button:disabled { opacity: .45; cursor: default; background: var(--panel-2); color: var(--text) }
+.ratio-picker { position: relative }
+#ratio-btn { width: 100%; display: flex; align-items: center; gap: 8px; text-align: left }
+#ratio-pop {
+  position: absolute; z-index: 10; top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; box-shadow: 0 8px 24px rgba(0, 0, 0, .5);
+}
+#ratio-pop[hidden] { display: none }
+.ratio-opt { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 2px; font-size: 11px }
+.ratio-opt.is-active, .ratio-opt.is-active:hover { border-color: var(--accent); background: var(--panel-2); color: var(--text) }
+.shape { display: grid; place-items: center; flex: none }
+.shape i { display: block; background: var(--accent); border-radius: 2px; min-width: 2px; min-height: 2px }
+.buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 6px }
+#out { display: block; max-width: 100%; max-height: 320px; margin: 0 auto; background: repeating-conic-gradient(#2a2f38 0 25%, #1f232a 0 50%) 0 0 / 16px 16px }
+#out-size, .help { color: var(--muted); font-size: 11px }
+.help kbd { background: var(--panel-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 3px }
+</style>
+</head>
+<body>
+<aside id="list"></aside>
+<section id="stage">
+  <canvas id="editor"></canvas>
+  <div id="drop-hint">画像をここにドロップ (複数可)<br>位置の .tsv / 設定の .json もドロップで読み込み</div>
+</section>
+<aside id="side">
+  <fieldset>
+    <legend>読み込み</legend>
+    <input id="file" type="file" multiple accept="image/*,.tsv,.json">
+  </fieldset>
+  <fieldset>
+    <legend>比率 (全画像共通)</legend>
+    <div class="ratio-picker">
+      <button id="ratio-btn" type="button" aria-haspopup="listbox" aria-expanded="false"></button>
+      <div id="ratio-pop" role="listbox" hidden></div>
+    </div>
+    <label><input id="landscape" type="checkbox"> 横向き</label>
+    <label>長辺 <input id="out-long" type="number" min="16" max="8000" step="1"> px</label>
+    <label><input id="clamp" type="checkbox"> 画像の内側に収める</label>
+    <label>はみ出し
+      <select id="fill">
+        <option value="mirror-y">上下に鏡像で繰り返し</option>
+        <option value="repeat-y">上下にそのまま繰り返し</option>
+        <option value="mirror">全方向に鏡像で繰り返し</option>
+        <option value="repeat">全方向にそのまま繰り返し</option>
+        <option value="transparent">透明</option>
+        <option value="color">単色</option>
+      </select>
+      <input id="bg" type="color" style="width:40px" title="単色 / 上下繰り返し時の左右の色">
+    </label>
+    <div class="row"><span>暗転</span><input id="dim-r" type="range" min="0" max="1" step="0.01"><input id="dim" type="number" min="0" max="1" step="0.05"></div>
+  </fieldset>
+  <fieldset>
+    <legend>この画像</legend>
+    <div class="row"><span>ズーム</span><input id="zoom-r" type="range" min="-1.6" max="2.3" step="0.01"><input id="zoom" type="number" step="0.05"></div>
+    <div class="row"><span>回転°</span><input id="angle-r" type="range" min="-45" max="45" step="0.5"><input id="angle" type="number" step="0.5"></div>
+    <div class="row"><span>X</span><input id="cx-r" type="range" min="0" max="1" step="0.001"><input id="cx" type="number" step="0.005"></div>
+    <div class="row"><span>Y</span><input id="cy-r" type="range" min="0" max="1" step="0.001"><input id="cy" type="number" step="0.005"></div>
+    <div class="buttons">
+      <button id="reset">リセット</button>
+      <button id="apply-all" title="ズームと回転を全画像にコピー (位置はそのまま)">ズーム/回転を全体へ</button>
+    </div>
+  </fieldset>
+  <canvas id="out"></canvas>
+  <div id="out-size"></div>
+  <div class="buttons">
+    <button id="save-one" class="primary">この画像を保存</button>
+    <button id="save-all" class="primary">全部書き出し</button>
+    <button id="save-json">設定 JSON 保存</button>
+    <button id="clear-store">保存位置を消去</button>
+  </div>
+  <p class="help">
+    ドラッグ: 移動 / ホイール: ズーム / <kbd>Shift</kbd>+ホイール: 回転<br>
+    <kbd>←↑→↓</kbd> 移動 (<kbd>Shift</kbd> で大きく) / <kbd>[</kbd><kbd>]</kbd> 回転 / <kbd>-</kbd><kbd>=</kbd> ズーム<br>
+    <kbd>J</kbd><kbd>K</kbd> 前後の画像 / <kbd>R</kbd> リセット / <kbd>S</kbd> 保存
+  </p>
+</aside>
+<script>
+const PHI = (1 + Math.sqrt(5)) / 2
+// r は縦向きのときの 幅/高さ。横向きはその逆数
+const RATIOS = [
+  { id: 'phi3', label: '1 : φ³  (≈1 : 4.236)', short: 'φ³', r: 1 / PHI ** 3 },
+  { id: 'r1x4', label: '1 : 4', short: '1:4', r: 1 / 4 },
+  { id: 'phi2', label: '1 : φ²  (≈1 : 2.618)', short: 'φ²', r: 1 / PHI ** 2 },
+  { id: 'r9x16', label: '9 : 16', short: '9:16', r: 9 / 16 },
+  { id: 'phi', label: '1 : φ  (≈1 : 1.618)', short: 'φ', r: 1 / PHI },
+  { id: 'r3x4', label: '3 : 4', short: '3:4', r: 3 / 4 },
+  { id: 'sq', label: '1 : 1', short: '1:1', r: 1 },
+]
+const DEFAULT_CROP = { cx: 0.5, cy: 0.5, zoom: 1, angle: 0 }
+
+// 汎用版: 画像はドロップで読み込む。作業特化版は PRESET = { imageBase, saveUrl, settings, images } を書いて serve 経由で開く
+const PRESET = null
+const isPreset = false
+const ZOOM_MIN = 0.2
+const ZOOM_MAX = 10
+const STORAGE_KEY = 'ratio-cropper:v1'
+// Chrome は同一タスク内で連続した download を間引くので、1 枚ずつ間を空ける
+const DOWNLOAD_GAP_MS = 250
+
+const $ = (id) => document.getElementById(id)
+const editor = $('editor')
+const out = $('out')
+
+let settings = { ratioId: 'phi3', isLandscape: false, outLong: 720, shouldClamp: true, fill: 'mirror-y', bg: '#000000', dim: 0.35 }
+let items = [] // { name, img, crop, thumb }
+let current = -1
+let view = { s: 1, ox: 0, oy: 0 }
+let positionHints = [] // { key, cx, cy? } tsv から
+let saved = loadStore()
+
+function loadStore() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    return raw === null ? { crops: {} } : JSON.parse(raw)
+  } catch (err) {
+    console.warn('localStorage を読めないので保存位置なしで開始', err)
+    return { crops: {} }
+  }
+}
+function persist() {
+  const crops = Object.fromEntries(items.map((it) => [it.name, it.crop]))
+  saved = { settings, crops: { ...saved.crops, ...crops } }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)) } catch (err) { console.warn('localStorage に保存できない', err) }
+}
+// 優先順: 既定値 < PRESET < ブラウザに保存した前回の設定
+if (isPreset) settings = { ...settings, ...PRESET.settings }
+if (saved.settings) settings = { ...settings, ...saved.settings }
+
+const aspect = () => {
+  const r = (RATIOS.find((x) => x.id === settings.ratioId) ?? RATIOS[0]).r
+  return settings.isLandscape ? 1 / r : r
+}
+function cropSize(img, crop) {
+  const ar = aspect()
+  const h0 = Math.min(img.height, img.width / ar)
+  return { w: (h0 * ar) / crop.zoom, h: h0 / crop.zoom }
+}
+const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi)
+function fitCrop(img, crop) {
+  const zoom = clamp(crop.zoom, ZOOM_MIN, ZOOM_MAX)
+  const next = { ...crop, zoom }
+  if (!settings.shouldClamp) return next
+  const { w, h } = cropSize(img, next)
+  const t = (next.angle * Math.PI) / 180
+  const bw = Math.abs(w * Math.cos(t)) + Math.abs(h * Math.sin(t))
+  const bh = Math.abs(w * Math.sin(t)) + Math.abs(h * Math.cos(t))
+  const fitAxis = (c, box, size) => (box >= size ? 0.5 : clamp(c * size, box / 2, size - box / 2) / size)
+  return { ...next, cx: fitAxis(next.cx, bw, img.width), cy: fitAxis(next.cy, bh, img.height) }
+}
+function corners(img, crop) {
+  const { w, h } = cropSize(img, crop)
+  const t = (crop.angle * Math.PI) / 180
+  const [c, s] = [Math.cos(t), Math.sin(t)]
+  const x0 = crop.cx * img.width
+  const y0 = crop.cy * img.height
+  return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) => {
+    const [dx, dy] = [(sx * w) / 2, (sy * h) / 2]
+    return [x0 + dx * c - dy * s, y0 + dx * s + dy * c]
+  })
+}
+function outSize(long) {
+  const ar = aspect()
+  return ar < 1 ? { w: Math.max(1, Math.round(long * ar)), h: long } : { w: long, h: Math.max(1, Math.round(long / ar)) }
+}
+// 鏡像タイルは反転コピーを並べた 1 枚を作り、それを pattern で敷き詰める (継ぎ目が連続する)
+const tileCache = new WeakMap()
+function fillPattern(ctx, img, mode) {
+  const byMode = tileCache.get(img) ?? {}
+  if (!byMode[mode]) {
+    const isMirror = mode.startsWith('mirror')
+    const isYOnly = mode.endsWith('-y')
+    const tile = document.createElement('canvas')
+    tile.width = img.width * (isMirror && !isYOnly ? 2 : 1)
+    tile.height = img.height * (isMirror ? 2 : 1)
+    const t = tile.getContext('2d')
+    const put = (fx, fy) => {
+      t.save()
+      t.translate(fx ? img.width * 2 : 0, fy ? img.height * 2 : 0)
+      t.scale(fx ? -1 : 1, fy ? -1 : 1)
+      t.drawImage(img, 0, 0)
+      t.restore()
+    }
+    put(false, false)
+    if (isMirror) put(false, true)
+    if (isMirror && !isYOnly) { put(true, false); put(true, true) }
+    byMode[mode] = tile
+    tileCache.set(img, byMode)
+  }
+  return ctx.createPattern(byMode[mode], mode.endsWith('-y') ? 'repeat-y' : 'repeat')
+}
+// ctx は画像座標系に変換済みであること。(x0,y0) 中心・半径 r の範囲を塗る
+function paintImage(ctx, img, x0, y0, r) {
+  const { fill, bg } = settings
+  if (fill === 'color' || fill.endsWith('-y')) {
+    ctx.fillStyle = bg
+    ctx.fillRect(x0 - r, y0 - r, r * 2, r * 2)
+  }
+  if (fill === 'transparent' || fill === 'color') {
+    ctx.drawImage(img, 0, 0)
+    return
+  }
+  ctx.fillStyle = fillPattern(ctx, img, fill)
+  if (fill.endsWith('-y')) ctx.fillRect(0, y0 - r, img.width, r * 2)
+  else ctx.fillRect(x0 - r, y0 - r, r * 2, r * 2)
+  // 埋めた部分全体を暗くしてから元画像を上に戻すと、繰り返し部分だけが暗転する
+  if (settings.dim > 0) {
+    ctx.fillStyle = `rgba(0,0,0,${settings.dim})`
+    ctx.fillRect(x0 - r, y0 - r, r * 2, r * 2)
+    ctx.drawImage(img, 0, 0)
+  }
+}
+function drawCrop(canvas, item, long) {
+  const { w: ow, h: oh } = outSize(long)
+  canvas.width = ow
+  canvas.height = oh
+  const ctx = canvas.getContext('2d')
+  ctx.clearRect(0, 0, ow, oh)
+  const { img, crop } = item
+  const { w, h } = cropSize(img, crop)
+  const k = ow / w
+  ctx.save()
+  ctx.translate(ow / 2, oh / 2)
+  ctx.scale(k, k)
+  ctx.rotate((-crop.angle * Math.PI) / 180)
+  ctx.translate(-crop.cx * img.width, -crop.cy * img.height)
+  ctx.imageSmoothingQuality = 'high'
+  paintImage(ctx, img, crop.cx * img.width, crop.cy * img.height, w + h)
+  ctx.restore()
+}
+
+function renderEditor() {
+  const dpr = window.devicePixelRatio || 1
+  const cw = editor.clientWidth * dpr
+  const ch = editor.clientHeight * dpr
+  editor.width = cw
+  editor.height = ch
+  const ctx = editor.getContext('2d')
+  ctx.clearRect(0, 0, cw, ch)
+  $('drop-hint').hidden = items.length > 0
+  const item = items[current]
+  if (!item) return
+  const { img, crop } = item
+  // 余白を残して回転した枠がはみ出しても見えるようにする
+  const s = Math.min(cw / img.width, ch / img.height) * 0.9
+  view = { s, ox: (cw - img.width * s) / 2, oy: (ch - img.height * s) / 2, dpr }
+  ctx.save()
+  ctx.translate(view.ox, view.oy)
+  ctx.scale(s, s)
+  // 繰り返しモードでは画面全体に敷いて、はみ出し部分の埋まり方を見せる
+  if (settings.fill !== 'transparent' && settings.fill !== 'color') {
+    ctx.globalAlpha = 0.45
+    paintImage(ctx, img, img.width / 2, img.height / 2, Math.max(cw, ch) / s)
+    ctx.globalAlpha = 1
+  }
+  ctx.drawImage(img, 0, 0)
+  ctx.restore()
+  const pts = corners(img, crop).map(([x, y]) => [view.ox + x * s, view.oy + y * s])
+  ctx.beginPath()
+  ctx.rect(0, 0, cw, ch)
+  pts.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)))
+  ctx.closePath()
+  ctx.fillStyle = 'rgba(0,0,0,0.62)'
+  ctx.fill('evenodd')
+  ctx.beginPath()
+  pts.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)))
+  ctx.closePath()
+  ctx.strokeStyle = '#7aa2f7'
+  ctx.lineWidth = 2 * dpr
+  ctx.stroke()
+}
+function renderSide() {
+  const item = items[current]
+  const isEmpty = !item
+  for (const id of ['save-one', 'save-all', 'save-json', 'reset', 'apply-all']) $(id).disabled = isEmpty
+  if (isEmpty) return
+  const { crop } = item
+  $('zoom').value = crop.zoom.toFixed(2)
+  $('zoom-r').value = Math.log(crop.zoom)
+  $('angle').value = crop.angle
+  $('angle-r').value = crop.angle
+  $('cx').value = crop.cx.toFixed(3)
+  $('cx-r').value = crop.cx
+  $('cy').value = crop.cy.toFixed(3)
+  $('cy-r').value = crop.cy
+  drawCrop(out, item, settings.outLong)
+  $('out-size').textContent = `${out.width} × ${out.height} px`
+  drawCrop(item.thumb, item, 128)
+}
+function renderList() {
+  const list = $('list')
+  list.replaceChildren(...items.map((it, i) => {
+    const btn = document.createElement('button')
+    btn.className = 'item' + (i === current ? ' is-active' : '')
+    const label = document.createElement('span')
+    label.textContent = it.name
+    btn.append(it.thumb, label)
+    btn.onclick = () => select(i)
+    return btn
+  }))
+  items.forEach((it) => drawCrop(it.thumb, it, 128))
+}
+function renderAll() { renderEditor(); renderSide() }
+
+function select(i) {
+  if (items.length === 0) return
+  current = (i + items.length) % items.length
+  renderList()
+  renderAll()
+  $('list').children[current]?.scrollIntoView({ block: 'nearest' })
+}
+function updateCrop(patch) {
+  const item = items[current]
+  if (!item) return
+  const crop = fitCrop(item.img, { ...item.crop, ...patch })
+  items = items.map((it, i) => (i === current ? { ...it, crop } : it))
+  renderAll()
+  persist()
+}
+function refitAll() {
+  items = items.map((it) => ({ ...it, crop: fitCrop(it.img, it.crop) }))
+  renderList()
+  renderAll()
+  persist()
+}
+
+// ---- 読み込み ----
+function hintFor(name) {
+  return positionHints.reduce((acc, h) => (name.includes(h.key) ? { ...acc, cx: h.cx, ...(h.cy === undefined ? {} : { cy: h.cy }) } : acc), {})
+}
+async function loadImage(file) {
+  const url = URL.createObjectURL(file)
+  try {
+    const img = new Image()
+    img.src = url
+    await img.decode()
+    return img
+  } catch (err) {
+    throw new Error(`画像を読めませんでした: ${file.name}`, { cause: err })
+  }
+}
+function parseTsv(text) {
+  return text.trim().split('\n').map((l) => l.split('\t')).filter((c) => c.length >= 2 && Number.isFinite(Number(c[1]))).map((c) => {
+    const cy = Number(c[2])
+    return { key: c[0], cx: Number(c[1]), ...(c.length >= 3 && Number.isFinite(cy) ? { cy } : {}) }
+  })
+}
+function applyJson(data) {
+  if (data.settings) settings = { ...settings, ...data.settings }
+  saved = { ...saved, crops: { ...saved.crops, ...(data.crops ?? {}) } }
+  items = items.map((it) => ({ ...it, crop: data.crops?.[it.name] ?? it.crop }))
+  syncSettingsUi()
+  refitAll()
+}
+async function handleFiles(fileList) {
+  const files = [...fileList]
+  for (const f of files.filter((f) => f.name.endsWith('.tsv'))) {
+    const hints = parseTsv(await f.text())
+    positionHints = [...positionHints, ...hints]
+    items = items.map((it) => ({ ...it, crop: { ...it.crop, ...hintFor(it.name) } }))
+  }
+  for (const f of files.filter((f) => f.name.endsWith('.json'))) {
+    try { applyJson(JSON.parse(await f.text())) } catch (err) { alertError(`JSON を読めませんでした: ${f.name}`, err) }
+  }
+  const imgFiles = files.filter((f) => f.type.startsWith('image/')).sort((a, b) => a.name.localeCompare(b.name))
+  const results = await Promise.allSettled(imgFiles.map(loadImage))
+  const loaded = results.flatMap((r, i) => {
+    if (r.status === 'rejected') { console.error(r.reason); return [] }
+    const name = imgFiles[i].name
+    const base = saved.crops[name] ?? { ...DEFAULT_CROP, ...hintFor(name) }
+    return [{ name, img: r.value, crop: fitCrop(r.value, base), thumb: document.createElement('canvas') }]
+  })
+  const names = new Set(loaded.map((it) => it.name))
+  items = [...items.filter((it) => !names.has(it.name)), ...loaded]
+  if (current < 0 && items.length > 0) current = 0
+  refitAll()
+}
+function alertError(msg, err) {
+  console.error(msg, err)
+  $('out-size').textContent = msg
+}
+
+// ---- 書き出し ----
+const outName = (name) => `${name.replace(/\.[^.]+$/, '')}_${settings.ratioId}${settings.isLandscape ? 'L' : ''}.png`
+function toBlob(item) {
+  const canvas = document.createElement('canvas')
+  drawCrop(canvas, item, settings.outLong)
+  return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('PNG 生成に失敗'))), 'image/png'))
+}
+function download(blob, name) {
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = name
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000)
+}
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+async function postSave(item) {
+  const res = await fetch(PRESET.saveUrl + encodeURIComponent(outName(item.name)), { method: 'POST', body: await toBlob(item) })
+  if (!res.ok) throw new Error(`保存失敗 ${item.name}: ${res.status} ${await res.text()}`)
+}
+async function saveAll() {
+  if (isPreset) {
+    for (const it of items) await postSave(it)
+    $('out-size').textContent = `${items.length} 枚をサーバーの保存先に保存しました`
+    return
+  }
+  if ('showDirectoryPicker' in window) {
+    let dir
+    try { dir = await window.showDirectoryPicker({ mode: 'readwrite' }) } catch { return } // キャンセル
+    for (const it of items) {
+      const fh = await dir.getFileHandle(outName(it.name), { create: true })
+      const w = await fh.createWritable()
+      await w.write(await toBlob(it))
+      await w.close()
+    }
+    $('out-size').textContent = `${items.length} 枚を書き出しました`
+    return
+  }
+  for (const it of items) {
+    download(await toBlob(it), outName(it.name))
+    await sleep(DOWNLOAD_GAP_MS)
+  }
+}
+
+// ---- UI ----
+// 比率を「形」で見せる。box px の正方形に収まるように縦横を決める
+function shapeEl(ar, box) {
+  const wrap = document.createElement('span')
+  wrap.className = 'shape'
+  wrap.style.width = wrap.style.height = `${box}px`
+  const rect = document.createElement('i')
+  rect.style.width = `${ar < 1 ? box * ar : box}px`
+  rect.style.height = `${ar < 1 ? box : box / ar}px`
+  wrap.append(rect)
+  return wrap
+}
+const orient = (r) => (settings.isLandscape ? 1 / r : r)
+function renderRatioPicker() {
+  const cur = RATIOS.find((x) => x.id === settings.ratioId) ?? RATIOS[0]
+  const label = document.createElement('span')
+  label.textContent = cur.label
+  $('ratio-btn').replaceChildren(shapeEl(orient(cur.r), 22), label)
+  $('ratio-pop').replaceChildren(...RATIOS.map((x) => {
+    const opt = document.createElement('button')
+    opt.type = 'button'
+    opt.role = 'option'
+    opt.className = 'item ratio-opt' + (x.id === cur.id ? ' is-active' : '')
+    opt.title = x.label
+    const text = document.createElement('span')
+    text.textContent = x.short
+    opt.append(shapeEl(orient(x.r), 44), text)
+    opt.onclick = () => { setRatioPop(false); setSetting({ ratioId: x.id }); syncSettingsUi() }
+    return opt
+  }))
+}
+function setRatioPop(isOpen) {
+  $('ratio-pop').hidden = !isOpen
+  $('ratio-btn').setAttribute('aria-expanded', String(isOpen))
+}
+$('ratio-btn').onclick = () => setRatioPop($('ratio-pop').hidden)
+document.addEventListener('pointerdown', (e) => {
+  if (!e.target.closest('.ratio-picker')) setRatioPop(false)
+})
+
+function syncSettingsUi() {
+  renderRatioPicker()
+  $('landscape').checked = settings.isLandscape
+  $('out-long').value = settings.outLong
+  $('clamp').checked = settings.shouldClamp
+  $('fill').value = settings.fill
+  $('bg').value = settings.bg
+  $('dim').value = settings.dim
+  $('dim-r').value = settings.dim
+}
+const setSetting = (patch) => { settings = { ...settings, ...patch }; refitAll() }
+syncSettingsUi()
+$('landscape').onchange = (e) => { setSetting({ isLandscape: e.target.checked }); renderRatioPicker() }
+$('out-long').onchange = (e) => setSetting({ outLong: clamp(Math.round(Number(e.target.value)) || 720, 16, 8000) })
+$('clamp').onchange = (e) => setSetting({ shouldClamp: e.target.checked })
+$('fill').onchange = (e) => setSetting({ fill: e.target.value })
+const setDim = (v) => { setSetting({ dim: clamp(Number(v) || 0, 0, 1) }); syncSettingsUi() }
+$('dim-r').oninput = (e) => setDim(e.target.value)
+$('dim').onchange = (e) => setDim(e.target.value)
+$('bg').oninput = (e) => setSetting({ bg: e.target.value })
+
+$('zoom-r').oninput = (e) => updateCrop({ zoom: Math.exp(Number(e.target.value)) })
+$('zoom').onchange = (e) => updateCrop({ zoom: Number(e.target.value) || 1 })
+$('angle-r').oninput = (e) => updateCrop({ angle: Number(e.target.value) })
+$('angle').onchange = (e) => updateCrop({ angle: Number(e.target.value) || 0 })
+$('cx-r').oninput = (e) => updateCrop({ cx: Number(e.target.value) })
+$('cx').onchange = (e) => updateCrop({ cx: Number(e.target.value) })
+$('cy-r').oninput = (e) => updateCrop({ cy: Number(e.target.value) })
+$('cy').onchange = (e) => updateCrop({ cy: Number(e.target.value) })
+$('reset').onclick = () => updateCrop({ ...DEFAULT_CROP, ...hintFor(items[current].name) })
+$('apply-all').onclick = () => {
+  const { zoom, angle } = items[current].crop
+  items = items.map((it) => ({ ...it, crop: { ...it.crop, zoom, angle } }))
+  refitAll()
+}
+$('save-one').onclick = async () => {
+  const it = items[current]
+  if (!isPreset) { download(await toBlob(it), outName(it.name)); return }
+  try {
+    await postSave(it)
+    $('out-size').textContent = `${outName(it.name)} を crop-out/ に保存しました`
+  } catch (err) { alertError('保存に失敗しました', err) }
+}
+$('save-all').onclick = () => saveAll().catch((err) => alertError('書き出しに失敗しました', err))
+$('save-json').onclick = () => {
+  const crops = Object.fromEntries(items.map((it) => [it.name, it.crop]))
+  download(new Blob([JSON.stringify({ settings, crops }, null, 2)], { type: 'application/json' }), 'crops.json')
+}
+$('clear-store').onclick = () => {
+  try { localStorage.removeItem(STORAGE_KEY) } catch (err) { console.warn(err) }
+  saved = { crops: {} }
+  $('out-size').textContent = '保存位置を消去しました (表示中の位置はそのまま)'
+}
+$('file').onchange = (e) => handleFiles(e.target.files)
+
+document.addEventListener('dragover', (e) => e.preventDefault())
+document.addEventListener('drop', (e) => { e.preventDefault(); handleFiles(e.dataTransfer.files) })
+
+let drag = null
+editor.addEventListener('pointerdown', (e) => {
+  if (!items[current]) return
+  editor.setPointerCapture(e.pointerId)
+  editor.classList.add('is-dragging')
+  drag = { x: e.clientX, y: e.clientY }
+})
+editor.addEventListener('pointermove', (e) => {
+  if (!drag) return
+  const { img, crop } = items[current]
+  const k = view.dpr / view.s
+  const dx = (e.clientX - drag.x) * k
+  const dy = (e.clientY - drag.y) * k
+  drag = { x: e.clientX, y: e.clientY }
+  updateCrop({ cx: crop.cx + dx / img.width, cy: crop.cy + dy / img.height })
+})
+const endDrag = () => { drag = null; editor.classList.remove('is-dragging') }
+editor.addEventListener('pointerup', endDrag)
+editor.addEventListener('pointercancel', endDrag)
+editor.addEventListener('wheel', (e) => {
+  if (!items[current]) return
+  e.preventDefault()
+  const { crop } = items[current]
+  // macOS はマウスで Shift+ホイールすると deltaX 側に値が来る
+  const delta = e.deltaY || e.deltaX
+  if (e.shiftKey) updateCrop({ angle: Math.round((crop.angle + Math.sign(delta) * 0.5) * 2) / 2 })
+  else updateCrop({ zoom: crop.zoom * Math.exp(-delta * 0.0015) })
+}, { passive: false })
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { setRatioPop(false); return }
+  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || !items[current]) return
+  const { crop } = items[current]
+  const step = e.shiftKey ? 0.02 : 0.003
+  const actions = {
+    ArrowLeft: () => updateCrop({ cx: crop.cx - step }),
+    ArrowRight: () => updateCrop({ cx: crop.cx + step }),
+    ArrowUp: () => updateCrop({ cy: crop.cy - step }),
+    ArrowDown: () => updateCrop({ cy: crop.cy + step }),
+    '[': () => updateCrop({ angle: crop.angle - 1 }),
+    ']': () => updateCrop({ angle: crop.angle + 1 }),
+    '-': () => updateCrop({ zoom: crop.zoom / 1.05 }),
+    '=': () => updateCrop({ zoom: crop.zoom * 1.05 }),
+    j: () => select(current + 1),
+    k: () => select(current - 1),
+    r: () => $('reset').click(),
+    s: () => $('save-one').click(),
+  }
+  const act = actions[e.key]
+  if (!act) return
+  e.preventDefault()
+  act()
+})
+window.addEventListener('resize', renderEditor)
+renderAll()
+
+async function loadPreset() {
+  positionHints = PRESET.images.map(([key, cx, cy]) => ({ key, cx, cy }))
+  const files = await Promise.all(PRESET.images.map(async ([name]) => {
+    const res = await fetch(PRESET.imageBase + encodeURIComponent(name))
+    if (!res.ok) throw new Error(`${name}: ${res.status}`)
+    return new File([await res.blob()], name, { type: 'image/png' })
+  }))
+  await handleFiles(files)
+}
+if (isPreset) loadPreset().catch((err) => alertError('プリセット画像を読めませんでした', err))
+</script>
+</body>
+</html>
