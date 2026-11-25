@@ -16,12 +16,39 @@ body {
   display: grid; grid-template-columns: 180px 1fr 280px;
 }
 aside, section { min-height: 0 }
-#list { overflow-y: auto; border-right: 1px solid var(--line); padding: 8px; display: flex; flex-direction: column; gap: 6px }
-.item { display: flex; gap: 6px; align-items: center; padding: 4px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; background: none; color: var(--text); text-align: left; font: inherit }
+#list { overflow-y: auto; border-right: 1px solid var(--line); padding: 8px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px }
+.item { display: flex; gap: 6px; align-items: center; padding: 3px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; background: none; color: var(--text); text-align: left; font: inherit }
 .item:hover { background: var(--panel-2); color: var(--text) }
 .item.is-active { border-color: var(--accent); background: var(--panel) }
-.item canvas { height: 64px; width: auto; background: #000; flex: none }
-.item span { font-size: 11px; color: var(--muted); word-break: break-all }
+.thumb canvas { height: 120px; width: auto; max-width: 156px; object-fit: contain; background: #000; flex: none; display: block }
+/* 縦長比率: 一覧をエディタ下の横スクロール帯にする (サムネを大きくしてプレビューを兼ねる) */
+body.is-strip { grid-template-columns: 1fr 280px; grid-template-rows: minmax(0, 1fr) auto }
+body.is-strip #stage { grid-row: 1; grid-column: 1 }
+body.is-strip #side { grid-row: 1 / span 2; grid-column: 2 }
+body.is-strip #list {
+  grid-row: 2; grid-column: 1; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden;
+  border-right: none; border-top: 1px solid var(--line);
+}
+body.is-strip .thumb { flex: none }
+body.is-strip .thumb canvas { height: 220px; max-width: none }
+#gallery {
+  position: fixed; inset: 0; z-index: 20; background: rgba(8, 10, 13, .97);
+  gap: 8px; padding: 56px 16px 16px; overflow: auto;
+}
+#gallery.is-auto { display: grid; justify-content: center; align-content: center }
+#gallery.is-row { display: flex; flex-direction: row; align-items: center; justify-content: safe center }
+#gallery.is-column { display: flex; flex-direction: column; align-items: center; justify-content: safe center }
+#gallery[hidden], #gallery-bar[hidden] { display: none }
+#gallery canvas { flex: none }
+#gallery-bar { position: fixed; top: 10px; left: 16px; z-index: 21; display: flex; gap: 12px }
+.seg { display: flex }
+.seg button { border-radius: 0; margin-left: -1px }
+.seg button:first-child { border-radius: 6px 0 0 6px; margin-left: 0 }
+.seg button:last-child { border-radius: 0 6px 6px 0 }
+.seg button.is-on, .seg button.is-on:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent) }
+#gallery canvas { cursor: pointer; border-radius: 3px; display: block }
+#gallery canvas:hover { outline: 2px solid var(--accent); outline-offset: 2px }
+#gallery-close { position: fixed; top: 10px; right: 12px; z-index: 21 }
 #stage { position: relative; background: #0b0d10 }
 #editor { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none }
 #editor.is-dragging { cursor: grabbing }
@@ -110,6 +137,7 @@ button:disabled { opacity: .45; cursor: default; background: var(--panel-2); col
   <div class="buttons">
     <button id="save-one" class="primary">この画像を保存</button>
     <button id="save-all" class="primary">全部書き出し</button>
+    <button id="gallery-open" type="button" style="grid-column: 1 / -1">一覧プレビュー (P)</button>
     <button id="save-json">設定 JSON 保存</button>
     <button id="clear-store">保存位置を消去</button>
   </div>
@@ -119,6 +147,14 @@ button:disabled { opacity: .45; cursor: default; background: var(--panel-2); col
     <kbd>J</kbd><kbd>K</kbd> 前後の画像 / <kbd>R</kbd> リセット / <kbd>S</kbd> 保存
   </p>
 </aside>
+<div id="gallery" hidden></div>
+<div id="gallery-bar" hidden>
+  <div class="seg" id="gallery-scale">
+    <button type="button" data-v="fit">画面に合わせる</button>
+    <button type="button" data-v="native" title="元画像 1px = 画面 1px。ボケない">等倍</button>
+  </div>
+</div>
+<button id="gallery-close" type="button" hidden>閉じる (Esc)</button>
 <script>
 const PHI = (1 + Math.sqrt(5)) / 2
 // r は縦向きのときの 幅/高さ。横向きはその逆数
@@ -169,6 +205,19 @@ function persist() {
   const crops = Object.fromEntries(items.map((it) => [it.name, it.crop]))
   saved = { settings, crops: { ...saved.crops, ...crops } }
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)) } catch (err) { console.warn('localStorage に保存できない', err) }
+  syncStateToServer()
+}
+// localStorage の控えとしてサーバー側の state.json にも書く。ドラッグ中の連続更新をまとめるため 500ms 待つ
+const STATE_SYNC_DELAY_MS = 500
+let stateTimer = 0
+function syncStateToServer() {
+  if (!isPreset) return
+  clearTimeout(stateTimer)
+  stateTimer = setTimeout(() => {
+    fetch('/state', { method: 'POST', body: JSON.stringify(saved) })
+      .then((res) => { if (!res.ok) console.warn('state.json 保存失敗', res.status) })
+      .catch((err) => console.warn('state.json 保存失敗', err))
+  }, STATE_SYNC_DELAY_MS)
 }
 // 優先順: 既定値 < PRESET < ブラウザに保存した前回の設定
 if (isPreset) settings = { ...settings, ...PRESET.settings }
@@ -319,6 +368,46 @@ function renderEditor() {
   ctx.strokeStyle = '#7aa2f7'
   ctx.lineWidth = 2 * dpr
   ctx.stroke()
+  const center = [view.ox + crop.cx * img.width * s, view.oy + crop.cy * img.height * s]
+  const rot = rotateHandle(pts, center, dpr)
+  view = { ...view, pts, center, rot }
+  drawHandles(ctx, pts, rot, dpr)
+}
+// 角の四角 = 拡縮。回転は辺の外に棒で出した丸 (縦長は下辺、横長・正方形は右辺)。
+// 細長い枠だと角同士が近く、角に回転を置くとつまみにくいため
+const HANDLE_PX = 7
+const ROTATE_STEM_PX = 28
+function rotateHandle(pts, center, dpr) {
+  const [a, b] = aspect() < 1 ? [pts[2], pts[3]] : [pts[1], pts[2]]
+  const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
+  const len = Math.hypot(mid[0] - center[0], mid[1] - center[1]) || 1
+  const stem = ROTATE_STEM_PX * dpr
+  return { mid, at: [mid[0] + ((mid[0] - center[0]) / len) * stem, mid[1] + ((mid[1] - center[1]) / len) * stem] }
+}
+function drawHandles(ctx, pts, rot, dpr) {
+  const r = HANDLE_PX * dpr
+  ctx.lineWidth = 1.5 * dpr
+  ctx.strokeStyle = '#0d1117'
+  for (const [x, y] of pts) {
+    ctx.beginPath()
+    ctx.rect(x - r, y - r, r * 2, r * 2)
+    ctx.fillStyle = '#ffffff'
+    ctx.fill()
+    ctx.stroke()
+  }
+  ctx.beginPath()
+  ctx.moveTo(...rot.mid)
+  ctx.lineTo(...rot.at)
+  ctx.strokeStyle = '#7aa2f7'
+  ctx.lineWidth = 2 * dpr
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.arc(...rot.at, r * 1.3, 0, Math.PI * 2)
+  ctx.fillStyle = '#7aa2f7'
+  ctx.fill()
+  ctx.lineWidth = 1.5 * dpr
+  ctx.strokeStyle = '#0d1117'
+  ctx.stroke()
 }
 function renderSide() {
   const item = items[current]
@@ -336,22 +425,86 @@ function renderSide() {
   $('cy-r').value = crop.cy
   drawCrop(out, item, settings.outLong)
   $('out-size').textContent = `${out.width} × ${out.height} px`
-  drawCrop(item.thumb, item, 128)
+  drawCrop(item.thumb, item, thumbLong())
 }
+// サムネを表示サイズ × dpr で描く (小さく描いて CSS で引き伸ばすとボケるため)
+const STRIP_THUMB_H = 220
+const LIST_THUMB_LONG = 156
+const isStrip = () => aspect() < 1
+const thumbLong = () => Math.round((isStrip() ? STRIP_THUMB_H : LIST_THUMB_LONG) * (window.devicePixelRatio || 1))
 function renderList() {
   const list = $('list')
   list.replaceChildren(...items.map((it, i) => {
     const btn = document.createElement('button')
-    btn.className = 'item' + (i === current ? ' is-active' : '')
-    const label = document.createElement('span')
-    label.textContent = it.name
-    btn.append(it.thumb, label)
+    btn.className = 'item thumb' + (i === current ? ' is-active' : '')
+    btn.title = it.name
+    btn.append(it.thumb)
     btn.onclick = () => select(i)
     return btn
   }))
-  items.forEach((it) => drawCrop(it.thumb, it, 128))
+  items.forEach((it) => drawCrop(it.thumb, it, thumbLong()))
 }
 function renderAll() { renderEditor(); renderSide() }
+
+// ---- 一覧プレビュー: 全画像の現在の切り抜きを 1 画面に収めて並べる ----
+const GALLERY_PAD = 16
+const GALLERY_TOP = 56 // 上部の切り替えバーの分
+const GALLERY_GAP = 8
+let galleryOpts = { scale: 'fit' }
+// 並べ方は比率で決める: 縦長は横一列、横長は縦一列、正方形はグリッド
+const galleryLayoutFor = (ar) => (ar < 1 ? 'row' : ar > 1 ? 'column' : 'auto')
+const galleryArea = () => ({ W: window.innerWidth - GALLERY_PAD * 2, H: window.innerHeight - GALLERY_TOP - GALLERY_PAD })
+function galleryLayout(n, ar) {
+  const { W, H } = galleryArea()
+  // 列数を総当たりし、1 枚あたりが最も大きくなる配置を選ぶ
+  return Array.from({ length: n }, (_, i) => i + 1).reduce((best, cols) => {
+    const rows = Math.ceil(n / cols)
+    const tileW = (W - GALLERY_GAP * (cols - 1)) / cols
+    const tileH = (H - GALLERY_GAP * (rows - 1)) / rows
+    const h = Math.min(tileH, tileW / ar)
+    return h > best.h ? { cols, h } : best
+  }, { cols: 1, h: 0 })
+}
+// 1 枚あたりの表示高さ (CSS px) を決める
+function tileHeight(item, ar, autoH) {
+  const dpr = window.devicePixelRatio || 1
+  // 等倍: 切り抜き範囲の元画像 px をそのまま device px に対応させる
+  if (galleryOpts.scale === 'native') return cropSize(item.img, item.crop).h / dpr
+  if (galleryLayoutFor(ar) === 'auto') return autoH
+  const { W, H } = galleryArea()
+  return Math.min(H, W / ar) // 1 枚が画面に丸ごと収まる大きさ
+}
+function renderGalleryBar() {
+  for (const b of $('gallery-scale').children) b.classList.toggle('is-on', b.dataset.v === galleryOpts.scale)
+}
+function renderGallery() {
+  const gallery = $('gallery')
+  if (gallery.hidden || items.length === 0) return
+  renderGalleryBar()
+  const ar = aspect()
+  const { cols, h: autoH } = galleryLayout(items.length, ar)
+  const dpr = window.devicePixelRatio || 1
+  const layout = galleryLayoutFor(ar)
+  const isGrid = layout === 'auto'
+  gallery.className = `is-${layout}`
+  gallery.style.gridTemplateColumns = isGrid ? `repeat(${cols}, auto)` : ''
+  gallery.replaceChildren(...items.map((it, i) => {
+    const canvas = document.createElement('canvas')
+    const h = tileHeight(it, ar, autoH)
+    drawCrop(canvas, it, Math.round(Math.max(h, h * ar) * dpr))
+    canvas.style.height = `${h}px`
+    canvas.style.width = `${h * ar}px`
+    canvas.title = it.name
+    canvas.onclick = () => { setGallery(false); select(i) }
+    return canvas
+  }))
+}
+function setGallery(isOpen) {
+  $('gallery').hidden = !isOpen
+  $('gallery-close').hidden = !isOpen
+  $('gallery-bar').hidden = !isOpen
+  renderGallery()
+}
 
 function select(i) {
   if (items.length === 0) return
@@ -372,6 +525,7 @@ function updateCrop(patch) {
   persist()
 }
 function refitAll() {
+  document.body.classList.toggle('is-strip', isStrip())
   items = items.map((it) => ({ ...it, crop: fitCrop(it.img, it.crop) }))
   renderList()
   renderAll()
@@ -577,23 +731,56 @@ $('file').onchange = (e) => handleFiles(e.target.files)
 document.addEventListener('dragover', (e) => e.preventDefault())
 document.addEventListener('drop', (e) => { e.preventDefault(); handleFiles(e.dataTransfer.files) })
 
+// ---- エディタのドラッグ: 右下ハンドル = 回転 / 他の角 = 拡縮 / それ以外 = 移動 ----
 let drag = null
+const HIT_SLOP = 1.8 // ハンドル見た目より少し広く当たり判定をとる
+const toCanvas = (e) => [e.offsetX * view.dpr, e.offsetY * view.dpr]
+const angleOf = ([x, y]) => Math.atan2(y - view.center[1], x - view.center[0])
+const distOf = ([x, y]) => Math.hypot(x - view.center[0], y - view.center[1])
+function hitMode(p) {
+  if (!view.pts) return 'move'
+  const r = HANDLE_PX * view.dpr * HIT_SLOP
+  const near = ([x, y]) => Math.hypot(p[0] - x, p[1] - y) <= r
+  // 回転ハンドルを先に判定 (枠の外にあり、角と重なっても回転を優先)
+  if (near(view.rot.at)) return 'rotate'
+  return view.pts.some(near) ? 'scale' : 'move'
+}
+const CURSORS = { move: 'grab', rotate: 'crosshair', scale: 'nwse-resize' }
 editor.addEventListener('pointerdown', (e) => {
   if (!items[current]) return
   editor.setPointerCapture(e.pointerId)
   editor.classList.add('is-dragging')
-  drag = { x: e.clientX, y: e.clientY }
+  const p = toCanvas(e)
+  const { crop } = items[current]
+  drag = { mode: hitMode(p), x: e.clientX, y: e.clientY, a0: angleOf(p), d0: distOf(p), crop0: crop }
 })
 editor.addEventListener('pointermove', (e) => {
-  if (!drag) return
+  if (!drag) {
+    editor.style.cursor = items[current] ? CURSORS[hitMode(toCanvas(e))] : ''
+    return
+  }
   const { img, crop } = items[current]
+  const p = toCanvas(e)
+  if (drag.mode === 'rotate') {
+    const raw = drag.crop0.angle + ((angleOf(p) - drag.a0) * 180) / Math.PI
+    // Shift で 15° 刻みにスナップ、通常は 0.5° 刻み
+    const angle = e.shiftKey ? Math.round(raw / 15) * 15 : Math.round(raw * 2) / 2
+    updateCrop({ angle })
+    return
+  }
+  if (drag.mode === 'scale') {
+    // 中心からの距離が伸びた分だけ枠を大きく (= ズームを引く)
+    const d = Math.max(distOf(p), 1)
+    updateCrop({ zoom: (drag.crop0.zoom * drag.d0) / d })
+    return
+  }
   const k = view.dpr / view.s
   const dx = (e.clientX - drag.x) * k
   const dy = (e.clientY - drag.y) * k
-  drag = { x: e.clientX, y: e.clientY }
+  drag = { ...drag, x: e.clientX, y: e.clientY }
   updateCrop({ cx: crop.cx + dx / img.width, cy: crop.cy + dy / img.height })
 })
-const endDrag = () => { drag = null; editor.classList.remove('is-dragging') }
+const endDrag = () => { drag = null; editor.classList.remove('is-dragging'); editor.style.cursor = '' }
 editor.addEventListener('pointerup', endDrag)
 editor.addEventListener('pointercancel', endDrag)
 editor.addEventListener('wheel', (e) => {
@@ -608,7 +795,15 @@ editor.addEventListener('wheel', (e) => {
 }, { passive: false })
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') { setRatioPop(false); return }
+  if (e.key === 'Escape') { setRatioPop(false); setGallery(false); return }
+  // ⌘R (再読み込み) 等のブラウザ操作を奪わない。修飾キー付きは一切処理しない
+  if (e.metaKey || e.ctrlKey || e.altKey) return
+  if ((e.key === 'p' || e.key === 'P') && !(e.target instanceof HTMLInputElement) && items.length > 0) {
+    e.preventDefault()
+    setGallery($('gallery').hidden)
+    return
+  }
+  if (!$('gallery').hidden) return
   if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || !items[current]) return
   const { crop } = items[current]
   const step = e.shiftKey ? 0.02 : 0.003
@@ -633,7 +828,20 @@ document.addEventListener('keydown', (e) => {
   e.preventDefault()
   act()
 })
-window.addEventListener('resize', renderEditor)
+$('gallery-open').onclick = () => setGallery(true)
+$('gallery-scale').onclick = (e) => {
+  const v = e.target.closest('button')?.dataset.v
+  if (!v) return
+  galleryOpts = { ...galleryOpts, scale: v }
+  try { localStorage.setItem(`${STORAGE_KEY}:gallery`, JSON.stringify(galleryOpts)) } catch (err) { console.warn(err) }
+  renderGallery()
+}
+try {
+  const g = localStorage.getItem(`${STORAGE_KEY}:gallery`)
+  if (g !== null) galleryOpts = { ...galleryOpts, ...JSON.parse(g) }
+} catch (err) { console.warn('一覧プレビュー設定を読めない', err) }
+$('gallery-close').onclick = () => setGallery(false)
+window.addEventListener('resize', () => { renderEditor(); renderGallery() })
 renderAll()
 
 async function loadPreset() {
